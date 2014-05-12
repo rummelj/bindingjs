@@ -1,4 +1,6 @@
 
+![BindingJS](http://bindingjs.com/screenshot.png)
+
 BindingJS -- View Data Binding for JavaScript <http://bindingjs.com><br/>
 Copyright (c) 2014 Ralf S. Engelschall <http://engelschall.com>
 
