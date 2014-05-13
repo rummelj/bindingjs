@@ -1,3 +1,3 @@
 
-![BindingJS -- Separable, Reactive, Model-Agnostic View Data Binding](http://bindingjs.com/bindingjs-logo.png)
+![BindingJS -- Separable, Reactive, Model-Agnostic View Data Binding](http://bindingjs.com/bindingjs-logo.svg)
 
