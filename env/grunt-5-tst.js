@@ -10,7 +10,7 @@
 /* global module: true */
 module.exports = function (grunt) {
     /*  unit testing  */
-    grunt.extendConfig({
+    grunt.config.merge({
         mochaTest: {
             "core": {
                 src: [ "tst/core/**/*.js" ]

@@ -10,7 +10,7 @@
 /* global module: true */
 module.exports = function (grunt) {
     /*  task defaults  */
-    grunt.extendConfig({
+    grunt.config.merge({
         jshint: {
             options: {
                 jshintrc: "env/lint-1-jshint.json"

@@ -10,7 +10,7 @@
 /* global module: true */
 module.exports = function (grunt) {
     /*  build environment  */
-    grunt.extendConfig({
+    grunt.config.merge({
         jshint: {
             "env": [ "Gruntfile.js", "env/*.js" ]
         },

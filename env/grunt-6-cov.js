@@ -10,7 +10,7 @@
 /* global module: true */
 module.exports = function (grunt) {
     /*  coverage testing  */
-    grunt.extendConfig({
+    grunt.config.merge({
         env: {
             "instrumented": {
                 "COVERAGE_INSTRUMENTED": "true"

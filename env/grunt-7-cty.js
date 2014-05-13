@@ -10,7 +10,7 @@
 /* global module: true */
 module.exports = function (grunt) {
     /*  code complexity reporting  */
-    grunt.extendConfig({
+    grunt.config.merge({
         complexity: {
             "core": {
                 src: [ "src/core/*.js" ],

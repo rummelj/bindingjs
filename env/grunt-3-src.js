@@ -10,7 +10,7 @@
 /* global module: true */
 module.exports = function (grunt) {
     /*  build core parser  */
-    grunt.extendConfig({
+    grunt.config.merge({
         newer: {
             "src-core-parser": {
                 src: [ "src/core/binding-3-parser-grammar.pegjs" ],
@@ -53,7 +53,7 @@ module.exports = function (grunt) {
     });
 
     /*  build core  */
-    grunt.extendConfig({
+    grunt.config.merge({
         newer: {
             "src-core": {
                 src: [ "src/core/*.js", "src/umd/*.js" ],
@@ -84,7 +84,7 @@ module.exports = function (grunt) {
     });
 
     /*  build plugins (others)  */
-    grunt.extendConfig({
+    grunt.config.merge({
         newer: {
             "src-plugin": {
                 src: [ "src/plugin/*.js" ],
@@ -110,7 +110,7 @@ module.exports = function (grunt) {
     });
 
     /*  linting (JSHint)  */
-    grunt.extendConfig({
+    grunt.config.merge({
         newer: {
             "src-jshint": {
                 src: [ "bld/binding.js", "bld/binding.*.js", "!bld/binding.*.min.js" ],
@@ -150,7 +150,7 @@ module.exports = function (grunt) {
     });
 
     /*  minification (UglifyJS)  */
-    grunt.extendConfig({
+    grunt.config.merge({
         newer: {
             "src-min": {
                 src: [ "bld/binding.js", "bld/binding.*.js", "!bld/binding.*.min.js" ],

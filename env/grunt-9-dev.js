@@ -10,7 +10,7 @@
 /* global module: true */
 module.exports = function (grunt) {
     /*  development tasks configuration  */
-    grunt.extendConfig({
+    grunt.config.merge({
         watch: {
             "src-core": {
                 files: [ "src/umd/*.js", "src/core/*.js", "src/core/*.pegjs" ],

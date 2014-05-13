@@ -10,7 +10,7 @@
 /* global module: true */
 module.exports = function (grunt) {
     /*  release engineering  */
-    grunt.extendConfig({
+    grunt.config.merge({
         "path-check": {
             "release": {
                 src: [ "shtool", "tar", "gzip" ]
