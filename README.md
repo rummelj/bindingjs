@@ -1,3 +1,3 @@
 
-![BindingJS](http://bindingjs.com/screenshot.png)
+![BindingJS](http://bindingjs.com/bindingjs-logo.svg)
 
