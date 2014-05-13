@@ -15,13 +15,13 @@ div > !div.foo[name='bar'] > div, span {
 div:name(pos) {
     exists <- length(persons) > 0
     li {
-        $person, $k <- slice(sort('name', persons), window.begin, window.end)
+        $person, $k <- each <- slice(sort('name', persons), window.begin, window.end)
         attr:data-id <- $person.id
         span:name(num)   { text <- sprintf('%03d', window.begin + $k) }
         span:name(intro) { text <- intro }
         input {
             $p <- $person;
-            attr:value <-> $p.name; attr:disabled? <- !$p.enabled;
+            attr:value <-> $p.name; attr:disabled(?) <- !$p.enabled;
             css:color <- $p.enabled ? 'green' : 'red'
         }
         button {
