@@ -13,7 +13,7 @@ div > !div.foo[name='bar'] > div, span {
 }
 
 div:name(pos) {
-    exists <- persons.length > 0
+    exists <- length(persons) > 0
     li {
         $person, $k <- slice(sort('name', persons), window.begin, window.end)
         attr:data-id <- $person.id
@@ -34,7 +34,7 @@ div:name(pos) {
 }
 
 div:name(neg) {
-    exists <- persons.length == 0
+    exists <- length(persons) == 0
     text <- i18n(lang, 'no-persons-available')
 }
 
