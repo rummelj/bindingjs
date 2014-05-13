@@ -24,7 +24,7 @@ rule
 body
     =   rule      /* RECURSION */
     /   binding
-    /   macroRef 
+    /   macroRef
 
 macroDef
     =   "@" id:id "(" _ a:idSeq _ ")" _ "{" b:(_ binding)* _ "}" {
@@ -74,7 +74,7 @@ selectorComponents
         }
 
 selectorComponentElement "element-selector"
-    =   t:$("*" / [a-zA-Z0-9_-]+) { 
+    =   t:$("*" / [a-zA-Z0-9_-]+) {
             return AST("Element", t);
         }
 
@@ -235,7 +235,7 @@ exprAdditive
     /   exprMultiplicative
 
 exprAdditiveOp "additive arithmetic operator"
-    =   "+" / "-" 
+    =   "+" / "-"
 
 exprMultiplicative
     =   e1:exprOther _ op:exprMultiplicativeOp _ e2:expr {
@@ -244,38 +244,38 @@ exprMultiplicative
     /   exprOther
 
 exprMultiplicativeOp "multiplicative arithmetic operator"
-    =   "*" / "/" 
+    =   "*" / "/"
 
-exprOther 
+exprOther
     =   exprLiteral
     /   exprVariable
     /   exprDereference
     /   exprFunctionCall
     /   exprParenthesis
 
-exprLiteral  
+exprLiteral
     =   string
     /   number
 
 exprVariable
-    =   id:id { 
+    =   id:id {
             return AST("Var", id.A[0])
         }
 
 exprDereference
-    =   "." v:id { 
+    =   "." v:id {
             return AST("Deref", v)
         }
-    /   "[" _ v:expr _ "]" { 
+    /   "[" _ v:expr _ "]" {
             return AST("Deref", v)
         }
 
-exprFunctionCall  
+exprFunctionCall
     =   id:id "(" _ p:exprSeq? _ ")" {
             return AST("Func", p)
         }
 
-exprParenthesis 
+exprParenthesis
     =   "(" e:expr ")" {
              return AST("Parenthesis", e)
         }
@@ -307,24 +307,24 @@ string "quoted string literal"
             return AST("LiteralString", t.replace(/\\'/g, "'"))
         }
 
-number "numeric literal" 
+number "numeric literal"
     =   n:$([+-]? [0-9]+) {
             return AST("LiteralNumber", parseInt(n, 10))
         }
-    /   n:$([+-]? [0-9]* "." [0-9]+ ([eE] [+-] [0-9]+)?) { 
+    /   n:$([+-]? [0-9]* "." [0-9]+ ([eE] [+-] [0-9]+)?) {
             return AST("LiteralNumber", parseInt(n, 10))
         }
-    /   s:$([+-]?) "0x" n:$([0-9a-fA-F]+) { 
+    /   s:$([+-]?) "0x" n:$([0-9a-fA-F]+) {
             return AST("LiteralNumber", parseInt(s + n, 16))
         }
-    /   s:$([+-]?) "0b" n:$([01]+) { 
+    /   s:$([+-]?) "0b" n:$([01]+) {
             return AST("LiteralNumber", parseInt(s + n, 2))
         }
 
 _ "optional blank"
     =   (co / ws)*
 
-co "end-of-line or multi-line comment" 
+co "end-of-line or multi-line comment"
     =   "//" (![\r\n] .)*
     /   "/*" (!"*/" .)* "*/"
 
@@ -332,4 +332,4 @@ ws "any whitespaces"
     =   [ \t\r\n]+
 
 eof "end of file"
-    =   !.    
+    =   !.
