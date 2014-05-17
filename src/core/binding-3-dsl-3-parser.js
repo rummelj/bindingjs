@@ -9,29 +9,6 @@
 
 /*  include the generated PEG parser  */
 _api.parser = (function (module) {
-    /*  constructor for an AST node  */
-    var AST = function () {
-        if (!(this instanceof arguments.callee)) {
-            var ast = new arguments.callee();
-            ast.set.apply(ast, arguments);
-            return ast;
-        }
-        else {
-            this.set.apply(this, arguments);
-            return this;
-        }
-    };
-    AST.prototype.set = function (t) {
-        this.T = t;
-        if (arguments.length === 2 && typeof arguments[1] === "object" && !(arguments[1] instanceof Array))
-            this.A = arguments[1];
-        else if (arguments.length >= 2)
-            this.A = Array.prototype.slice.call(arguments, 1);
-    };
-    AST.prototype.isA = function (t) {
-        return (this.T === t);
-    };
-
     /*  provide a helper function for unrolling the parse stack  */
     var unroll = function (first, list, take) {
         if (   typeof list !== "object"
@@ -61,6 +38,7 @@ _api.parser = (function (module) {
     /* eslint quotes: 0 */
     /* eslint semi: 0 */
     /* eslint space-infix-ops: 0 */
+    /* eslint no-lone-blocks: 0 */
     /* jshint -W003 */
     /* jshint -W098 */
     /* jshint -W100 */
@@ -72,7 +50,7 @@ _api.parser = (function (module) {
     /* jshint maxstatements: 400 */
     /* jshint quotmark: false */
     /* jshint unused: false */
-    include("binding-3-parser-grammar.js");
+    include("binding-3-dsl-2-grammar.js");
     return module;
 })({}).exports;
 

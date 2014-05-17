@@ -7,9 +7,21 @@
 **  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+/*  generate an Abstrast Syntax Tree (AST) node  */
+{
+    var AST = function (T, A, C) {
+        return _api.AST(T, A, C).pos(line(), column(), offset());
+    };
+}
+
+
+/*
+**  ==== TOP-LEVEL ====
+*/
+
 spec
     =   b:(_ block)* _ eof {
-            return AST("Spec", unroll(null, b, 1))
+            return AST("Spec", {}, unroll(null, b, 1))
         }
 
 block
@@ -18,7 +30,7 @@ block
 
 rule
     =   s:selectors _ "{" b:(_ body)* _ "}" {
-            return AST("Rule", { selectors: s, body: unroll(null, b, 1) })
+            return AST("Rule", {}).add(s).add(unroll(null, b, 1))
         }
 
 body
@@ -28,12 +40,12 @@ body
 
 macroDef
     =   "@" id:id "(" _ a:idSeq _ ")" _ "{" b:(_ binding)* _ "}" {
-            return AST("MacroDef", { id: id, args: a, bindings: unroll(null, b, 1) })
+            return AST("MacroDef", { id: id }).add(a).add(unroll(null, b, 1))
         }
 
 macroRef
     =   "@" id:id "(" _ p:exprSeq _ ")" {
-            return AST("MacroRef", { id: id, params: p })
+            return AST("MacroRef", { id: id }, p)
         }
 
 
@@ -46,24 +58,24 @@ macroRef
 
 selectors
     =   f:selector l:(_ "," _ selector)* {
-            return AST("SelectorList", unroll(f, l, 3))
+            return AST("SelectorList", {}, unroll(f, l, 3))
         }
 
 selector
     =   f:selectorSingle l:(_ selectorCombinator _ selectorSingle)* {
-            return AST("SelectorCombination", unroll(f, l, [ 1, 3 ]))
+            return AST("SelectorCombination", {}, unroll(f, l, [ 1, 3 ]))
         }
 
 selectorSingle
     =   s:"!"? c:selectorComponents {
-            return AST("Selector", { isSubject: !!s, components: c })
+            return AST("Selector", { isSubject: !!s }, c)
         }
 
 selectorCombinator "selector combinator"
-    =   ws   { return AST("Combinator", "descendant")        }
-    /   ">"  { return AST("Combinator", "child")             }
-    /   "+"  { return AST("Combinator", "next-sibling")      }
-    /   "~"  { return AST("Combinator", "following-sibling") }
+    =   ws   { return AST("Combinator", { type: "descendant" })        }
+    /   ">"  { return AST("Combinator", { type: "child" })             }
+    /   "+"  { return AST("Combinator", { type: "next-sibling" })      }
+    /   "~"  { return AST("Combinator", { type: "following-sibling" }) }
 
 selectorComponents
     =   f:selectorComponentElement l:selectorComponentRepeatable* {
@@ -75,7 +87,7 @@ selectorComponents
 
 selectorComponentElement "element-selector"
     =   t:$("*" / [a-zA-Z0-9_-]+) {
-            return AST("Element", t);
+            return AST("Element", { name: t });
         }
 
 selectorComponentRepeatable
@@ -86,20 +98,20 @@ selectorComponentRepeatable
 
 selectorId "id-selector"
     =   "#" t:$([a-zA-Z0-9-_$]+) {
-            return AST("Id", t)
+            return AST("Id", { name: t })
         }
 
 selectorClass "class-selector"
     =   "." t:$([a-zA-Z0-9-_$]+) {
-            return AST("Class", t)
+            return AST("Class", { name: t })
         }
 
 selectorAttr
     =   "[" _ name:id _ op:selectorAttrOp _ value:selectorAttrValue _ "]"{
-            return AST("Attr", name, op, value)
+            return AST("Attr", { op: op }, [ name, value ])
         }
     /   "[" _ name:id _ "]" {
-            return AST("Attr", name, "has", null)
+            return AST("Attr", { op: "has" }, [ name ])
         }
 
 selectorAttrOp "attribute operator"
@@ -116,13 +128,13 @@ selectorAttrValue
 
 selectorPseudo
     =   ":" t:selectorPseudoTagNameSimple {
-            return AST("PseudoSimple", t, null)
+            return AST("PseudoSimple", { name: t })
         }
     /   ":" t:selectorPseudoTagNameArg args:("(" _ string _ ")")? {
-            return AST("PseudoArg", t, args[1])
+            return AST("PseudoArg", { name: t }, [ args[1] ])
         }
     /   ":" t:selectorPseudoTagNameComplex args:("(" _ selector _ ")")? {
-            return AST("PseudoComplex", t, args[1])
+            return AST("PseudoComplex", { name: t }, [ args[1] ])
         }
 
 selectorPseudoTagNameSimple "name of pseudo-selector (simple)"
@@ -182,20 +194,20 @@ selectorPseudoTagNameComplex "name of pseudo-selector (with complex argument)"
 
 binding
     =   f:bindingLink l:(_ bindingOp _ bindingLink)+ {
-            return AST("Binding", unroll(f, l, [ 1, 3 ]))
+            return AST("Binding", {}, unroll(f, l, [ 1, 3 ]))
         }
 
 bindingLink
     =   exprSeq
 
 bindingOp "binding operator"
-    =   "<-"
-    /   "<->"
-    /   "->"
+    =   op:"<-"   { return AST("BindingOperator", { value: op }) }
+    /   op:"<->"  { return AST("BindingOperator", { value: op }) }
+    /   op:"->"   { return AST("BindingOperator", { value: op }) }
 
 exprSeq
     =   f:expr l:(_ "," _ expr)* {
-            return unroll(f, l, 3)
+            return AST("ExprSeq", {}, unroll(f, l, 3))
         }
 
 expr
@@ -203,16 +215,16 @@ expr
 
 exprConditional
     =   e1:exprLogical _ "?" _ e2:expr _ ":" _ e3:expr {
-            return AST("Conditional", e1, e2, e3)
+            return AST("Conditional", {}, [ e1, e2, e3 ])
         }
     /   exprLogical
 
 exprLogical
     =   "!" _ e:expr {
-            return AST("LogicalNot", e)
+            return AST("LogicalNot", {}, [ e ])
         }
     /   e1:exprRelational _ op:exprLogicalOp _ e2:expr {
-            return AST("Logical", e1, op, e2)
+            return AST("Logical", { op: op }, [ e1, e2 ])
         }
     /   exprRelational
 
@@ -221,7 +233,7 @@ exprLogicalOp "boolean logical operator"
 
 exprRelational
     =   e1:exprAdditive _ op:exprRelationalOp _ e2:expr {
-            return AST("Relational", e1, op, e2)
+            return AST("Relational", { op: op }, [ e1, e2 ])
         }
     /   exprAdditive
 
@@ -230,7 +242,7 @@ exprRelationalOp "relational operator"
 
 exprAdditive
     =   e1:exprMultiplicative _ op:exprAdditiveOp _ e2:expr {
-            return AST("Arith", e1, op, e2)
+            return AST("Arith", { op: op }, [ e1, e2 ])
         }
     /   exprMultiplicative
 
@@ -239,7 +251,7 @@ exprAdditiveOp "additive arithmetic operator"
 
 exprMultiplicative
     =   e1:exprOther _ op:exprMultiplicativeOp _ e2:expr {
-            return AST("Arith", e1, op, e2)
+            return AST("Arith", { op: op }, [ e1, e2 ])
         }
     /   exprOther
 
@@ -259,25 +271,25 @@ exprLiteral
 
 exprVariable
     =   id:id {
-            return AST("Var", id.A[0])
+            return AST("Var", {}, [ id ])
         }
 
 exprDereference
-    =   "." v:id {
-            return AST("Deref", v)
+    =   "." id:id {
+            return AST("Deref", {}, [ id ])
         }
-    /   "[" _ v:expr _ "]" {
-            return AST("Deref", v)
+    /   "[" _ e:expr _ "]" {
+            return AST("Deref", {}, [ e ])
         }
 
 exprFunctionCall
     =   id:id "(" _ p:exprSeq? _ ")" {
-            return AST("Func", p)
+            return AST("Func", {}, [ id, p ])
         }
 
 exprParenthesis
     =   "(" e:expr ")" {
-             return AST("Parenthesis", e)
+             return AST("Parenthesis", {}, [ e ])
         }
 
 /*
@@ -286,7 +298,7 @@ exprParenthesis
 
 id "identifier"
     =   id:$(("\\" . / [a-zA-Z_][a-zA-Z0-9_]*)+) {
-            return AST("Identifier", id.replace(/\\/g, ""))
+            return AST("Identifier", { id: id.replace(/\\/g, "") })
         }
 
 idSeq "identifier sequence"
@@ -296,29 +308,29 @@ idSeq "identifier sequence"
 
 bareword "bareword"
     =   bw:$(("\\" . / [a-zA-Z0-9_])+) {
-            return AST("LiteralBareword", bw.replace(/\\/g, ""))
+            return AST("LiteralBareword", { value: bw.replace(/\\/g, "") })
         }
 
 string "quoted string literal"
     =   "\"" t:$(("\\\"" / [^\\"])*) "\"" {
-            return AST("LiteralString", t.replace(/\\"/g, "\""))
+            return AST("LiteralString", { value: t.replace(/\\"/g, "\"") })
         }
     /   "'" t:$(("\\'" / [^\\'])*) "'" {
-            return AST("LiteralString", t.replace(/\\'/g, "'"))
+            return AST("LiteralString", { value: t.replace(/\\'/g, "'") })
         }
 
 number "numeric literal"
     =   n:$([+-]? [0-9]+) {
-            return AST("LiteralNumber", parseInt(n, 10))
+            return AST("LiteralNumber", { value: parseInt(n, 10) })
         }
     /   n:$([+-]? [0-9]* "." [0-9]+ ([eE] [+-] [0-9]+)?) {
-            return AST("LiteralNumber", parseInt(n, 10))
+            return AST("LiteralNumber", { value: parseInt(n, 10) })
         }
     /   s:$([+-]?) "0x" n:$([0-9a-fA-F]+) {
-            return AST("LiteralNumber", parseInt(s + n, 16))
+            return AST("LiteralNumber", { value: parseInt(s + n, 16) })
         }
     /   s:$([+-]?) "0b" n:$([01]+) {
-            return AST("LiteralNumber", parseInt(s + n, 2))
+            return AST("LiteralNumber", { value: parseInt(s + n, 2) })
         }
 
 _ "optional blank"

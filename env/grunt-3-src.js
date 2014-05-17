@@ -13,15 +13,15 @@ module.exports = function (grunt) {
     grunt.config.merge({
         newer: {
             "src-core-parser": {
-                src: [ "src/core/binding-3-parser-grammar.pegjs" ],
-                dest: "src/core/binding-3-parser-grammar.js",
+                src: [ "src/core/binding-3-dsl-2-grammar.pegjs" ],
+                dest: "src/core/binding-3-dsl-2-grammar.js",
                 options: { tasks: [ "shell:src-core-parser" ] }
             }
         },
         peg: {
             "src-core-parser": {
-                src:  "src/core/binding-3-parser-grammar.pegjs",
-                dest: "src/core/binding-3-parser-grammar.js",
+                src:  "src/core/binding-3-dsl-2-grammar.pegjs",
+                dest: "src/core/binding-3-dsl-2-grammar.js",
                 options: {
                     exportVar: "module.exports",
                     allowedStartRules: [ "spec", "binding" ],
@@ -37,8 +37,8 @@ module.exports = function (grunt) {
                     "--allowed-start-rules spec,binding " +
                     "--optimize speed " +
                     "--cache " +
-                    "src/core/binding-3-parser-grammar.pegjs " +
-                    "src/core/binding-3-parser-grammar.js",
+                    "src/core/binding-3-dsl-2-grammar.pegjs " +
+                    "src/core/binding-3-dsl-2-grammar.js",
                 options: {
                     stdout: true,
                     stderr: true
@@ -47,7 +47,7 @@ module.exports = function (grunt) {
         },
         clean: {
             "src-core-parser": [
-                "src/binding-3-parser-grammar.js"
+                "src/binding-3-dsl-2-grammar.js"
             ]
         }
     });

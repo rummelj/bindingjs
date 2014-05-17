@@ -30,8 +30,14 @@ describe("BindingJS DSL Parser", function () {
                     chalk.black("ERROR: ") + chalk.red(ast.error.message) + "\n"
                 )
             }
-            else
-                console.log(util.inspect(ast.ast, { depth: null, colors: true }))
+            else {
+                console.log(ast.ast.dump()
+                    .replace(/([A-Z][a-zA-Z0-9_$]+)( [(\[])/g, function (all, id, e) { return chalk.blue(id) + e; })
+                    .replace(/([a-zA-Z][a-zA-Z0-9_$]*)(:)/g, function (all, id, e) { return chalk.black(id) + e; })
+                    .replace(/(: )(".+?"|\d+|true|false)/g, function (all, p,  s) { return p + chalk.yellow(s); })
+                    .replace(/(\[\d+\/\d+\])/g, function (all, p) { return chalk.gray(p); })
+                );
+            }
             expect(ast).to.have.keys([ "ast", "error" ])
             expect(ast).to.be.a("object")
         })

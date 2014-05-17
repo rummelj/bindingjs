@@ -11,7 +11,8 @@ include("../umd/umd-library-prolog.js", { library: "bindingjs" });
 
     include("binding-1-version.js");
     include("binding-2-util.js");
-    include("binding-3-parser.js");
+    include("binding-3-dsl-1-ast.js");
+    include("binding-3-dsl-3-parser.js");
 
 include("../umd/umd-library-epilog.js");
 
