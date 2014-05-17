@@ -21,7 +21,7 @@
 
 spec
     =   b:(_ block)* _ eof {
-            return AST("Spec", {}, unroll(null, b, 1))
+            return AST("Spec").add(unroll(null, b, 1))
         }
 
 block
@@ -30,7 +30,7 @@ block
 
 rule
     =   s:selectors _ "{" b:(_ body)* _ "}" {
-            return AST("Rule", {}).add(s).add(unroll(null, b, 1))
+            return AST("Rule").add(s).add(unroll(null, b, 1))
         }
 
 body
@@ -40,12 +40,12 @@ body
 
 macroDef
     =   "@" id:id "(" _ a:idSeq _ ")" _ "{" b:(_ binding)* _ "}" {
-            return AST("MacroDef", { id: id }).add(a).add(unroll(null, b, 1))
+            return AST("MacroDef").add(id).add(a).add(unroll(null, b, 1))
         }
 
 macroRef
     =   "@" id:id "(" _ p:exprSeq _ ")" {
-            return AST("MacroRef", { id: id }, p)
+            return AST("MacroRef").add(id).add(p)
         }
 
 
@@ -58,24 +58,24 @@ macroRef
 
 selectors
     =   f:selector l:(_ "," _ selector)* {
-            return AST("SelectorList", {}, unroll(f, l, 3))
+            return AST("SelectorList").add(unroll(f, l, 3))
         }
 
 selector
     =   f:selectorSingle l:(_ selectorCombinator _ selectorSingle)* {
-            return AST("SelectorCombination", {}, unroll(f, l, [ 1, 3 ]))
+            return AST("SelectorCombination").add(unroll(f, l, [ 1, 3 ]))
         }
 
 selectorSingle
     =   s:"!"? c:selectorComponents {
-            return AST("Selector", { isSubject: !!s }, c)
+            return AST("Selector").set({ subject: !!s }).add(c)
         }
 
 selectorCombinator "selector combinator"
-    =   ws   { return AST("Combinator", { type: "descendant" })        }
-    /   ">"  { return AST("Combinator", { type: "child" })             }
-    /   "+"  { return AST("Combinator", { type: "next-sibling" })      }
-    /   "~"  { return AST("Combinator", { type: "following-sibling" }) }
+    =   ws   { return AST("Combinator").set({ type: "descendant" })        }
+    /   ">"  { return AST("Combinator").set({ type: "child" })             }
+    /   "+"  { return AST("Combinator").set({ type: "next-sibling" })      }
+    /   "~"  { return AST("Combinator").set({ type: "following-sibling" }) }
 
 selectorComponents
     =   f:selectorComponentElement l:selectorComponentRepeatable* {
@@ -87,7 +87,7 @@ selectorComponents
 
 selectorComponentElement "element-selector"
     =   t:$("*" / [a-zA-Z0-9_-]+) {
-            return AST("Element", { name: t });
+            return AST("Element").set({ name: t })
         }
 
 selectorComponentRepeatable
@@ -98,20 +98,20 @@ selectorComponentRepeatable
 
 selectorId "id-selector"
     =   "#" t:$([a-zA-Z0-9-_$]+) {
-            return AST("Id", { name: t })
+            return AST("Id").set({ name: t })
         }
 
 selectorClass "class-selector"
     =   "." t:$([a-zA-Z0-9-_$]+) {
-            return AST("Class", { name: t })
+            return AST("Class").set({ name: t })
         }
 
 selectorAttr
     =   "[" _ name:id _ op:selectorAttrOp _ value:selectorAttrValue _ "]"{
-            return AST("Attr", { op: op }, [ name, value ])
+            return AST("Attr").set({ op: op }).add(name, value)
         }
     /   "[" _ name:id _ "]" {
-            return AST("Attr", { op: "has" }, [ name ])
+            return AST("Attr").set({ op: "has" }).add(name)
         }
 
 selectorAttrOp "attribute operator"
@@ -128,13 +128,13 @@ selectorAttrValue
 
 selectorPseudo
     =   ":" t:selectorPseudoTagNameSimple {
-            return AST("PseudoSimple", { name: t })
+            return AST("PseudoSimple").set({ name: t })
         }
     /   ":" t:selectorPseudoTagNameArg args:("(" _ string _ ")")? {
-            return AST("PseudoArg", { name: t }, [ args[1] ])
+            return AST("PseudoArg").set({ name: t }).add(args[1])
         }
     /   ":" t:selectorPseudoTagNameComplex args:("(" _ selector _ ")")? {
-            return AST("PseudoComplex", { name: t }, [ args[1] ])
+            return AST("PseudoComplex").set({ name: t }).add(args[1])
         }
 
 selectorPseudoTagNameSimple "name of pseudo-selector (simple)"
@@ -194,20 +194,20 @@ selectorPseudoTagNameComplex "name of pseudo-selector (with complex argument)"
 
 binding
     =   f:bindingLink l:(_ bindingOp _ bindingLink)+ {
-            return AST("Binding", {}, unroll(f, l, [ 1, 3 ]))
+            return AST("Binding").add(unroll(f, l, [ 1, 3 ]))
         }
 
 bindingLink
     =   exprSeq
 
 bindingOp "binding operator"
-    =   op:"<-"   { return AST("BindingOperator", { value: op }) }
-    /   op:"<->"  { return AST("BindingOperator", { value: op }) }
-    /   op:"->"   { return AST("BindingOperator", { value: op }) }
+    =   op:"<-"   { return AST("BindingOperator").set({ value: op }) }
+    /   op:"<->"  { return AST("BindingOperator").set({ value: op }) }
+    /   op:"->"   { return AST("BindingOperator").set({ value: op }) }
 
 exprSeq
     =   f:expr l:(_ "," _ expr)* {
-            return AST("ExprSeq", {}, unroll(f, l, 3))
+            return AST("ExprSeq").add(unroll(f, l, 3))
         }
 
 expr
@@ -215,16 +215,16 @@ expr
 
 exprConditional
     =   e1:exprLogical _ "?" _ e2:expr _ ":" _ e3:expr {
-            return AST("Conditional", {}, [ e1, e2, e3 ])
+            return AST("Conditional").add(e1, e2, e3)
         }
     /   exprLogical
 
 exprLogical
     =   "!" _ e:expr {
-            return AST("LogicalNot", {}, [ e ])
+            return AST("LogicalNot").add(e)
         }
     /   e1:exprRelational _ op:exprLogicalOp _ e2:expr {
-            return AST("Logical", { op: op }, [ e1, e2 ])
+            return AST("Logical").set({ op: op }).add(e1, e2)
         }
     /   exprRelational
 
@@ -233,7 +233,7 @@ exprLogicalOp "boolean logical operator"
 
 exprRelational
     =   e1:exprAdditive _ op:exprRelationalOp _ e2:expr {
-            return AST("Relational", { op: op }, [ e1, e2 ])
+            return AST("Relational").set({ op: op }).add(e1, e2)
         }
     /   exprAdditive
 
@@ -242,7 +242,7 @@ exprRelationalOp "relational operator"
 
 exprAdditive
     =   e1:exprMultiplicative _ op:exprAdditiveOp _ e2:expr {
-            return AST("Arith", { op: op }, [ e1, e2 ])
+            return AST("Arith").set({ op: op }).add(e1, e2)
         }
     /   exprMultiplicative
 
@@ -251,7 +251,7 @@ exprAdditiveOp "additive arithmetic operator"
 
 exprMultiplicative
     =   e1:exprOther _ op:exprMultiplicativeOp _ e2:expr {
-            return AST("Arith", { op: op }, [ e1, e2 ])
+            return AST("Arith").set({ op: op }).add(e1, e2)
         }
     /   exprOther
 
@@ -271,25 +271,25 @@ exprLiteral
 
 exprVariable
     =   id:id {
-            return AST("Var", {}, [ id ])
+            return AST("Var").add(id)
         }
 
 exprDereference
     =   "." id:id {
-            return AST("Deref", {}, [ id ])
+            return AST("Deref").add(id)
         }
     /   "[" _ e:expr _ "]" {
-            return AST("Deref", {}, [ e ])
+            return AST("Deref").add(e)
         }
 
 exprFunctionCall
     =   id:id "(" _ p:exprSeq? _ ")" {
-            return AST("Func", {}, [ id, p ])
+            return AST("Func").add(id, p)
         }
 
 exprParenthesis
     =   "(" e:expr ")" {
-             return AST("Parenthesis", {}, [ e ])
+             return AST("Parenthesis").add(e)
         }
 
 /*
@@ -298,7 +298,7 @@ exprParenthesis
 
 id "identifier"
     =   id:$(("\\" . / [a-zA-Z_][a-zA-Z0-9_]*)+) {
-            return AST("Identifier", { id: id.replace(/\\/g, "") })
+            return AST("Identifier").set({ id: id.replace(/\\/g, "") })
         }
 
 idSeq "identifier sequence"
@@ -308,29 +308,29 @@ idSeq "identifier sequence"
 
 bareword "bareword"
     =   bw:$(("\\" . / [a-zA-Z0-9_])+) {
-            return AST("LiteralBareword", { value: bw.replace(/\\/g, "") })
+            return AST("LiteralBareword").set({ value: bw.replace(/\\/g, "") })
         }
 
 string "quoted string literal"
     =   "\"" t:$(("\\\"" / [^\\"])*) "\"" {
-            return AST("LiteralString", { value: t.replace(/\\"/g, "\"") })
+            return AST("LiteralString").set({ value: t.replace(/\\"/g, "\"") })
         }
     /   "'" t:$(("\\'" / [^\\'])*) "'" {
-            return AST("LiteralString", { value: t.replace(/\\'/g, "'") })
+            return AST("LiteralString").set({ value: t.replace(/\\'/g, "'") })
         }
 
 number "numeric literal"
     =   n:$([+-]? [0-9]+) {
-            return AST("LiteralNumber", { value: parseInt(n, 10) })
+            return AST("LiteralNumber").set({ value: parseInt(n, 10) })
         }
     /   n:$([+-]? [0-9]* "." [0-9]+ ([eE] [+-] [0-9]+)?) {
-            return AST("LiteralNumber", { value: parseInt(n, 10) })
+            return AST("LiteralNumber").set({ value: parseInt(n, 10) })
         }
     /   s:$([+-]?) "0x" n:$([0-9a-fA-F]+) {
-            return AST("LiteralNumber", { value: parseInt(s + n, 16) })
+            return AST("LiteralNumber").set({ value: parseInt(s + n, 16) })
         }
     /   s:$([+-]?) "0b" n:$([01]+) {
-            return AST("LiteralNumber", { value: parseInt(s + n, 2) })
+            return AST("LiteralNumber").set({ value: parseInt(s + n, 2) })
         }
 
 _ "optional blank"
