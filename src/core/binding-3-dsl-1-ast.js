@@ -10,16 +10,19 @@
 /*  constructor for an AST node  */
 _api.AST = function () {
     if (!(this instanceof arguments.callee)) {
+        /*  case 1: convenient static call  */
         var ast = new arguments.callee();
         ast.init.apply(ast, arguments);
         return ast;
     }
     else {
+        /*  case 2: regular dynamic call  */
         this.init.apply(this, arguments);
         return this;
     }
 };
 
+/*  constructor helper: AST node initialization  */
 _api.AST.prototype.init = function (t, a, c) {
     this.T = t;
     this.A = {};
@@ -31,10 +34,12 @@ _api.AST.prototype.init = function (t, a, c) {
         this.add(c);
 };
 
+/*  check the type of an AST node  */
 _api.AST.prototype.isA = function (t) {
     return (this.T === t);
 };
 
+/*  set the parsing position   */
 _api.AST.prototype.pos = function (L, C, O) {
     this.P.L = L;
     this.P.C = C;
@@ -42,6 +47,7 @@ _api.AST.prototype.pos = function (L, C, O) {
     return this;
 };
 
+/*  set AST node attributes  */
 _api.AST.prototype.set = function () {
     if (arguments.length === 1 && typeof arguments[0] === "object")
         for (var key in arguments[0])
@@ -53,16 +59,19 @@ _api.AST.prototype.set = function () {
     return this;
 };
 
+/*  get AST node attributes  */
 _api.AST.prototype.get = function (key) {
     if (typeof key !== "string")
         throw new Error("get: invalid argument");
     return this.A[key];
 };
 
+/*  get child AST nodes  */
 _api.AST.prototype.childs = function () {
     return this.C;
 };
 
+/*  add child AST node(s)  */
 _api.AST.prototype.add = function () {
     if (arguments.length === 0)
         throw new Error("add: invalid argument");
@@ -82,6 +91,7 @@ _api.AST.prototype.add = function () {
     return this;
 };
 
+/*  delete child AST node(s)  */
 _api.AST.prototype.del = function () {
     if (arguments.length === 0)
         throw new Error("del: invalid argument");
@@ -100,6 +110,7 @@ _api.AST.prototype.del = function () {
     return this;
 };
 
+/*  walk the AST recursively  */
 _api.AST.prototype.walk = function (cb, after) {
     if (typeof after !== "boolean")
         after = false;
@@ -114,6 +125,7 @@ _api.AST.prototype.walk = function (cb, after) {
     dump(this, 0);
 };
 
+/*  dump the AST recursively  */
 _api.AST.prototype.dump = function () {
     var dump = "";
     this.walk(function (node, depth) {
