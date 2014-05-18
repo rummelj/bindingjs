@@ -10,33 +10,24 @@
 /*  constructor for an AST node  */
 _api.AST = function () {
     if (!(this instanceof arguments.callee)) {
-        /*  case 1: convenient static call  */
-        var ast = new arguments.callee();
-        ast.init.apply(ast, arguments);
-        return ast;
+        var self = new arguments.callee();
+        return self.init.apply(self, arguments);
     }
-    else {
-        /*  case 2: regular dynamic call  */
-        this.init.apply(this, arguments);
-        return this;
-    }
+    return this.init.apply(this, arguments);
 };
 
 /*  constructor helper: AST node initialization  */
-_api.AST.prototype.init = function (t, a, c) {
-    this.T = t;
+_api.AST.prototype.init = function (T) {
+    this.T = T;
     this.A = {};
     this.C = [];
     this.P = { L: 0, C: 0, O: 0 };
-    if (typeof a === "object")
-        this.set(a);
-    if (typeof c === "object" && c instanceof Array)
-        this.add(c);
+    return this;
 };
 
 /*  check the type of an AST node  */
-_api.AST.prototype.isA = function (t) {
-    return (this.T === t);
+_api.AST.prototype.isA = function (T) {
+    return this.T === T;
 };
 
 /*  set the parsing position   */
@@ -49,9 +40,11 @@ _api.AST.prototype.pos = function (L, C, O) {
 
 /*  set AST node attributes  */
 _api.AST.prototype.set = function () {
-    if (arguments.length === 1 && typeof arguments[0] === "object")
+    if (arguments.length === 1 && typeof arguments[0] === "object") {
         for (var key in arguments[0])
-            this.A[key] = arguments[0][key];
+            if (arguments[0].hasOwnProperty(key))
+                this.A[key] = arguments[0][key];
+    }
     else if (arguments.length === 2)
         this.A[arguments[0]] = arguments[1];
     else
@@ -75,19 +68,23 @@ _api.AST.prototype.childs = function () {
 _api.AST.prototype.add = function () {
     if (arguments.length === 0)
         throw new Error("add: invalid argument");
-    var add = function (C, args) {
-        for (var i = 0; i < args.length; i++) {
-            if (!(   (typeof args[i].T === "string")
-                  && (typeof args[i].A === "object")
-                  && (typeof args[i].C === "object" && args[i].C instanceof Array)))
-                throw new Error("add: invalid AST node: " + JSON.stringify(args[i]));
-            C.push(args[i]);
-        }
+    var add = function (C, node) {
+        if (!(   (typeof node   === "object")
+              && (typeof node.T === "string")
+              && (typeof node.P === "object")
+              && (typeof node.A === "object")
+              && (typeof node.C === "object" && node.C instanceof Array)))
+            throw new Error("add: invalid AST node: " + JSON.stringify(node));
+        C.push(node);
     };
-    if (arguments.length === 1 && typeof arguments[0] === "object" && arguments[0] instanceof Array)
-        add(this.C, arguments[0]);
-    else
-        add(this.C, arguments);
+    for (var i = 0; i < arguments.length; i++) {
+        if (   typeof arguments[i] === "object"
+            && arguments[i] instanceof Array)
+            for (var j = 0; j < arguments[i].length; j++)
+                add(this.C, arguments[i][j]);
+        else
+            add(this.C, arguments[i]);
+    }
     return this;
 };
 

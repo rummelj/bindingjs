@@ -30,7 +30,7 @@ block
 
 rule
     =   s:selectors _ "{" b:(_ body)* _ "}" {
-            return AST("Rule").add(s).add(unroll(null, b, 1))
+            return AST("Rule").add(s, unroll(null, b, 1))
         }
 
 body
@@ -40,12 +40,12 @@ body
 
 macroDef
     =   "@" id:id "(" _ a:idSeq _ ")" _ "{" b:(_ binding)* _ "}" {
-            return AST("MacroDef").add(id).add(a).add(unroll(null, b, 1))
+            return AST("MacroDef").add(id, a, unroll(null, b, 1))
         }
 
 macroRef
     =   "@" id:id "(" _ p:exprSeq _ ")" {
-            return AST("MacroRef").add(id).add(p)
+            return AST("MacroRef").add(id, p)
         }
 
 
