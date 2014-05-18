@@ -226,8 +226,13 @@ module.exports = function (grunt) {
             "stage4": {
                 src: [ "bld/stage3/src/core/*.js", "bld/stage3/src/plugin/*.js" ],
                 dest: "bld/stage4/binding.min.js",
-                options: { tasks: [ "uglify:stage4" ] }
+                options: { tasks: [ "jshint:stage4", "uglify:stage4" ] }
             }
+        },
+        jshint: {
+            "stage4": [
+                "bld/stage3/src/**/*.js"
+            ]
         },
         uglify: {
             "stage4": {
