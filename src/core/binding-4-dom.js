@@ -11,10 +11,9 @@
 _api.dom = {};
 
 /*  convert an XML string into a DOM document  */
-_api.dom.xml2doc = function (xml) {
+_api.dom.xml2doc = (xml) => {
     var doc;
     /* global $: true */
-    /* global window: true */
     /* global document: true */
 
     /*  attempt 1: the portable jQuery way  */
@@ -42,7 +41,7 @@ _api.dom.xml2doc = function (xml) {
 };
 
 /*  convert a HTML string into a DOM fragment  */
-_api.dom.html2dom = function (html) {
+_api.dom.html2dom = (html) => {
     /*  the necessary (= valid) inner wrapper elements  */
     var wrapMap = {
         option:   [ 1, "<select multiple='multiple'>", "</select>" ],

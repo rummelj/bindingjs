@@ -10,7 +10,7 @@
 /*  include the generated PEG parser  */
 _api.parser = (function (module) {
     /*  provide a helper function for unrolling the parse stack  */
-    var unroll = function (first, list, take) {
+    var unroll = (first, list, take) => {
         if (   typeof list !== "object"
             || !(list instanceof Array))
             throw "unroll: invalid list argument (expected Array)";
@@ -55,7 +55,7 @@ _api.parser = (function (module) {
 })({}).exports;
 
 /*  utility function  */
-var excerpt = function (txt, o) {
+var excerpt = (txt, o) => {
     var l = txt.length;
     var b = o - 20; if (b < 0) b = 0;
     var e = o + 20; if (e > l) e = l;
@@ -67,7 +67,7 @@ var excerpt = function (txt, o) {
 };
 
 /*  provide top-level parsing functionality  */
-$api.parse = function (txt, rule) {
+$api.parse = (txt, rule) => {
     if (typeof rule === "undefined")
         rule = "spec";
     var result = { ast: null, error: null };

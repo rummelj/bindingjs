@@ -7,9 +7,6 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-/*  switch to strict mode  */
-"use strict";
-
 /*  provide exception swallowing  */
 global.swallow = function (thrower) { try { thrower(); } catch (e) {} };
 
@@ -33,10 +30,11 @@ chai.use(require("chai-interface"));
 chai.config.includeStack = true;
 
 /*  load either instrumented or regular library  */
+var path = require("path");
 var load = function (name) {
     return process.env.COVERAGE_INSTRUMENTED ?
-        require("../cov/" + name + ".js") :
-        require("../bld/" + name + ".js");
+        require(path.join(__dirname, "../../stage6/src/core/" + name + ".js")) :
+        require(path.join(__dirname, "../../stage3/src/core/" + name + ".js"));
 };
 
 /*  load all library parts  */

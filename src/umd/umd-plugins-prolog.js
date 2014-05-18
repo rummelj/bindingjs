@@ -45,5 +45,5 @@
         /*  Browser environment  */
         root[name_library].plugin(name_plugin, factory);
     }
-}(this, "$library", "$plugin", "$deps", function (root, _api, $api) {
+}(this, "$library", "$plugin", "$deps", function (/* jshint unused: false */ root, _api, $api) {
 

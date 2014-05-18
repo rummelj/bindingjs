@@ -12,12 +12,12 @@
 */
 
 /*  utility function: create an exception string for throwing  */
-_api.exception = function (method, error) {
+_api.exception = (method, error) => {
     return new Error("[BindingJS]: ERROR: " + method + ": " + error);
 };
 
 /*  utility function: logging via environment console  */
-_api.log = function (msg) {
+_api.log = (msg) => {
     /*  try Firebug-style console (in regular browser or Node)  */
     if (   typeof root.console     !== "undefined"
         && typeof root.console.log !== "undefined")

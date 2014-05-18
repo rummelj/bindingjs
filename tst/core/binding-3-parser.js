@@ -10,14 +10,13 @@
 describe("BindingJS DSL Parser", function () {
     var path  = require("path")
     var fs    = require("fs")
-    var util  = require("util")
     var chalk = require("chalk")
     describe("parse()", function () {
-        it("allows the binding DSL to be parsed", function () {
+        it("allows the binding DSL to be parsed", () => {
             var dsl = fs.readFileSync(
-                path.join(__dirname, "/../../smp/foo-view.binding.bd"),
+                path.join(__dirname, "../../../../smp/foo-view.binding.bd"),
                 { encoding: "utf8" })
-            var ast = bd.parse(dsl, "spec")
+            var ast = BindingJS.parse(dsl, "spec")
             if (ast.error !== null) {
                 var e = ast.error
                 var prefix1 = "line " + e.line + " (col " + e.column + "): "
@@ -32,10 +31,10 @@ describe("BindingJS DSL Parser", function () {
             }
             else {
                 console.log(ast.ast.dump()
-                    .replace(/([A-Z][a-zA-Z0-9_$]+)( [(\[])/g, function (all, id, e) { return chalk.blue(id) + e; })
-                    .replace(/([a-zA-Z][a-zA-Z0-9_$]*)(:)/g, function (all, id, e) { return chalk.black(id) + e; })
-                    .replace(/(: )(".+?"|\d+|true|false)/g, function (all, p,  s) { return p + chalk.yellow(s); })
-                    .replace(/(\[\d+\/\d+\])/g, function (all, p) { return chalk.gray(p); })
+                    .replace(/([A-Z][a-zA-Z0-9_$]+)( [(\[])/g, (all, id, E) => chalk.blue(id)  + E)
+                    .replace(/([a-zA-Z][a-zA-Z0-9_$]*)(:)/g,   (all, id, E) => chalk.black(id) + E)
+                    .replace(/(: )(".+?"|\d+|true|false)/g,    (all, P,  s) => P + chalk.yellow(s))
+                    .replace(/(\[\d+\/\d+\])/g,                (all, P    ) => chalk.gray(P)      )
                 );
             }
             expect(ast).to.have.keys([ "ast", "error" ])
