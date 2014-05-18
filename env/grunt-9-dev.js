@@ -15,11 +15,9 @@ module.exports = function (grunt) {
             "src-core": {
                 files: [ "src/umd/*.js", "src/core/*.js", "src/core/*.pegjs" ],
                 tasks: [ 
-                    "newer:src-core-parser", 
-                    "newer:src-core", 
-                    "newer:src-plugin", 
-                    "newer:src-jshint", 
-                    "newer:src-eslint", 
+                    "stage1", 
+                    "stage2", 
+                    "stage3", 
                     "test"
                 ]
             },
@@ -35,7 +33,9 @@ module.exports = function (grunt) {
 
     /*  register tasks  */
     grunt.registerTask("dev", [
-        "src-build",
+        "stage1",
+        "stage2",
+        "stage3",
         "test",
         "watch"
     ]);

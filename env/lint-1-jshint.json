@@ -1,5 +1,6 @@
 {
     "maxerr":        200,
+    "asi":           true,
     "bitwise":       true,
     "camelcase":     false,
     "curly":         false,
@@ -18,10 +19,33 @@
     "unused":        true,
     "strict":        false,
     "trailing":      true,
+    "esnext":        true,
     "maxparams":     9,
     "maxdepth":      7,
     "maxstatements": 150,
     "maxlen":        200,
     "loopfunc":      true,
-    "-W014":         false
+    "-W014":         false,
+    "globals": {
+        "window":    false,
+        "root":      false,
+        "$api":      false,
+        "_api":      false,
+        "$major":    false,
+        "$minor":    false,
+        "$micro":    false,
+        "$date":     false,
+        "include":   false,
+        "module":    false,
+        "require":   false,
+        "describe":  false,
+        "it":        false,
+        "expect":    false,
+        "global":    false,
+        "chai":      false,
+        "__dirname": false,
+        "process":   false,
+        "console":   false,
+        "BindingJS": false
+    }
 }

@@ -29,7 +29,13 @@ module.exports = function (grunt) {
         mkdir: {
             "env": {
                 options: {
-                    create: [ "bld" ]
+                    create: [
+                        "bld/stage1",
+                        "bld/stage2",
+                        "bld/stage3",
+                        "bld/stage4",
+                        "bld/stage5"
+                    ]
                 }
             }
         },
