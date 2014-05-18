@@ -13,6 +13,9 @@ _api.dom = {};
 /*  convert an XML string into a DOM document  */
 _api.dom.xml2doc = function (xml) {
     var doc;
+    /* global $: true */
+    /* global window: true */
+    /* global document: true */
 
     /*  attempt 1: the portable jQuery way  */
     if (typeof $.parseXML === "function")
@@ -20,15 +23,15 @@ _api.dom.xml2doc = function (xml) {
 
     /*  attempt 2: the modern W3C way  */
     else if (typeof window.DOMParser !== "undefined") {
-        var parser = new DOMParser();
-        doc = parser.parseFromString(txt, "text/xml");
+        var parser = new window.DOMParser();
+        doc = parser.parseFromString(xml, "text/xml");
     }
 
     /*  attempt 3: the ancient Microsoft way  */
     else if (typeof window.ActiveXObject !== "undefined") {
         doc = new window.ActiveXObject("Microsoft.XMLDOM");
         doc.async = false;
-        doc.loadXML(txt);
+        doc.loadXML(xml);
     }
 
     /*  else we have to give up...  */
@@ -60,11 +63,10 @@ _api.dom.html2dom = function (html) {
     /*  create an outer wrapper element  */
     var element = document.createElement("div");
     var match = /<\s*\w.*?>/g.exec(html);
-    if (match != null) {
+    if (match !== null) {
         /*  regular HTML element  */
         var tag = match[0].replace(/</g, "").replace(/>/g, "").split(" ")[0];
         var map = wrapMap[tag] || wrapMap._default;
-        var element;
         html = map[1] + html + map[2];
         element.innerHTML = html;
         var j = map[0] + 1;
