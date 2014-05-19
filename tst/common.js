@@ -33,7 +33,7 @@ chai.config.includeStack = true
 var path = require("path")
 var load = function (name) {
     return process.env.COVERAGE_INSTRUMENTED ?
-        require(path.join(__dirname, "../../stage6/src/core/" + name + ".js")) :
+        require(path.join(__dirname, "../../../cov/" + name + ".js")) :
         require(path.join(__dirname, "../../stage3/src/core/" + name + ".js"))
 }
 

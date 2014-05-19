@@ -17,7 +17,7 @@ module.exports = function (grunt) {
             }
         },
         instrument: {
-            files: [ "bld/binding*.js" ],
+            files: [ "bld/stage3/src/core/binding.js" ],
             options: {
                 lazy: true,
                 basePath: "cov/",
