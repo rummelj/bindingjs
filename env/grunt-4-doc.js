@@ -10,5 +10,5 @@
 /* global module: true */
 module.exports = function (/* grunt */) {
     /*  FIXME  */
-};
+}
 

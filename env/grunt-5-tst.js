@@ -21,11 +21,11 @@ module.exports = function (grunt) {
                 clearRequireCache: true
             }
         }
-    });
+    })
 
     /*  register testing task  */
     grunt.registerTask("test", [
         "mochaTest:core"
-    ]);
-};
+    ])
+}
 

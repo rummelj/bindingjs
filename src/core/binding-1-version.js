@@ -13,5 +13,5 @@ $api.version = {
     minor: $minor,
     micro: $micro,
     date:  $date
-};
+}
 

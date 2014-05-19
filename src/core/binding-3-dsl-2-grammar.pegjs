@@ -10,8 +10,8 @@
 /*  generate an Abstract Syntax Tree (AST) node  */
 {
     var AST = function (T, A, C) {
-        return _api.AST(T, A, C).pos(line(), column(), offset());
-    };
+        return _api.AST(T, A, C).pos(line(), column(), offset())
+    }
 }
 
 
@@ -82,7 +82,7 @@ selectorComponents
             return unroll(f, l)
         }
     /   l:selectorComponentRepeatable+ {
-            return l;
+            return l
         }
 
 selectorComponentElement "element-selector"
@@ -115,16 +115,16 @@ selectorAttr
         }
 
 selectorAttrOp "attribute operator"
-    =   "="  { return "equal";    }
-    /   "!=" { return "notequal"; }
-    /   "^=" { return "begins";   }
-    /   "|=" { return "prefix";   }
-    /   "*=" { return "contains"; }
-    /   "$=" { return "ends";     }
+    =   "="  { return "equal"    }
+    /   "!=" { return "notequal" }
+    /   "^=" { return "begins"   }
+    /   "|=" { return "prefix"   }
+    /   "*=" { return "contains" }
+    /   "$=" { return "ends"     }
 
 selectorAttrValue
-    =   v:string    { return v; }
-    /   v:bareword  { return v; }
+    =   v:string    { return v }
+    /   v:bareword  { return v }
 
 selectorPseudo
     =   ":" t:selectorPseudoTagNameSimple {

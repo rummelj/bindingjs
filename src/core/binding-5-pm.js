@@ -8,5 +8,5 @@
 */
 
 /*  create namespace  */
-_api.pm = {};
+_api.pm = {}
 

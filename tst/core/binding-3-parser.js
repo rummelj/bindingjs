@@ -35,7 +35,7 @@ describe("BindingJS DSL Parser", function () {
                     .replace(/([a-zA-Z][a-zA-Z0-9_$]*)(:)/g,   (all, id, E) => chalk.black(id) + E)
                     .replace(/(: )(".+?"|\d+|true|false)/g,    (all, P,  s) => P + chalk.yellow(s))
                     .replace(/(\[\d+\/\d+\])/g,                (all, P    ) => chalk.gray(P)      )
-                );
+                )
             }
             expect(ast).to.have.keys([ "ast", "error" ])
             expect(ast).to.be.a("object")

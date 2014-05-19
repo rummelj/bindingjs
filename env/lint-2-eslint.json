@@ -103,7 +103,7 @@
         "quote-props": 0,
         "quotes": [2, "double"],
         "radix": 0,
-        "semi": 2,
+        "semi": 0,
         "sort-vars": 0,
         "space-infix-ops": 2,
         "space-return-throw-case": 2,

@@ -29,7 +29,7 @@ module.exports = function (grunt) {
                 nospawn: true
             }
         }
-    });
+    })
 
     /*  register tasks  */
     grunt.registerTask("dev", [
@@ -38,6 +38,6 @@ module.exports = function (grunt) {
         "stage3",
         "test",
         "watch"
-    ]);
-};
+    ])
+}
 

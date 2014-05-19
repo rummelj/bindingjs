@@ -8,5 +8,5 @@
 */
 
 /*  create namespace  */
-_api.engine = {};
+_api.engine = {}
 

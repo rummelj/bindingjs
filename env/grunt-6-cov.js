@@ -45,7 +45,7 @@ module.exports = function (grunt) {
         clean: {
             "cover": [ "cov" ]
         }
-    });
+    })
 
     /*  register coverage task  */
     grunt.registerTask("cover", [
@@ -55,6 +55,6 @@ module.exports = function (grunt) {
         "test",
         "storeCoverage",
         "makeReport"
-    ]);
-};
+    ])
+}
 

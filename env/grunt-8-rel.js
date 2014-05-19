@@ -35,18 +35,18 @@ module.exports = function (grunt) {
                     "."
             }
         }
-    });
+    })
 
     /*  register tasks  */
     grunt.registerTask("release", [
         "build",
         "path-check:release",
         "shell:release"
-    ]);
+    ])
     grunt.registerTask("snapshot", [
         "build",
         "path-check:snapshot",
         "shell:snapshot"
-    ]);
-};
+    ])
+}
 

@@ -9,5 +9,5 @@
 
 $api.binding = function () {
     /*  FIXME  */
-};
+}
 

@@ -48,15 +48,15 @@ module.exports = function (grunt) {
                 "bld/stage1/done-jshint-tst"
             ]
         }
-    });
+    })
     grunt.registerTask("stage1", [
         "newer:stage1-src",
         "newer:stage1-tst"
-    ]);
+    ])
     grunt.registerTask("stage1-clean", [
         "clean:stage1-src",
         "clean:stage1-tst"
-    ]);
+    ])
 
     /*  stage 2: compiling & transpiling  */
     grunt.config.merge({
@@ -154,17 +154,17 @@ module.exports = function (grunt) {
                 "bld/stage2/tst"
             ]
         }
-    });
+    })
     grunt.registerTask("stage2", [
         "newer:stage2-src",
         "newer:stage2-src-peg",
         "newer:stage2-src-umd",
         "newer:stage2-tst"
-    ]);
+    ])
     grunt.registerTask("stage2-clean", [
         "clean:stage3-src",
         "clean:stage2-tst"
-    ]);
+    ])
 
     /*  stage 3: merge  */
     grunt.config.merge({
@@ -211,14 +211,14 @@ module.exports = function (grunt) {
                 "bld/stage3/src"
             ]
         }
-    });
+    })
     grunt.registerTask("stage3", [
         "newer:stage3-src-core",
         "newer:stage3-src-plugin"
-    ]);
+    ])
     grunt.registerTask("stage3-clean", [
         "clean:stage3-src"
-    ]);
+    ])
 
     /*  stage 4: minification  */
     grunt.config.merge({
@@ -226,13 +226,8 @@ module.exports = function (grunt) {
             "stage4": {
                 src: [ "bld/stage3/src/core/*.js", "bld/stage3/src/plugin/*.js" ],
                 dest: "bld/stage4/binding.min.js",
-                options: { tasks: [ "jshint:stage4", "uglify:stage4" ] }
+                options: { tasks: [ "uglify:stage4" ] }
             }
-        },
-        jshint: {
-            "stage4": [
-                "bld/stage3/src/**/*.js"
-            ]
         },
         uglify: {
             "stage4": {
@@ -240,7 +235,7 @@ module.exports = function (grunt) {
                     expand: true,
                     src: [ "bld/stage3/**/*.js" ],
                     dest: "bld/stage4/",
-                    rename: function (dest, src) { return dest + src.replace(/\.js$/, ".min.js"); },
+                    rename: function (dest, src) { return dest + src.replace(/\.js$/, ".min.js") },
                     flatten: true
                 }]
             },
@@ -254,13 +249,13 @@ module.exports = function (grunt) {
                 "bld/stage4/src/**/*.min.js"
             ]
         }
-    });
+    })
     grunt.registerTask("stage4", [
         "newer:stage4"
-    ]);
+    ])
     grunt.registerTask("stage4-clean", [
         "clean:stage4"
-    ]);
+    ])
 
     /*  task aliasing  */
     grunt.registerTask("src-build", [
@@ -268,12 +263,12 @@ module.exports = function (grunt) {
         "stage2",
         "stage3",
         "stage4"
-    ]);
+    ])
     grunt.registerTask("src-clean", [
         "stage1-clean",
         "stage2-clean",
         "stage3-clean",
         "stage4-clean"
-    ]);
-};
+    ])
+}
 
