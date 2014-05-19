@@ -8,36 +8,35 @@
 */
 
 /*  provide exception swallowing  */
-global.swallow = function (thrower) { try { thrower(); } catch (e) {} };
+global.swallow = function (thrower) { try { thrower() } catch (e) {} }
 
 /*  provide mocking functionality  */
-global.sinon   = require("sinon");
+global.sinon   = require("sinon")
 
 /*  provide assertion functionality (base features)  */
-global.chai    = require("chai");
-global.should  = require("chai").should();
-global.expect  = require("chai").expect;
-global.assert  = require("chai").assert;
+global.chai    = require("chai")
+global.should  = require("chai").should()
+global.expect  = require("chai").expect
+global.assert  = require("chai").assert
 
 /*  provide assertion functionality (extra features)  */
-chai.use(require("sinon-chai"));
-chai.use(require("chai-fuzzy"));
-chai.use(require("chai-factories"));
-chai.use(require("chai-things"));
-chai.use(require("chai-interface"));
+chai.use(require("sinon-chai"))
+chai.use(require("chai-fuzzy"))
+chai.use(require("chai-factories"))
+chai.use(require("chai-things"))
+chai.use(require("chai-interface"))
 
 /*  print stack traces on assertion failures  */
-chai.config.includeStack = true;
+chai.config.includeStack = true
 
 /*  load either instrumented or regular library  */
-var path = require("path");
+var path = require("path")
 var load = function (name) {
     return process.env.COVERAGE_INSTRUMENTED ?
         require(path.join(__dirname, "../../stage6/src/core/" + name + ".js")) :
-        require(path.join(__dirname, "../../stage3/src/core/" + name + ".js"));
-};
+        require(path.join(__dirname, "../../stage3/src/core/" + name + ".js"))
+}
 
 /*  load all library parts  */
-global.BindingJS = load("binding");
-global.bd = global.BindingJS;
+global.BindingJS = load("binding")
 
