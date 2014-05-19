@@ -33,8 +33,7 @@ module.exports = function (grunt) {
                         "bld/stage1",
                         "bld/stage2",
                         "bld/stage3",
-                        "bld/stage4",
-                        "bld/stage5"
+                        "bld/stage4"
                     ]
                 }
             }
@@ -42,7 +41,7 @@ module.exports = function (grunt) {
         clean: {
             "env": [ "bld", "cov" ]
         }
-    });
+    })
 
     /*  common task aliasing  */
     grunt.registerTask("env-build", [
@@ -50,9 +49,9 @@ module.exports = function (grunt) {
         "eslint:env",
         "jsonlint:env",
         "mkdir:env"
-    ]);
+    ])
     grunt.registerTask("env-clean", [
         "clean:env"
-    ]);
-};
+    ])
+}
 
