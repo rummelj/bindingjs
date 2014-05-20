@@ -7,11 +7,12 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-/*  generate an Abstract Syntax Tree (AST) node  */
 {
-    var AST = function (T, A, C) {
-        return _api.AST(T, A, C).pos(line(), column(), offset())
-    }
+    /*  unroll an AST node sequence  */
+    var unroll = _api.unroll
+
+    /*  generate an AST node  */
+    var AST = function (T, A, C) { return _api.AST(T, A, C).pos(line(), column(), offset()) }
 }
 
 
