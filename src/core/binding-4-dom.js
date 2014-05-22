@@ -12,7 +12,7 @@ _api.dom = {}
 
 /*  convert an XML string into a DOM document  */
 _api.dom.xml2doc = (xml) => {
-    var doc
+    let doc
     /* global $: true */
     /* global document: true */
 
@@ -22,7 +22,7 @@ _api.dom.xml2doc = (xml) => {
 
     /*  attempt 2: the modern W3C way  */
     else if (typeof window.DOMParser !== "undefined") {
-        var parser = new window.DOMParser()
+        let parser = new window.DOMParser()
         doc = parser.parseFromString(xml, "text/xml")
     }
 
@@ -43,7 +43,7 @@ _api.dom.xml2doc = (xml) => {
 /*  convert a HTML string into a DOM fragment  */
 _api.dom.html2dom = (html) => {
     /*  the necessary (= valid) inner wrapper elements  */
-    var wrapMap = {
+    let wrapMap = {
         option:   [ 1, "<select multiple='multiple'>", "</select>" ],
         legend:   [ 1, "<fieldset>", "</fieldset>" ],
         area:     [ 1, "<map>", "</map>" ],
@@ -60,15 +60,15 @@ _api.dom.html2dom = (html) => {
     wrapMap.th       = wrapMap.td
 
     /*  create an outer wrapper element  */
-    var element = document.createElement("div")
-    var match = /<\s*\w.*?>/g.exec(html)
+    let element = document.createElement("div")
+    let match = /<\s*\w.*?>/g.exec(html)
     if (match !== null) {
         /*  regular HTML element  */
-        var tag = match[0].replace(/</g, "").replace(/>/g, "").split(" ")[0]
-        var map = wrapMap[tag] || wrapMap._default
+        let tag = match[0].replace(/</g, "").replace(/>/g, "").split(" ")[0]
+        let map = wrapMap[tag] || wrapMap._default
         html = map[1] + html + map[2]
         element.innerHTML = html
-        var j = map[0] + 1
+        let j = map[0] + 1
         while (j--)
             element = element.lastChild
     } 

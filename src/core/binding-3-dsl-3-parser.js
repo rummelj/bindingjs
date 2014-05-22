@@ -15,12 +15,13 @@ _api.unroll = (first, list, take) => {
     if (typeof take !== "undefined") {
         if (typeof take === "number")
             take = [ take ]
-        var result = []
+        let result = []
         if (first !== null)
             result.push(first)
-        for (var i = 0; i < list.length; i++)
-            for (var j = 0; j < take.length; j++)
+        for (let i = 0; i < list.length; i++) {
+            for (let j = 0; j < take.length; j++)
                 result.push(list[i][take[j]])
+        }
         return result
     }
     else {
@@ -32,16 +33,16 @@ _api.unroll = (first, list, take) => {
 
 /*  include the generated PEG parser  */
 _api.parser = (function () {
-    var module = {}
+    let module = {}
     include("binding-3-dsl-2-grammar.js")
     return module.exports
 })()
 
 /*  utility function  */
-var excerpt = (txt, o) => {
-    var l = txt.length
-    var b = o - 20; if (b < 0) b = 0
-    var e = o + 20; if (e > l) e = l
+let excerpt = (txt, o) => {
+    let l = txt.length
+    let b = o - 20; if (b < 0) b = 0
+    let e = o + 20; if (e > l) e = l
     return {
         prolog: txt.substr(b, o - b).replace(/\r/g, "\\r").replace(/\n/g, "\\n"),
         token:  txt.substr(o, 1).replace(/\r/g, "\\r").replace(/\n/g, "\\n"),
@@ -53,7 +54,7 @@ var excerpt = (txt, o) => {
 $api.parse = (txt, rule) => {
     if (typeof rule === "undefined")
         rule = "spec"
-    var result = { ast: null, error: null }
+    let result = { ast: null, error: null }
     try {
         result.ast = _api.parser.parse(txt, { startRule: rule })
     }

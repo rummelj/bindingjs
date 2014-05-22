@@ -26,7 +26,7 @@ _api.log = (msg) => {
 
 /*  utility function: debugging  */
 $api.debug = (function () {
-    var debug_level = 9
+    let debug_level = 9
     return function (level, msg) {
         if (arguments.length === 0)
             /*  return old debug level  */
@@ -38,8 +38,8 @@ $api.debug = (function () {
             /*  perform runtime logging  */
             if (level <= debug_level) {
                 /*  determine indentation based on debug level  */
-                var indent = ""
-                for (var i = 1; i < level; i++)
+                let indent = ""
+                for (let i = 1; i < level; i++)
                     indent += "    "
 
                 /*  display debug message  */

@@ -13,15 +13,15 @@ describe("BindingJS DSL Parser", function () {
     var chalk = require("chalk")
     describe("parse()", function () {
         it("allows the binding DSL to be parsed", () => {
-            var dsl = fs.readFileSync(
+            let dsl = fs.readFileSync(
                 path.join(__dirname, "../../../../smp/foo-view.binding.bd"),
                 { encoding: "utf8" })
-            var ast = BindingJS.parse(dsl, "spec")
+            let ast = BindingJS.parse(dsl, "spec")
             if (ast.error !== null) {
-                var e = ast.error
-                var prefix1 = "line " + e.line + " (col " + e.column + "): "
-                var prefix2 = ""
-                for (var i = 0; i < prefix1.length + e.location.prolog.length; i++)
+                let e = ast.error
+                let prefix1 = "line " + e.line + " (col " + e.column + "): "
+                let prefix2 = ""
+                for (let i = 0; i < prefix1.length + e.location.prolog.length; i++)
                     prefix2 += "-"
                 console.log(
                     chalk.black("ERROR: ") + prefix1 + e.location.prolog + chalk.bold(chalk.red(e.location.token)) + e.location.epilog + "\n" +

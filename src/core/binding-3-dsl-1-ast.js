@@ -11,7 +11,7 @@
 class AST {
     constructor () {
         if (!(this instanceof _api.AST)) {
-            var self = new _api.AST()
+            let self = new _api.AST()
             return self.init.apply(self, arguments)
         }
         return this.init.apply(this, arguments)
@@ -42,7 +42,7 @@ class AST {
     /*  set AST node attributes  */
     set () {
         if (arguments.length === 1 && typeof arguments[0] === "object") {
-            for (var key in arguments[0])
+            for (let key in arguments[0])
                 if (arguments[0].hasOwnProperty(key))
                     this.A[key] = arguments[0][key]
         }
@@ -69,7 +69,7 @@ class AST {
     add () {
         if (arguments.length === 0)
             throw new Error("add: invalid argument")
-        var _add = (C, node) => {
+        let _add = (C, node) => {
             if (!(   (typeof node   === "object")
                   && (typeof node.T === "string")
                   && (typeof node.P === "object")
@@ -78,11 +78,12 @@ class AST {
                 throw new Error("add: invalid AST node: " + JSON.stringify(node))
             C.push(node)
         };
-        for (var i = 0; i < arguments.length; i++) {
+        for (let i = 0; i < arguments.length; i++) {
             if (   typeof arguments[i] === "object"
-                && arguments[i] instanceof Array)
-                for (var j = 0; j < arguments[i].length; j++)
+                && arguments[i] instanceof Array) {
+                for (let j = 0; j < arguments[i].length; j++)
                     _add(this.C, arguments[i][j])
+            }
             else
                 _add(this.C, arguments[i])
         }
@@ -93,9 +94,9 @@ class AST {
     del () {
         if (arguments.length === 0)
             throw new Error("del: invalid argument")
-        for (var i = 0; i < arguments.length; i++) {
-            var found = false
-            for (var j = 0; j < this.C.length; j++) {
+        for (let i = 0; i < arguments.length; i++) {
+            let found = false
+            for (let j = 0; j < this.C.length; j++) {
                 if (this.C[j] === arguments[i]) {
                     this.C.splice(j, 1)
                     found = true
@@ -112,10 +113,10 @@ class AST {
     walk (cb, after) {
         if (typeof after !== "boolean")
             after = false
-        var _walk = (node, depth) => {
+        let _walk = (node, depth) => {
             if (!after)
                 cb.call(null, node, depth)
-            for (var i = 0; i < node.C.length; i++)
+            for (let i = 0; i < node.C.length; i++)
                 _walk(node.C[i], depth + 1)
             if (after)
                 cb.call(null, node, depth)
@@ -125,14 +126,13 @@ class AST {
 
     /*  dump the AST recursively  */
     dump () {
-        var out = ""
+        let out = ""
         this.walk((node, depth) => {
-            for (var i = 0; i  < depth; i++)
+            for (let i = 0; i  < depth; i++)
                 out += "    "
             out += node.T + " "
-            var hasAttributes = false
-            var key
-            for (key in node.A) {
+            let hasAttributes = false
+            for (let key in node.A) {
                 if (!node.A.hasOwnProperty(key))
                     continue
                 hasAttributes = true
@@ -140,8 +140,8 @@ class AST {
             }
             if (hasAttributes) {
                 out += "("
-                var first = true
-                for (key in node.A) {
+                let first = true
+                for (let key in node.A) {
                     if (!node.A.hasOwnProperty(key))
                         continue
                     if (!first)
