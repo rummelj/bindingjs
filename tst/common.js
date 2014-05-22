@@ -30,8 +30,8 @@ chai.use(require("chai-interface"))
 chai.config.includeStack = true
 
 /*  load either instrumented or regular library  */
-var path = require("path")
-var load = function (name) {
+let path = require("path")
+let load = function (name) {
     return process.env.COVERAGE_INSTRUMENTED ?
         require(path.join(__dirname, "../../../cov/" + name + ".js")) :
         require(path.join(__dirname, "../../stage3/src/core/" + name + ".js"))

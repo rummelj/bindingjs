@@ -8,9 +8,9 @@
 */
 
 describe("BindingJS DSL Parser", function () {
-    var path  = require("path")
-    var fs    = require("fs")
-    var chalk = require("chalk")
+    let path  = require("path")
+    let fs    = require("fs")
+    let chalk = require("chalk")
     describe("parse()", function () {
         it("allows the binding DSL to be parsed", () => {
             let dsl = fs.readFileSync(
