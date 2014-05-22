@@ -9,10 +9,10 @@
 
 {
     /*  unroll an AST node sequence  */
-    var unroll = _api.unroll
+    var unroll = _api.dsl.parser.unroll
 
     /*  generate an AST node  */
-    var AST = function (T, A, C) { return _api.AST(T, A, C).pos(line(), column(), offset()) }
+    var AST = function (T, A, C) { return _api.dsl.AST(T, A, C).pos(line(), column(), offset()) }
 }
 
 

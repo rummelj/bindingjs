@@ -7,8 +7,15 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+/*  include the generated PEG parser  */
+_api.dsl.parser = (function () {
+    let module = {}
+    include("binding-3-dsl-2-grammar.js")
+    return module.exports
+})()
+
 /*  provide a helper function for unrolling the parse stack  */
-_api.unroll = (first, list, take) => {
+_api.dsl.parser.unroll = (first, list, take) => {
     if (   typeof list !== "object"
         || !(list instanceof Array))
         throw "unroll: invalid list argument (expected Array)"
@@ -31,13 +38,6 @@ _api.unroll = (first, list, take) => {
     }
 }
 
-/*  include the generated PEG parser  */
-_api.parser = (function () {
-    let module = {}
-    include("binding-3-dsl-2-grammar.js")
-    return module.exports
-})()
-
 /*  utility function  */
 let excerpt = (txt, o) => {
     let l = txt.length
@@ -53,12 +53,12 @@ let excerpt = (txt, o) => {
 }
 
 /*  provide top-level parsing functionality  */
-$api.parse = (txt, rule) => {
+_api.dsl.parser.parser = (txt, rule) => {
     if (typeof rule === "undefined")
         rule = "spec"
     let result = { ast: null, error: null }
     try {
-        result.ast = _api.parser.parse(txt, { startRule: rule })
+        result.ast = _api.dsl.parser.parse(txt, { startRule: rule })
     }
     catch (e) {
         result.error = {

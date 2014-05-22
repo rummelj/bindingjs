@@ -168,4 +168,4 @@ class AST {
 }
 
 /*  export class  */
-_api.AST = AST
+_api.dsl.AST = AST
