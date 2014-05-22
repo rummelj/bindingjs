@@ -43,10 +43,12 @@ let excerpt = (txt, o) => {
     let l = txt.length
     let b = o - 20; if (b < 0) b = 0
     let e = o + 20; if (e > l) e = l
+    let extract = (txt, pos, len) =>
+        txt.substr(pos, len).replace(/\r/g, "\\r").replace(/\n/g, "\\n")
     return {
-        prolog: txt.substr(b, o - b).replace(/\r/g, "\\r").replace(/\n/g, "\\n"),
-        token:  txt.substr(o, 1).replace(/\r/g, "\\r").replace(/\n/g, "\\n"),
-        epilog: txt.substr(o + 1, e - (o + 1)).replace(/\r/g, "\\r").replace(/\n/g, "\\n")
+        prolog: extract(txt, b, o - b),
+        token:  extract(txt, o, 1),
+        epilog: extract(txt, o + 1, e - (o + 1))
     }
 }
 
