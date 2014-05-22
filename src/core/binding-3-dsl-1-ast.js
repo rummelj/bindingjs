@@ -10,8 +10,8 @@
 /*  constructor for an AST node  */
 class AST {
     constructor () {
-        if (!(this instanceof _api.AST)) {
-            let self = new _api.AST()
+        if (!(this instanceof AST)) {
+            let self = new AST()
             return self.init.apply(self, arguments)
         }
         return this.init.apply(this, arguments)
