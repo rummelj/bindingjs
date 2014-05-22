@@ -7,8 +7,9 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-/*  constructor for an AST node  */
+/*  Abstract Syntax Tree (AST)  */
 class AST {
+    /*  constructor for an AST node  */
     constructor () {
         if (!(this instanceof AST)) {
             let self = new AST()
