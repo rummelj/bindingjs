@@ -224,40 +224,48 @@ exprLogical
     =   "!" _ e:expr {
             return AST("LogicalNot").add(e)
         }
-    /   e1:exprRelational _ op:exprLogicalOp _ e2:expr {
-            return AST("Logical").set({ op: op }).add(e1, e2)
+    /   e1:exprRelational e2:(_ exprLogicalOp _ expr)+ {
+            return AST("Logical").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprRelational
 
 exprLogicalOp "boolean logical operator"
-    =   "&&" / "||"
+    =   op:("&&" / "||") {
+            return AST("LogicalOp").set({ op: op })
+        }
 
 exprRelational
-    =   e1:exprAdditive _ op:exprRelationalOp _ e2:expr {
-            return AST("Relational").set({ op: op }).add(e1, e2)
+    =   e1:exprAdditive e2:(_ exprRelationalOp _ expr)+ {
+            return AST("Relational").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprAdditive
 
 exprRelationalOp "relational operator"
-    =   "==" / "!=" / "<=" / ">=" / "<" / ">" / "=~" / "!~"
+    =   op:("==" / "!=" / "<=" / ">=" / "<" / ">" / "=~" / "!~") {
+            return AST("RelationalOp").set({ op: op })
+        }
 
 exprAdditive
-    =   e1:exprMultiplicative _ op:exprAdditiveOp _ e2:expr {
-            return AST("Arith").set({ op: op }).add(e1, e2)
+    =   e1:exprMultiplicative e2:(_ exprAdditiveOp _ expr)+ {
+            return AST("Arith").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprMultiplicative
 
 exprAdditiveOp "additive arithmetic operator"
-    =   "+" / "-"
+    =   op:("+"/"-") {
+            return AST("ArithOp").set({ op: op })
+        }
 
 exprMultiplicative
-    =   e1:exprOther _ op:exprMultiplicativeOp _ e2:expr {
-            return AST("Arith").set({ op: op }).add(e1, e2)
+    =   e1:exprOther e2:(_ exprMultiplicativeOp _ expr)+ {
+            return AST("Arith").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprOther
 
 exprMultiplicativeOp "multiplicative arithmetic operator"
-    =   "*" / "/"
+    =   op:("*" / "/") {
+            return AST("ArithOp").set({ op: op })
+        }
 
 exprOther
     =   exprLiteral
@@ -290,7 +298,7 @@ exprFunctionCall
 
 exprParenthesis
     =   "(" e:expr ")" {
-             return AST("Parenthesis").add(e)
+             return e
         }
 
 /*
