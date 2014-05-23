@@ -40,8 +40,8 @@ body
     /   macroRef
 
 macroDef
-    =   "@" id:id "(" _ a:idSeq _ ")" _ "{" b:(_ binding)* _ "}" {
-            return AST("MacroDef").add(id, a, unroll(null, b, 1))
+    =   "@" id:id "(" _ a:(id (_ "," _ id)*)? _ ")" _ "{" b:(_ binding)* _ "}" {
+            return AST("MacroDef").add(id, unroll(a[0], a[1], 3), unroll(null, b, 1))
         }
 
 macroRef
@@ -236,20 +236,15 @@ exprMultiplicativeOp "multiplicative arithmetic operator"
 
 exprOther
     =   exprLiteral
-    /   exprVariable
     /   exprDereference
     /   exprFunctionCall
+    /   exprVariable
     /   exprParenthesis
 
 exprLiteral
     =   string
     /   regexp
     /   number
-
-exprVariable
-    =   id:id {
-            return AST("Var").add(id)
-        }
 
 exprDereference
     =   "." id:id {
@@ -264,8 +259,13 @@ exprFunctionCall
             return AST("Func").add(id, p)
         }
 
+exprVariable
+    =   id:id {
+            return AST("Var").add(id)
+        }
+
 exprParenthesis
-    =   "(" e:expr ")" {
+    =   "(" _ e:expr _ ")" {
              return e
         }
 
@@ -276,11 +276,6 @@ exprParenthesis
 id "identifier"
     =   id:$(("\\" . / [a-zA-Z_][a-zA-Z0-9_]*)+) {
             return AST("Identifier").set({ id: id.replace(/\\/g, "") })
-        }
-
-idSeq "identifier sequence"
-    =   id:id ids:(_ "," _ id)* {
-            return unroll(id, ids, 3)
         }
 
 bareword "bareword (FIXME: still unused)"
