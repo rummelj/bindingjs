@@ -87,7 +87,7 @@ class AST {
                 for (let j = 0; j < arguments[i].length; j++)
                     _add(this.C, arguments[i][j])
             }
-            else
+            else if (arguments[i] !== null)
                 _add(this.C, arguments[i])
         }
         return this
