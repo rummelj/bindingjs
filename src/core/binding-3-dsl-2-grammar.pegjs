@@ -288,11 +288,29 @@ bareword "bareword"
         }
 
 string "quoted string literal"
-    =   "\"" t:$(("\\\"" / [^\\"])*) "\"" {
-            return AST("LiteralString").set({ value: t.replace(/\\"/g, "\"") })
+    =   "\"" s:((stringEscapedChar / [^"])*) "\"" {
+            return AST("LiteralString").set({ value: s.join("") })
         }
-    /   "'" t:$(("\\'" / [^\\'])*) "'" {
+    /   "'" t:$(("\\'" / [^'])*) "'" {
             return AST("LiteralString").set({ value: t.replace(/\\'/g, "'") })
+        }
+
+stringEscapedChar "escaped string character"
+    =   "\\\\" { return "\\"   }
+    /   "\\\"" { return "\""   }
+    /   "'"    { return "'"    }
+    /   "\\b"  { return "\b"   }
+    /   "\\v"  { return "\x0B" }
+    /   "\\f"  { return "\f"   }
+    /   "\\t"  { return "\t"   }
+    /   "\\r"  { return "\r"   }
+    /   "\\n"  { return "\n"   }
+    /   "\\e"  { return "\x1B" }
+    /   "\\x" n:$([0-9a-fA-F][0-9a-fA-F]) {
+            return String.fromCharCode(parseInt(n, 16))
+        }
+    /   "\\u" n:$([0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]) {
+            return String.fromCharCode(parseInt(n, 16))
         }
 
 number "numeric literal"
