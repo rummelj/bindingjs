@@ -12,7 +12,7 @@ class AST {
     /*  constructor for an AST node  */
     constructor () {
         if (!(this instanceof AST)) {
-            let self = new AST()
+            let self = new AST("")
             return self.init.apply(self, arguments)
         }
         return this.init.apply(this, arguments)
@@ -20,6 +20,8 @@ class AST {
 
     /*  constructor helper: AST node initialization  */
     init (T) {
+        if (typeof T === "undefined")
+            throw new Error("init: invalid argument")
         this.T = T
         this.A = {}
         this.C = []
@@ -33,7 +35,7 @@ class AST {
     }
 
     /*  set the parsing position   */
-    pos (L, C, O) {
+    pos (L = 0, C = 0, O = 0) {
         this.P.L = L
         this.P.C = C
         this.P.O = O
@@ -111,9 +113,7 @@ class AST {
     }
 
     /*  walk the AST recursively  */
-    walk (cb, after) {
-        if (typeof after !== "boolean")
-            after = false
+    walk (cb, after = false) {
         let _walk = (node, depth) => {
             if (!after)
                 cb.call(null, node, depth)
