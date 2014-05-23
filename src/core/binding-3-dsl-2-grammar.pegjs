@@ -243,6 +243,7 @@ exprOther
 
 exprLiteral
     =   string
+    /   regexp
     /   number
 
 exprVariable
@@ -282,7 +283,7 @@ idSeq "identifier sequence"
             return unroll(id, ids, 3)
         }
 
-bareword "bareword"
+bareword "bareword (FIXME: still unused)"
     =   bw:$(("\\" . / [a-zA-Z0-9_])+) {
             return AST("LiteralBareword").set({ value: bw.replace(/\\/g, "") })
         }
@@ -311,6 +312,14 @@ stringEscapedChar "escaped string character"
         }
     /   "\\u" n:$([0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]) {
             return String.fromCharCode(parseInt(n, 16))
+        }
+
+regexp "regular expression literal"
+    =   "/" re:$(("\\/" / [^/])*) "/" {
+            var v
+            try { v = new RegExp(re.replace(/\\\//g, "/")) }
+            catch (e) { error(e.message) }
+            return AST("LiteralRegExp").set({ value: v })
         }
 
 number "numeric literal"
