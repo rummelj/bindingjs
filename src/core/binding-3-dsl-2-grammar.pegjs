@@ -41,12 +41,12 @@ body
 
 macroDef
     =   "@" id:id "(" _ a:(id (_ "," _ id)*)? _ ")" _ "{" b:(_ binding)* _ "}" {
-            return AST("MacroDef").add(id, unroll(a[0], a[1], 3), unroll(null, b, 1))
+            return AST("MacroDef").set({ id: id.get("id") }).add(unroll(a[0], a[1], 3), unroll(null, b, 1))
         }
 
 macroRef
     =   "@" id:id "(" _ p:exprSeq _ ")" {
-            return AST("MacroRef").add(id, p)
+            return AST("MacroRef").set({ id: id.get("id") }).add(p)
         }
 
 
@@ -248,7 +248,7 @@ exprLiteral
 
 exprDereference
     =   "." id:id {
-            return AST("Deref").add(id)
+            return AST("Deref").set({ id: id.get("id") })
         }
     /   "[" _ e:expr _ "]" {
             return AST("Deref").add(e)
@@ -256,12 +256,12 @@ exprDereference
 
 exprFunctionCall
     =   id:id "(" _ p:exprSeq? _ ")" {
-            return AST("Func").add(id, p)
+            return AST("Func").set({ id: id.get("id") }).add(p)
         }
 
 exprVariable
     =   id:id {
-            return AST("Var").add(id)
+            return AST("Var").set({ id: id.get("id") })
         }
 
 exprParenthesis
