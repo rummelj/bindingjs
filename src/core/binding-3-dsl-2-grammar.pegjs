@@ -305,6 +305,9 @@ number "numeric literal"
     /   s:$([+-]?) "0x" n:$([0-9a-fA-F]+) {
             return AST("LiteralNumber").set({ value: parseInt(s + n, 16) })
         }
+    /   s:$([+-]?) "0o" n:$([0-7]+) {
+            return AST("LiteralNumber").set({ value: parseInt(s + n, 8) })
+        }
     /   s:$([+-]?) "0b" n:$([01]+) {
             return AST("LiteralNumber").set({ value: parseInt(s + n, 2) })
         }
