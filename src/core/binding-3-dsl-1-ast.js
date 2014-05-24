@@ -44,13 +44,11 @@ class AST {
 
     /*  set AST node attributes  */
     set () {
-        if (arguments.length === 1 && typeof arguments[0] === "object") {
-            for (let key in arguments[0])
-                if (arguments[0].hasOwnProperty(key))
-                    this.A[key] = arguments[0][key]
-        }
-        else if (arguments.length === 2)
-            this.A[arguments[0]] = arguments[1]
+        let args = arguments
+        if (args.length === 1 && typeof args[0] === "object")
+            Object.keys(args[0]).forEach((key) => this.A[key] = args[0][key])
+        else if (args.length === 2)
+            this.A[args[0]] = args[1]
         else
             throw new Error("set: invalid arguments")
         return this
@@ -81,15 +79,12 @@ class AST {
                 throw new Error("add: invalid AST node: " + JSON.stringify(node))
             C.push(node)
         };
-        for (let i = 0; i < arguments.length; i++) {
-            if (   typeof arguments[i] === "object"
-                && arguments[i] instanceof Array) {
-                for (let j = 0; j < arguments[i].length; j++)
-                    _add(this.C, arguments[i][j])
-            }
-            else if (arguments[i] !== null)
-                _add(this.C, arguments[i])
-        }
+        Array.prototype.slice.call(arguments, 0).forEach((arg) => {
+            if (typeof arg === "object" && arg instanceof Array)
+                arg.forEach((child) => _add(this.C, child))
+            else if (arg !== null)
+                _add(this.C, arg)
+        })
         return this
     }
 
@@ -97,10 +92,10 @@ class AST {
     del () {
         if (arguments.length === 0)
             throw new Error("del: invalid argument")
-        for (let i = 0; i < arguments.length; i++) {
+        Array.prototype.slice.call(arguments, 0).forEach((arg) => {
             let found = false
             for (let j = 0; j < this.C.length; j++) {
-                if (this.C[j] === arguments[i]) {
+                if (this.C[j] === arg) {
                     this.C.splice(j, 1)
                     found = true
                     break
@@ -108,7 +103,7 @@ class AST {
             }
             if (!found)
                 throw new Error("del: child not found")
-        }
+        })
         return this
     }
 
@@ -117,8 +112,7 @@ class AST {
         let _walk = (node, depth) => {
             if (!after)
                 cb.call(null, node, depth)
-            for (let i = 0; i < node.C.length; i++)
-                _walk(node.C[i], depth + 1)
+            node.C.forEach((child) => _walk(child, depth + 1))
             if (after)
                 cb.call(null, node, depth)
         }
@@ -129,20 +123,20 @@ class AST {
     dump () {
         let out = ""
         this.walk((node, depth) => {
-            for (let i = 0; i  < depth; i++)
+            for (let i = 0; i < depth; i++)
                 out += "    "
             out += node.T + " "
             let keys = Object.keys(node.A)
             if (keys.length > 0) {
                 out += "("
                 let first = true
-                for (let i = 0; i < keys.length; i++) {
+                keys.forEach((key) => {
                     if (!first)
                         out += ", "
                     else
                         first = false
-                    out += keys[i] + ": "
-                    let value = node.A[keys[i]]
+                    out += key + ": "
+                    let value = node.A[key]
                     switch (typeof value) {
                         case "string":
                             out += "\"" + value.replace(/\n/, "\\n").replace(/"/, "\\\"") + "\""
@@ -162,7 +156,7 @@ class AST {
                             out += value.toString()
                             break
                     }
-                }
+                })
                 out += ") "
             }
             out += "[" + node.P.L + "/" + node.P.C + "]\n"
