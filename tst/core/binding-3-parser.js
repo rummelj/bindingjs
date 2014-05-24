@@ -24,17 +24,18 @@ describe("BindingJS DSL Parser", function () {
                 for (let i = 0; i < prefix1.length + e.location.prolog.length; i++)
                     prefix2 += "-"
                 console.log(
-                    chalk.black("ERROR: ") + prefix1 + e.location.prolog + chalk.bold(chalk.red(e.location.token)) + e.location.epilog + "\n" +
+                    chalk.black("ERROR: ") + prefix1 + e.location.prolog +
+                        chalk.bold(chalk.red(e.location.token)) + e.location.epilog + "\n" +
                     chalk.black("ERROR: ") + chalk.bold(chalk.red(prefix2 + "^")) + "\n" +
                     chalk.black("ERROR: ") + chalk.red(ast.error.message) + "\n"
                 )
             }
             else {
                 console.log(ast.ast.dump()
-                    .replace(/([A-Z][a-zA-Z0-9_$]+)( [(\[])/g, (all, id, E) => chalk.blue(id)  + E)
-                    .replace(/([a-zA-Z][a-zA-Z0-9_$]*)(:)/g,   (all, id, E) => chalk.black(id) + E)
-                    .replace(/(: )(".+?"|\d+|true|false)/g,    (all, P,  s) => P + chalk.yellow(s))
-                    .replace(/(\[\d+\/\d+\])/g,                (all, P    ) => chalk.gray(P)      )
+                    .replace(/([A-Z][a-zA-Z0-9_$]+)( [(\[])/g,          (all, id, E) => chalk.blue(id)  + E)
+                    .replace(/(:\s+)("(?:\\"|[^"])*"|\d+|true|false)/g, (all, P,  s) => P + chalk.yellow(s))
+                    .replace(/(:\s+)(\/(?:\\\/|[^\/])*\/)/g,            (all, P,  s) => P + chalk.yellow(s))
+                    .replace(/(\[\d+\/\d+\])/g,                         (all, P    ) => chalk.gray(P)      )
                 )
             }
             expect(ast).to.have.keys([ "ast", "error" ])
