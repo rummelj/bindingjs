@@ -320,10 +320,7 @@ regexp "regular expression literal"
         }
 
 number "numeric literal"
-    =   n:$([+-]? [0-9]+) {
-            return AST("LiteralNumber").set({ value: parseInt(n, 10) })
-        }
-    /   n:$([+-]? [0-9]* "." [0-9]+ ([eE] [+-] [0-9]+)?) {
+    =   n:$([+-]? ([0-9]+ / ([0-9]* "." [0-9]+ ([eE] [+-]? [0-9]+)?))) {
             return AST("LiteralNumber").set({ value: parseInt(n, 10) })
         }
     /   s:$([+-]?) "0x" n:$([0-9a-fA-F]+) {
