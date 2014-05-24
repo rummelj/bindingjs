@@ -154,8 +154,19 @@ class AST {
                         case "string":
                             out += "\"" + node.A[key].replace(/\n/, "\\n").replace(/"/, "\\\"") + "\""
                             break
+                        case "object":
+                            if (node.A[key] instanceof RegExp)
+                                out += "/" +
+                                    node.A[key].toString()
+                                    .replace(/^\//, "")
+                                    .replace(/\/$/, "")
+                                    .replace(/\//g, "\\/") +
+                                "/"
+                            else
+                                out += node.A[key].toString()
+                            break
                         default:
-                            out += node.A[key]
+                            out += node.A[key].toString()
                             break
                     }
                 }
