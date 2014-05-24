@@ -41,7 +41,9 @@ body
 
 macroDef
     =   "@" id:id "(" _ a:(id (_ "," _ id)*)? _ ")" _ "{" b:(_ binding)* _ "}" {
-            return AST("MacroDef").set({ id: id.get("id") }).add(unroll(a[0], a[1], 3), unroll(null, b, 1))
+            return AST("MacroDef").set({ id: id.get("id") })
+                .add(AST("MacroParams").add(unroll(a[0], a[1], 3)))
+                .add(AST("MacroBody").add(unroll(null, b, 1)))
         }
 
 macroRef
