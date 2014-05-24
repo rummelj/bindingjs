@@ -132,41 +132,34 @@ class AST {
             for (let i = 0; i  < depth; i++)
                 out += "    "
             out += node.T + " "
-            let hasAttributes = false
-            for (let key in node.A) {
-                if (!node.A.hasOwnProperty(key))
-                    continue
-                hasAttributes = true
-                break
-            }
-            if (hasAttributes) {
+            let keys = Object.keys(node.A)
+            if (keys.length > 0) {
                 out += "("
                 let first = true
-                for (let key in node.A) {
-                    if (!node.A.hasOwnProperty(key))
-                        continue
+                for (let i = 0; i < keys.length; i++) {
                     if (!first)
                         out += ", "
                     else
                         first = false
-                    out += key + ": "
-                    switch (typeof node.A[key]) {
+                    out += keys[i] + ": "
+                    let value = node.A[keys[i]]
+                    switch (typeof value) {
                         case "string":
-                            out += "\"" + node.A[key].replace(/\n/, "\\n").replace(/"/, "\\\"") + "\""
+                            out += "\"" + value.replace(/\n/, "\\n").replace(/"/, "\\\"") + "\""
                             break
                         case "object":
-                            if (node.A[key] instanceof RegExp)
+                            if (value instanceof RegExp)
                                 out += "/" +
-                                    node.A[key].toString()
+                                    value.toString()
                                     .replace(/^\//, "")
                                     .replace(/\/$/, "")
                                     .replace(/\//g, "\\/") +
                                 "/"
                             else
-                                out += node.A[key].toString()
+                                out += value.toString()
                             break
                         default:
-                            out += node.A[key].toString()
+                            out += value.toString()
                             break
                     }
                 }
