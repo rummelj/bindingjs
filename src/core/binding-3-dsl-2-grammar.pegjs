@@ -337,7 +337,7 @@ _ "optional blank"
     =   (co / ws)*
 
 co "end-of-line or multi-line comment"
-    =   "//" (![\r\n] .)*
+    =   "//" [^\r\n]*
     /   "/*" (!"*/" .)* "*/"
 
 ws "any whitespaces"
