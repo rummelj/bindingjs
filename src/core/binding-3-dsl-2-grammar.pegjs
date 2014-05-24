@@ -257,7 +257,7 @@ exprDereference
         }
 
 exprFunctionCall
-    =   id:id "(" _ p:exprSeq? _ ")" {
+    =   id:id "(" _ p:exprSeq? _ ")" {  /* RECURSION */
             return AST("Func").set({ id: id.get("id") }).add(p)
         }
 
@@ -267,7 +267,7 @@ exprVariable
         }
 
 exprParenthesis
-    =   "(" _ e:expr _ ")" {
+    =   "(" _ e:expr _ ")" {  /* RECURSION */
              return e
         }
 
