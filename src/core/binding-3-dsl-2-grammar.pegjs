@@ -40,14 +40,14 @@ body
     /   macroRef
 
 macroDef
-    =   "@" id:id "(" _ a:(id (_ "," _ id)*)? _ ")" _ "{" b:(_ binding)* _ "}" {
+    =   id:id "(" _ a:(id (_ "," _ id)*)? _ ")" _ "{" b:(_ binding)* _ "}" {
             return AST("MacroDef").set({ id: id.get("id") })
                 .add(AST("MacroParams").add(unroll(a[0], a[1], 3)))
                 .add(AST("MacroBody").add(unroll(null, b, 1)))
         }
 
 macroRef
-    =   "@" id:id "(" _ p:exprSeq _ ")" {
+    =   id:id "(" _ p:exprSeq _ ")" {
             return AST("MacroRef").set({ id: id.get("id") }).add(p)
         }
 
@@ -110,11 +110,11 @@ selectorClass "class-selector"
         }
 
 selectorAttr
-    =   "[" _ name:id _ op:selectorAttrOp _ value:selectorAttrValue _ "]"{
-            return AST("Attr").set({ op: op }).add(name, value)
+    =   "[" _ name:$([a-zA-Z_][a-zA-Z0-9_-]*) _ op:selectorAttrOp _ value:selectorAttrValue _ "]"{
+            return AST("Attr").set({ op: op }).add(AST("Name").set({ name  :name }), value)
         }
-    /   "[" _ name:id _ "]" {
-            return AST("Attr").set({ op: "has" }).add(name)
+    /   "[" _ name:$([a-zA-Z_][a-zA-Z0-9_-]*) _ "]" {
+            return AST("Attr").set({ op: "has" }).add(AST("Name").set({ name: name }), name)
         }
 
 selectorAttrOp "attribute operator"
@@ -171,9 +171,9 @@ bindingLink
     =   exprSeq
 
 bindingOp "binding operator"
-    =   op:"<-"   { return AST("BindingOperator").set({ value: op }) }
-    /   op:"<->"  { return AST("BindingOperator").set({ value: op }) }
-    /   op:"->"   { return AST("BindingOperator").set({ value: op }) }
+    =   op:$("<->" / "<-" / "->") {
+            return AST("BindingOperator").set({ value: op })
+        }
 
 exprSeq
     =   f:expr l:(_ "," _ expr)* {
@@ -199,7 +199,7 @@ exprLogical
     /   exprRelational
 
 exprLogicalOp "boolean logical operator"
-    =   op:("&&" / "||") {
+    =   op:$("&&" / "||") {
             return AST("LogicalOp").set({ op: op })
         }
 
@@ -210,7 +210,7 @@ exprRelational
     /   exprAdditive
 
 exprRelationalOp "relational operator"
-    =   op:("==" / "!=" / "<=" / ">=" / "<" / ">" / "=~" / "!~") {
+    =   op:$("==" / "!=" / "<=" / ">=" / "<" / ">" / "=~" / "!~") {
             return AST("RelationalOp").set({ op: op })
         }
 
@@ -221,24 +221,32 @@ exprAdditive
     /   exprMultiplicative
 
 exprAdditiveOp "additive arithmetic operator"
-    =   op:("+"/"-") {
+    =   op:$("+" / "-") {
             return AST("ArithOp").set({ op: op })
         }
 
 exprMultiplicative
-    =   e1:exprOther e2:(_ exprMultiplicativeOp _ expr)+ {
+    =   e1:exprDereference e2:(_ exprMultiplicativeOp _ expr)+ {
             return AST("Arith").add(unroll(e1, e2, [ 1, 3 ]))
         }
-    /   exprOther
+    /   exprDereference
 
 exprMultiplicativeOp "multiplicative arithmetic operator"
-    =   op:("*" / "/" / "%") {
+    =   op:$("*" / "/" / "%") {
             return AST("ArithOp").set({ op: op })
         }
 
+exprDereference
+    =   e1:exprOther e2:("." id)+ {
+            return AST("Deref").add(unroll(e1, e2, 1))
+        }
+    /   e1:exprOther e2:("[" _ expr _ "]")+ {
+            return AST("Deref").add(unroll(e1, e2, 2))
+        }
+    /   exprOther
+
 exprOther
     =   exprLiteral
-    /   exprDereference
     /   exprFunctionCall
     /   exprVariable
     /   exprParenthesis
@@ -247,14 +255,6 @@ exprLiteral
     =   string
     /   regexp
     /   number
-
-exprDereference
-    =   "." id:id {
-            return AST("Deref").set({ id: id.get("id") })
-        }
-    /   "[" _ e:expr _ "]" {
-            return AST("Deref").add(e)
-        }
 
 exprFunctionCall
     =   v:variable "(" _ p:exprFunctionCallParams? _ ")" {  /* RECURSION */
@@ -294,7 +294,7 @@ id "identifier"
         }
 
 variable "variable"
-    =   ns:$([@$#] / ([a-zA-Z_][a-zA-Z0-9_]* ":"))? id:$([a-zA-Z_][a-zA-Z0-9_]*) {
+    =   ns:$([@$#%&] / ([a-zA-Z_][a-zA-Z0-9_]* ":"))? id:$([a-zA-Z_][a-zA-Z0-9_]*) {
             return AST("Variable").set({ ns: ns !== null ? ns : "", id: id })
         }
 
