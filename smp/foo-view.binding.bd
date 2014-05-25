@@ -1,42 +1,33 @@
-  
-div > !div.foo[name='bar'] > div, span { 
-    div.bar {
-        text <- bar <- quux, quux2 / 1 > (0 + "foo" + 42) - 3
-    }
+
+button(name, click) {
+    attr:name <- i18n(lang, name)
+    on:click -> click
 }
 
-/*
-
-@button(@name, @click) {
-    attr:name <- i18n(lang, @name)
-    on:click -> @click
-}
-
-div:name(pos) {
+div[data-name='pos'] {
     exists <- length(persons) > 0
     li {
         $person, $k <- each <- slice(sort('name', persons), window.begin, window.end)
         attr:data-id <- $person.id
-        span:name(num)   { text <- sprintf('%03d', window.begin + $k) }
-        span:name(intro) { text <- intro }
+        span[data-name='num']   { text <- sprintf('%03d', window.begin + $k) }
+        span[data-name='intro'] { text <- intro }
         input {
-            $p <- $person;
-            attr:value <-> $p.name; attr:disabled(?) <- !$p.enabled;
+            $p <- $person
+            attr:value <-> $p.name
+            attr:disabled(remove: true) <- !$p.enabled
             css:color <- $p.enabled ? 'green' : 'red'
         }
         button {
-            attr:name <- i18n(lang, 'kill-person');
+            attr:name <- i18n(lang, 'kill-person')
             on:click -> $person.kill
         }
     }
-    button:name(kill) { @button(kill-persons, event.kill-persons) }
-    button:name(new)  { @button(new-persons,  event.new-persons)  }
+    button[data-name='kill'] { button(kill-persons, event.kill-persons) }
+    button[data-name='new']  { button(new-persons,  event.new-persons)  }
 }
 
-div:name(neg) {
+div[data-name='neg'] {
     exists <- length(persons) == 0
     text <- i18n(lang, 'no-persons-available')
 }
-
-*/
 
