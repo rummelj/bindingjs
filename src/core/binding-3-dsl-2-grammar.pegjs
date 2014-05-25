@@ -257,8 +257,8 @@ exprDereference
         }
 
 exprFunctionCall
-    =   id:id "(" _ p:exprFunctionCallParams? _ ")" {  /* RECURSION */
-            return AST("Func").set({ id: id.get("id") }).add(p)
+    =   v:variable "(" _ p:exprFunctionCallParams? _ ")" {  /* RECURSION */
+            return AST("Func").set({ ns: v.get("ns"), id: v.get("id") }).add(p)
         }
 
 exprFunctionCallParams
