@@ -1,3 +1,6 @@
+/*
+**  foo-view.binding.bd -- BindingJS view binding for "foo" mask
+*/
 
 button(name, event) {
     attr:name <- i18n(lang, name)
@@ -16,7 +19,7 @@ div[data-name="pos"] {
             text <- intro 
         }
         input {
-            @p <- @person
+            @p <- @person // just alias person
             attr:value <-> @p.name
             attr:disabled(remove: true) <- !@p.enabled
             css:color <- @p.enabled ? 'green' : 'red'
