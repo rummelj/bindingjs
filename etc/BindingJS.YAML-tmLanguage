@@ -1,0 +1,50 @@
+# [PackageDev] target_format: plist, ext: tmLanguage
+---
+name: BindingJS
+scopeName: source.bjs
+fileTypes: [ bjs, bd ]
+uuid: fd89e023-9da5-4a2b-96e5-857d92191fe1
+
+# See Also:
+# http://sublimetext.info/docs/en/extensibility/syntaxdefs.html
+# https://bitbucket.org/guillermooo/aaapackagedev
+# http://blog.macromates.com/2005/introduction-to-scopes/
+# http://manual.macromates.com/en/language_grammars
+
+patterns:
+
+- begin: "/\\*"
+  end:   "\\*/"
+  name:  comment.block
+
+- match: "//[^\\r\\n]*"
+  name:  comment.line
+
+- match: "(?:true|false|NaN|null|undefined)"
+  name:  constant.character
+
+- match: "\\b\\d+\\b"
+  name:  constant.numeric
+
+- match: "\"(?:\\\\.|[^\"])*\""
+  name:  string.quoted.double
+
+- match: "'(?:\\\\.|[^'])*'"
+  name:  string.quoted.single
+
+- match: "(?:<->|<-|->)"
+  name:  keyword
+
+- match: "(?:==|!=|<=|<|>|>=|!~|=~|=)"
+  name:  keyword
+
+- match: "(?:\\+|-|\\*|/|%|~)"
+  name:  keyword
+
+- match: "(?:\\(|\\)|\\[|\\]|\\{|\\}|,|;|\\.|\\s\\?\\s|\\s:\\s)"
+  name:  keyword
+
+- match: "(?:!|&&|\\|\\|)"
+  name:  keyword
+
+...
