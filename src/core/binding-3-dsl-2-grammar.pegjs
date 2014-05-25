@@ -257,13 +257,26 @@ exprDereference
         }
 
 exprFunctionCall
-    =   id:id "(" _ p:exprSeq? _ ")" {  /* RECURSION */
+    =   id:id "(" _ p:exprFunctionCallParams? _ ")" {  /* RECURSION */
             return AST("Func").set({ id: id.get("id") }).add(p)
         }
 
+exprFunctionCallParams
+    =   f:exprFunctionCallParam l:(_ "," _ exprFunctionCallParam)* {
+            return unroll(f, l, 3)
+        }
+
+exprFunctionCallParam
+    =   id:id _ ":" _ e:expr {
+            return AST("FuncParamNamed").set({ id: id.get("id") }).add(e)
+        }
+    /   e:expr {
+            return AST("FuncParamPositional").add(e)
+        }
+
 exprVariable
-    =   id:id {
-            return AST("Var").set({ id: id.get("id") })
+    =   v:variable {
+            return v
         }
 
 exprParenthesis
@@ -276,8 +289,13 @@ exprParenthesis
 */
 
 id "identifier"
-    =   id:$(("\\" . / [a-zA-Z_@$#][a-zA-Z0-9_:@$#]*)+) {
-            return AST("Identifier").set({ id: id.replace(/\\/g, "") })
+    =   id:$([a-zA-Z_][a-zA-Z0-9_]*) {
+            return AST("Identifier").set({ id: id })
+        }
+
+variable "variable"
+    =   ns:$([@$#] / ([a-zA-Z_][a-zA-Z0-9_]* ":"))? id:$([a-zA-Z_][a-zA-Z0-9_]*) {
+            return AST("Variable").set({ ns: ns !== null ? ns : "", id: id })
         }
 
 bareword "bareword (FIXME: still unused)"
