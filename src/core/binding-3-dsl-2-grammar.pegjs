@@ -255,6 +255,7 @@ exprLiteral
     =   string
     /   regexp
     /   number
+    /   value
 
 exprFunctionCall
     =   v:variable "(" _ p:exprFunctionCallParams? _ ")" {  /* RECURSION */
@@ -350,6 +351,13 @@ number "numeric literal"
     /   s:$([+-]?) "0b" n:$([01]+) {
             return AST("LiteralNumber").set({ value: parseInt(s + n, 2) })
         }
+
+value "global value"
+    =   "true"      { return AST("LiteralValue").set({ value: true      }) }
+    /   "false"     { return AST("LiteralValue").set({ value: false     }) }
+    /   "null"      { return AST("LiteralValue").set({ value: null      }) }
+    /   "NaN"       { return AST("LiteralValue").set({ value: NaN       }) }
+    /   "undefined" { return AST("LiteralValue").set({ value: undefined }) }
 
 _ "optional blank"
     =   (co / ws)*
