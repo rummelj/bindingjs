@@ -19,7 +19,7 @@ div[data-name='pos'] {
         }
         button {
             attr:name <- i18n(lang, 'kill-person')
-            on:click -> $person.kill
+            on:click -> @person.kill
         }
     }
     button[data-name='kill'] { button(kill-persons, event.kill-persons) }
