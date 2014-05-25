@@ -23,7 +23,7 @@ describe("BindingJS DSL Parser", function () {
                 let prefix2 = ""
                 for (let i = 0; i < prefix1.length + e.location.prolog.length; i++)
                     prefix2 += "-"
-                console.log(
+                throw new Error("PARSING FAILED\n" +
                     chalk.black("ERROR: ") + prefix1 + e.location.prolog +
                         chalk.bold(chalk.red(e.location.token)) + e.location.epilog + "\n" +
                     chalk.black("ERROR: ") + chalk.bold(chalk.red(prefix2 + "^")) + "\n" +
