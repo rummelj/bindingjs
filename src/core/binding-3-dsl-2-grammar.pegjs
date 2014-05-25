@@ -232,7 +232,7 @@ exprMultiplicative
     /   exprOther
 
 exprMultiplicativeOp "multiplicative arithmetic operator"
-    =   op:("*" / "/") {
+    =   op:("*" / "/" / "%") {
             return AST("ArithOp").set({ op: op })
         }
 
