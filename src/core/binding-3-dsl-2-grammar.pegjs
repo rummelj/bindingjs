@@ -23,13 +23,24 @@
 */
 
 spec
-    =   b:(_ block)* _ eof {
-            return AST("Spec").add(unroll(null, b, 1))
+    =   b:blocks eof {
+            return b
+        }
+
+blocks
+    =   b:(_ block)* _ {
+            return AST("Blocks").add(unroll(null, b, 1))
         }
 
 block
-    =   rule
+    =   group
+    /   rule
     /   macroDef
+
+group
+    =   "@binding" _ n:string _  "{" b:blocks "}" {  /* RECURSION */
+            return AST("Group").set({ name: n.get("value") }).add(b)
+        }
 
 rule
     =   s:selectors _ i:iterator? _ "{" b:(_ body _ ";"?)* _ "}" {
