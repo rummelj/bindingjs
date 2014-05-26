@@ -18,8 +18,8 @@ div[data-name="pos"] (length(persons) > 0) {
         }
         input {
             @p <- @person // just alias person
-            attr:value <-> @p.name
-            attr:disabled(remove: true) <- !@p.enabled
+            value(on: "change,keypress") <-> @p.name
+            attr:disabled <- !@p.enabled
             css:color <- @p.enabled ? 'green' : 'red'
         }
         button {
