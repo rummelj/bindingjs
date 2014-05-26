@@ -33,8 +33,7 @@ div[data-name="pos"] {
     button[data-name="new"]  { button("new-persons",  "event.new-persons")  }
 }
 
-div[data-name="neg"] {
-    exists <- length(persons) == 0
-    text <- i18n(lang, "no-persons-available")
+div[data-name="neg"] (length(persons) == 0) {
+    text <~ i18n(lang, "no-persons-available")
 }
 

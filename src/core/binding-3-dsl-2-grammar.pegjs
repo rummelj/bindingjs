@@ -171,7 +171,7 @@ bindingLink
     =   exprSeq
 
 bindingOp "binding operator"
-    =   op:$("<->" / "<-" / "->") {
+    =   op:$("<->" / "<-" / "->" / "<~" / "~>") {
             return AST("BindingOperator").set({ value: op })
         }
 
