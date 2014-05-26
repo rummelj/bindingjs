@@ -30,8 +30,16 @@ block
     /   macroDef
 
 rule
-    =   s:selectors _ "{" b:(_ body)* _ "}" {
-            return AST("Rule").add(s, unroll(null, b, 1))
+    =   s:selectors _ i:iterator? _ "{" b:(_ body)* _ "}" {
+            return AST("Rule").add(s, i, unroll(null, b, 1))
+        }
+
+iterator
+    =   "(" _ v:(variable (_ "," _ variable)* _ ":")? _ e:expr _ ")" {
+            return AST("Iterator").add(
+                AST("Variables").add(v !== null ? unroll(v[0], v[1], 3) : null),
+                AST("Expr").add(e)
+            )
         }
 
 body

@@ -7,10 +7,8 @@ button(name, event) {
     on:click -> event
 }
 
-div[data-name="pos"] {
-    exists <- length(persons) > 0
-    li {
-        @person, @k <- each <- slice(sort("name", persons), window.begin, window.end)
+div[data-name="pos"] (length(persons) > 0) {
+    li (@person, @k: slice(sort("name", persons), window.begin, window.end)) {
         attr:data-id <- @person.id
         span[data-name="num"] {
             text <- sprintf('%03d', window.begin + @k)
