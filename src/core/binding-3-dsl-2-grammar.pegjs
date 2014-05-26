@@ -32,7 +32,7 @@ block
     /   macroDef
 
 rule
-    =   s:selectors _ i:iterator? _ "{" b:(_ body)* _ "}" {
+    =   s:selectors _ i:iterator? _ "{" b:(_ body _ ";"?)* _ "}" {
             return AST("Rule").add(s, i, unroll(null, b, 1))
         }
 
