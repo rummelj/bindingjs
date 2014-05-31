@@ -43,7 +43,7 @@ group
         }
 
 rule
-    =   s:selectors _ i:iterator? _ ie:importexport? _ "{" b:(_ body _ ";"?)* _ "}" {
+    =   s:selectors _ i:iterator? _ ie:importExport? _ "{" b:(_ body _ ";"?)* _ "}" {
             return AST("Rule").add(s, i, ie, unroll(null, b, 1))
         }
 
@@ -55,11 +55,11 @@ iterator
             )
         }
 
-importexport
-    =   "<<" _ id:id "(" p:exprSeq? ")" {
+importExport
+    =   "<<" _ id:id "(" _ p:exprSeq? _ ")" {
             return AST("Import").set({ id: id.get("id") }).add(p)
         }
-    /   ">>" _ id:id "(" p:(variable (_ "," _ variable)*)? ")" {
+    /   ">>" _ id:id "(" _ p:(variable (_ "," _ variable)*)? _ ")" {
             return AST("Export").set({ id: id.get("id") })
                 .add(p !== null ? unroll(p[0], p[1], 3) : null)
         }
