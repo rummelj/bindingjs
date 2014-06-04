@@ -27,7 +27,7 @@ describe("BindingJS DSL Parser", function () {
                     chalk.black("ERROR: ") + prefix1 + e.location.prolog +
                         chalk.bold(chalk.red(e.location.token)) + e.location.epilog + "\n" +
                     chalk.black("ERROR: ") + chalk.bold(chalk.red(prefix2 + "^")) + "\n" +
-                    chalk.black("ERROR: ") + chalk.red(ast.error.message) + "\n"
+                    chalk.black("ERROR: ") + chalk.red(e.message) + "\n"
                 )
             }
             else {

@@ -19,12 +19,12 @@
             }
             input {
                 @p <- @person // just alias person
-                value(on: "change,keypress") <-> @p.name
+                value({on: "change,keypress"}) <-> @p.name
                 attr:disabled <- !@p.enabled
                 css:color <- @p.enabled ? 'green' : 'red'
             }
             button {
-                attr:name <- i18n(param:lang, "kill-person")
+                attr:name <- i18n({ lang: param:lang, id: "kill-person" })
                 on:click -> @person.kill
             }
         }
