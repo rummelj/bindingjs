@@ -325,7 +325,7 @@ id "identifier"
         }
 
 variable "variable"
-    =   ns:$([@$#%&] / ([a-zA-Z_][a-zA-Z0-9_]* ":"))? id:$([a-zA-Z_][a-zA-Z0-9_]*) {
+    =   ns:$([@$#%&] / ([a-zA-Z_][a-zA-Z0-9_]* ":"))? id:$([a-zA-Z_][a-zA-Z0-9_-]*) {
             return AST("Variable").set({ ns: ns !== null ? ns : "", id: id })
         }
 
