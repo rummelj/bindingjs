@@ -293,21 +293,16 @@ exprFunctionCall
         }
 
 exprFunctionCallParams
-    =   f:exprFunctionCallParamPositional l:(_ "," _ exprFunctionCallParamPositional)* {
+    =   f:exprFunctionCallParam l:(_ "," _ exprFunctionCallParam)* {
             return unroll(f, l, 3)
         }
-	/	"{" _ f:exprFunctionCallParamNamed l:(_ "," _ exprFunctionCallParamNamed)* _ "}" {
-			return unroll(f, l, 3)
-		}
 
-exprFunctionCallParamPositional
-    =   e:expr {
-            return AST("FuncParamPositional").add(e)
-        }
-
-exprFunctionCallParamNamed
-	=	id:id _ ":" _ e:expr {
+exprFunctionCallParam
+    =   id:id _ "=" _ e:expr {
             return AST("FuncParamNamed").set({ id: id.get("id") }).add(e)
+        }
+    /   e:expr {
+            return AST("FuncParamPositional").add(e)
         }
 
 exprVariable
