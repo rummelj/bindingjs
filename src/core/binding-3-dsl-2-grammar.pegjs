@@ -324,9 +324,7 @@ exprFunctionCallParam
         }
 
 exprVariable
-    =   v:variable {
-            return v
-        }
+    =   variable
 
 exprParenthesis
     =   "(" _ e:expr _ ")" {  /* RECURSION */
