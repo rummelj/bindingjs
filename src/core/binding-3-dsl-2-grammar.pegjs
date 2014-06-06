@@ -193,17 +193,33 @@ selectorPseudoTagNameComplex "name of pseudo-selector (with complex argument)"
 */
 
 binding
-    =   f:bindingLink l:(_ bindingOp _ bindingLink)+ {
-            return AST("Binding").add(unroll(f, l, [ 1, 3 ]))
+    =   l:bindingAdaptionL _ c:bindingConnection _ r:bindingAdaptionR {
+            return AST("Binding").add(l, c, r)
         }
 
-bindingLink
-    =   exprSeq
+bindingAdaptionL
+    =   i:(exprSeq _ "+>" _)? e:exprSeq {
+            return AST("Adapter").add(e).add(i !== null ? AST("Initiator").add(i[0]) : null)
+        }
+
+bindingAdaptionR
+    =   e:exprSeq i:(_ "<+" _ exprSeq)? {
+            return AST("Adapter").add(e).add(i !== null ? AST("Initiator").add(i[3]) : null)
+        }
+
+bindingConnection
+    =   f:bindingOp l:(_ exprSeq _ bindingOp)* {
+            return AST("Connector").add(unroll(f, l, [ 1, 3 ]))
+        }
 
 bindingOp "binding operator"
     =   op:$("<->" / "<-" / "->" / "<~" / "~>") {
             return AST("BindingOperator").set({ value: op })
         }
+
+/*
+**  ==== EXPRESSION ====
+*/
 
 exprSeq
     =   f:expr l:(_ "," _ expr)* {
