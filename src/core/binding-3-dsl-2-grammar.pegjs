@@ -348,7 +348,7 @@ variable "variable"
             return AST("Variable").set({ ns: ns !== null ? ns : "", id: id })
         }
 
-bareword "bareword (FIXME: still unused)"
+bareword "bareword"
     =   bw:$(("\\" . / [a-zA-Z0-9_])+) {
             return AST("LiteralBareword").set({ value: bw.replace(/\\/g, "") })
         }
