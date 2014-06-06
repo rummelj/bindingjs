@@ -25,7 +25,7 @@
                 css:color <- @p.enabled ? 'green' : 'red'
             }
             button {
-                attr:name <- i18n(lang = param:lang, id = "kill-person")
+                attr:name <~ i18n(lang = param:lang, id = "kill-person")
                 on:click -> @person.kill
             }
         }
