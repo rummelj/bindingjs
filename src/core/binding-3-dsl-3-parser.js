@@ -62,12 +62,12 @@ _api.dsl.parser.parser = (txt, rule) => {
     }
     catch (e) {
         result.error = {
-            line:     typeof e.line     !== "undefined" ? e.line     : 0,
-            column:   typeof e.column   !== "undefined" ? e.column   : 0,
+            line:     _api.definedOrElse(e.line, 0),
+            column:   _api.definedOrElse(e.column, 0),
             message:  e.message,
-            found:    typeof e.found    !== "undefined" ? e.found    : "",
-            expected: typeof e.expected !== "undefined" ? e.expected : "",
-            location: typeof e.offset   !== "undefined" ? excerpt(txt, e.offset) : excerpt(txt, 0)
+            found:    _api.definedOrElse(e.found, ""),
+            expected: _api.definedOrElse(e.expected, ""),
+            location: excerpt(txt, _api.definedOrElse(e.offset, 0))
         }
     }
     return result

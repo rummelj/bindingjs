@@ -24,6 +24,11 @@ _api.log = (msg) => {
         root.console.log("[BindingJS]: " + msg)
 }
 
+/*  utility function: return a value or (if undefined) a fallback value  */
+_api.definedOrElse = (value, fallback) => {
+    return (typeof value !== "undefined" ? value : fallback)
+}
+
 /*  utility function: debugging  */
 $api.debug = (function () {
     let debug_level = 9
