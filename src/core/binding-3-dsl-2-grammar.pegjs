@@ -188,6 +188,7 @@ selectorPseudoTagNameArg "name of pseudo-selector (with simple argument)"
 selectorPseudoTagNameComplex "name of pseudo-selector (with complex argument)"
     =   "has" / "not" / "matches"
 
+
 /*
 **  ==== BINDING ====
 */
@@ -216,6 +217,7 @@ bindingOp "binding operator"
     =   op:$("<->" / "<-" / "->" / "<~" / "~>") {
             return AST("BindingOperator").set({ value: op })
         }
+
 
 /*
 **  ==== EXPRESSION ====
@@ -331,6 +333,7 @@ exprParenthesis
              return e
         }
 
+
 /*
 **  ==== GENERIC ====
 */
@@ -404,6 +407,11 @@ value "global value"
     /   "null"      { return AST("LiteralValue").set({ value: null      }) }
     /   "NaN"       { return AST("LiteralValue").set({ value: NaN       }) }
     /   "undefined" { return AST("LiteralValue").set({ value: undefined }) }
+
+
+/*
+**  ==== GLUE ====
+*/
 
 _ "optional blank"
     =   (co / ws)*
