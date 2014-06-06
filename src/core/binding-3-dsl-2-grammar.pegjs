@@ -344,8 +344,14 @@ id "identifier"
         }
 
 variable "variable"
-    =   ns:$([@$#%&] / ([a-zA-Z_][a-zA-Z0-9_]* ":"))? id:$([a-zA-Z_][a-zA-Z0-9_-]*) {
-            return AST("Variable").set({ ns: ns !== null ? ns : "", id: id })
+    =   ns:$([@$#%&]) id:$([a-zA-Z_][a-zA-Z0-9_-]*) {
+            return AST("Variable").set({ ns: ns, id: id })
+        }
+    /   ns:$([a-zA-Z_][a-zA-Z0-9_]*) ":" id:$([a-zA-Z_][a-zA-Z0-9_-]*) {
+            return AST("Variable").set({ ns: ns, id: id })
+        }
+    /   id:$([a-zA-Z_][a-zA-Z0-9_-]*) {
+            return AST("Variable").set({ ns: "", id: id })
         }
 
 bareword "bareword"
