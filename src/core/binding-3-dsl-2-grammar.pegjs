@@ -209,7 +209,7 @@ bindingAdaptionR
         }
 
 bindingConnection
-    =   f:bindingOp l:(_ exprSeq _ bindingOp)* {
+    =   f:bindingOp l:(_ exprFunctionCall _ bindingOp)* {
             return AST("Connector").add(unroll(f, l, [ 1, 3 ]))
         }
 
