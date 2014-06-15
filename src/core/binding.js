@@ -10,7 +10,8 @@
 include("../umd/umd-library-prolog.js", { library: "bindingjs" })
 
     include("binding-1-version.js")
-    include("binding-2-util.js")
+    include("binding-2-util-1-common.js")
+    include("binding-2-util-2-promise.js")
     include("binding-3-dsl.js")
     include("binding-3-dsl-1-ast.js")
     include("binding-3-dsl-3-parser.js")
