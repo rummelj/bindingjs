@@ -7,9 +7,26 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-include("../umd/umd-plugins-prolog.js", { library: "bindingjs", plugin: "componentjs", deps: "" })
+include("../umd/umd-plugins-prolog.js", { library: "bindingjs", plugin: "adapter-componentjs", deps: "" })
 
-//  $api.registerAdapter("FIXME")
+class AdapterComponentJS {
+    startup () {
+    }
+    configure (/* params */) {
+    }
+    observe (/* cb */) {
+    }
+    unobserve (/* id */) {
+    }
+    fetch (/* name */) {
+    }
+    store (/* name, value */) {
+    }
+    shutdown () {
+    }
+}
+
+$api.defineAdapter("ComponentJS", AdapterComponentJS)
 
 include("../umd/umd-plugins-epilog.js")
 
