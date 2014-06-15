@@ -12,7 +12,7 @@ include("../umd/umd-plugins-prolog.js", { library: "bindingjs", plugin: "connect
 class ConnectorValidate {
     startup () {
     }
-    configure (/* params */) {
+    configure (/* qualifier, params */) {
     }
     process (/* input */) {
     }

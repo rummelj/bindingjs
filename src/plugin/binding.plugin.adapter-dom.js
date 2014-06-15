@@ -12,7 +12,7 @@ include("../umd/umd-plugins-prolog.js", { library: "bindingjs", plugin: "adapter
 class AdapterDOM {
     startup () {
     }
-    configure (/* params */) {
+    configure (/* qualifier, params */) {
     }
     observe (/* cb */) {
     }
