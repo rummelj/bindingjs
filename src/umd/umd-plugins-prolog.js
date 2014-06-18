@@ -8,21 +8,21 @@
 */
 
 /*  Universal Module Definition (UMD) for Plugin  */
-(function (root, name_library, name_plugin, name_deps, factory) {
+(function (root, nameLibrary, namePlugin, nameDeps, factory) {
     /* global define:false */
     /* global require:false */
     /* global module:false */
-    var export_type = root[name_plugin.replace(/[^a-zA-Z0-9_]/g, "_") + "_export"];
-    var make_name = function (name_plugin) { return name_library + "-" + name_plugin; };
-    var deps = [ name_library ].concat(name_deps !== "" ? name_deps.split(",").map(make_name) : []);
+    var export_type = root[namePlugin.replace(/[^a-zA-Z0-9_]/g, "_") + "_export"];
+    var make_name = function (namePlugin) { return nameLibrary + "-" + namePlugin; };
+    var deps = [ nameLibrary ].concat(nameDeps !== "" ? nameDeps.split(",").map(make_name) : []);
     if (   (   typeof define === "function"
             && typeof define.amd !== "undefined"
             && typeof export_type === "undefined")
         || (   typeof export_type !== "undefined"
             && export_type === "AMD"             )) {
         /*  AMD environment  */
-        define(make_name(name_plugin), deps, function (api) {
-            return api.plugin(name_plugin, factory);
+        define(make_name(namePlugin), deps, function (api) {
+            return api.plugin(namePlugin, factory);
         });
     }
     else if (
@@ -39,11 +39,11 @@
             return m;
         };
         deps.map(load);
-        module.exports = load(name_library).plugin(name_plugin, factory);
+        module.exports = load(nameLibrary).plugin(namePlugin, factory);
     }
     else {
         /*  Browser environment  */
-        root[name_library].plugin(name_plugin, factory);
+        root[nameLibrary].plugin(namePlugin, factory);
     }
-}(this, "$library", "$plugin", "$deps", function (/* jshint unused: false */ root, _api, $api) {
+}(this, "$library", "$plugin", "$deps", function (/* jshint unused: false */ _api, $api, root) {
 
