@@ -43,10 +43,6 @@ _api.Promise = (function () {
         })();
 }(this, "Thenable", function (/* root */) {
 
-    /*  helper functions to reduce (compressed) code size  */
-    var isObject = function (v) { return typeof v === "object";   };
-    var isFunc   = function (v) { return typeof v === "function"; };
-
     /*  promise states [Promises/A+ 2.1]  */
     var STATE_PENDING   = 0;                                         /*  [Promises/A+ 2.1.1]  */
     var STATE_FULFILLED = 1;                                         /*  [Promises/A+ 2.1.2]  */
@@ -59,7 +55,7 @@ _api.Promise = (function () {
             return new api(executor);
 
         /*  initialize object  */
-        this.id           = "Thenable/1.0.1";
+        this.id           = "Thenable/1.0.3";
         this.state        = STATE_PENDING; /*  initial state  */
         this.fulfillValue = undefined;     /*  initial value  */     /*  [Promises/A+ 1.3, 2.1.2.2]  */
         this.rejectReason = undefined;     /*  initial reason */     /*  [Promises/A+ 1.5, 2.1.3.2]  */
@@ -67,7 +63,7 @@ _api.Promise = (function () {
         this.onRejected   = [];            /*  initial handlers  */
 
         /*  optionally support executor function  */
-        if (isFunc(executor))
+        if (typeof executor === "function")
             executor.call(this, this.fulfill.bind(this), this.reject.bind(this));
     };
 
@@ -132,9 +128,9 @@ _api.Promise = (function () {
         };
 
         /*  execute procedure asynchronously  */                     /*  [Promises/A+ 2.2.4, 3.1]  */
-        if (isObject(process) && isFunc(process.nextTick))
+        if (typeof process === "object" && typeof process.nextTick === "function")
             process.nextTick(func);
-        else if (isFunc(setImmediate))
+        else if (typeof setImmediate === "function")
             setImmediate(func);
         else
             setTimeout(func, 0);
@@ -143,7 +139,7 @@ _api.Promise = (function () {
     /*  generate a resolver function  */
     var resolver = function (cb, next, method) {
         return function (value) {
-            if (!isFunc(cb))                                         /*  [Promises/A+ 2.2.1, 2.2.7.3, 2.2.7.4]  */
+            if (typeof cb !== "function")                            /*  [Promises/A+ 2.2.1, 2.2.7.3, 2.2.7.4]  */
                 next[method].call(next, value);                      /*  [Promises/A+ 2.2.7.3, 2.2.7.4]  */
             else {
                 var result;
@@ -168,7 +164,7 @@ _api.Promise = (function () {
         /*  surgically check for a "then" method
             (mainly to just call the "getter" of "then" only once)  */
         var then;
-        if ((isObject(x) && x !== null) || isFunc(x)) {
+        if ((typeof x === "object" && x !== null) || typeof x === "function") {
             try { then = x.then; }                                   /*  [Promises/A+ 2.3.3.1, 3.5]  */
             catch (e) { 
                 promise.reject(e);                                   /*  [Promises/A+ 2.3.3.2]  */
@@ -178,7 +174,7 @@ _api.Promise = (function () {
 
         /*  handle own eThenables   [Promises/A+ 2.3.2]
             and similar "thenables" [Promises/A+ 2.3.3]  */
-        if (isFunc(then)) {
+        if (typeof then === "function") {
             var resolved = false;
             try {
                 /*  call retrieved "then" method */                  /*  [Promises/A+ 2.3.3.3]  */
