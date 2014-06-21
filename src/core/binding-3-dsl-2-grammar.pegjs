@@ -48,7 +48,7 @@ rule
         }
 
 iterator
-    =   "(" _ v:(variable (_ "," _ variable)* _ ":")? _ e:expr _ ")" {
+    =   "(" _ v:(variable (_ "," _ variable)? _ ":")? _ e:expr _ ")" {
             return AST("Iterator").add(
                 AST("Variables").add(v !== null ? unroll(v[0], v[1], 3) : null),
                 AST("Expr").add(e)
