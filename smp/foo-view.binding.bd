@@ -3,37 +3,37 @@
 */
 
 @binding "foo" {
-    button(name, event) {
-        attr:name <- i18n(lang, name)
-        on:click -> event
-    }
-
-    div[data-name="pos"] (data:persons.length > 0) {
+    div[data-name="pos"] (length(data:persons) > 0) {
         li (@person, @k: slice(sort("name", data:persons), param:window.begin, param:window.end)) {
             attr:data-id <- @person.id
             span[data-name="num"] {
                 text <- sprintf('%03d', param:window.begin + @k)
             }
             span[data-name="intro"] {
-                text <- intro
+                text <- data:intro
             }
             input {
                 @p <- @person // just alias person
                 on:change, on:keypress +> value <-> @p.name
-                class:error <- validate(/^.+\s+.+$/) <- @p.name
+                class:error   <- validate(/^.+\s+.+$/) <- @p.name
                 attr:disabled <- !@p.enabled
-                css:color <- @p.enabled ? 'green' : 'red'
+                css:color     <- @p.enabled ? "green" : "red"
             }
             button {
                 attr:name <~ i18n(lang = param:lang, id = "kill-person")
-                on:click -> @person.kill
+                on:click  -> @person.kill
             }
         }
-        button[data-name="kill"] { button("kill-persons", "event:kill-persons") }
-        button[data-name="new"]  { button("new-persons",  "event:new-persons")  }
+        button[data-name="kill"] {
+            attr:name <- i18n(param:lang, "kill-persons")
+            on:click -> event:kill-persons
+        }
+        button[data-name="new"] {
+            attr:name <- i18n(param:lang, "new-persons")
+            on:click -> event:new-persons
+        }
     }
-
-    div[data-name="neg"] (data:persons.length == 0) {
+    div[data-name="neg"] (length(data:persons) == 0) {
         text <~ i18n(param:lang, "no-persons-available")
     }
 }

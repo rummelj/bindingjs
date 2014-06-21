@@ -35,7 +35,6 @@ blocks
 block
     =   group
     /   rule
-    /   macroDef
 
 group
     =   "@binding" _ n:string _  "{" b:blocks "}" {  /* RECURSION */
@@ -69,19 +68,6 @@ importExport
 body
     =   rule      /* RECURSION */
     /   binding
-    /   macroRef
-
-macroDef
-    =   id:id "(" _ a:(id (_ "," _ id)*)? _ ")" _ "{" b:(_ binding)* _ "}" {
-            return AST("MacroDef").set({ id: id.get("id") })
-                .add(AST("MacroParams").add(unroll(a[0], a[1], 3)))
-                .add(AST("MacroBody").add(unroll(null, b, 1)))
-        }
-
-macroRef
-    =   id:id "(" _ p:exprSeq _ ")" {
-            return AST("MacroRef").set({ id: id.get("id") }).add(p)
-        }
 
 
 /*
