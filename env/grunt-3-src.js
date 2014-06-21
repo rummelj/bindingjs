@@ -26,6 +26,8 @@ module.exports = function (grunt) {
         jshint: {
             "stage1-src": [
                 "src/core/*.js",
+                "!src/core/binding-2-util-2-promise.js",
+                "!src/core/binding-2-util-3-ducky.js",
                 "src/plugin/*.js"
             ],
             "stage1-tst": [
