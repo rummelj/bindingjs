@@ -77,7 +77,7 @@
                     throw new Error("plugin: invalid plugin name parameter type");
                 if (typeof plugins[name] !== "undefined")
                     throw new Error("plugin: plugin named \"" + name + "\" already registered");
-                callback.call($api, _api, $api, root);
+                callback.call(root, _api, $api, root);
                 plugins[name] = true;
             }
             else

@@ -32,7 +32,7 @@ _api.definedOrElse = (value, fallback) => {
 /*  utility function: debugging  */
 $api.debug = (function () {
     let debug_level = 9
-    return function (level, msg) {
+    return (level, msg) => {
         if (arguments.length === 0)
             /*  return old debug level  */
             return debug_level

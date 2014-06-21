@@ -50,7 +50,9 @@ rule
 iterator
     =   "(" _ v:(variable (_ "," _ variable)? _ ":")? _ e:expr _ ")" {
             return AST("Iterator").add(
-                AST("Variables").add(v !== null ? unroll(v[0], v[1], 3) : null),
+                AST("Variables")
+                    .add(v !== null ?                  v[0]    : null)
+                    .add(v !== null && v[1] !== null ? v[1][3] : null),
                 AST("Expr").add(e)
             )
         }
@@ -392,7 +394,10 @@ regexp "regular expression literal"
         }
 
 number "numeric literal"
-    =   n:$([+-]? ([0-9]+ / ([0-9]* "." [0-9]+ ([eE] [+-]? [0-9]+)?))) {
+    =   n:$([+-]? [0-9]* "." [0-9]+ ([eE] [+-]? [0-9]+)?) {
+            return AST("LiteralNumber").set({ value: parseFloat(n) })
+        }
+    /   n:$([+-]? [0-9]+) {
             return AST("LiteralNumber").set({ value: parseInt(n, 10) })
         }
     /   s:$([+-]?) "0x" n:$([0-9a-fA-F]+) {
