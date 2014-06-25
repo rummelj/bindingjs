@@ -21,16 +21,16 @@
             }
             button {
                 attr:name <~ i18n(lang = param:lang, id = "kill-person")
-                on:click  -> @person.kill
+                on:click +> true -> @person.kill
             }
         }
         button[data-name="kill"] {
             attr:name <- i18n(param:lang, "kill-persons")
-            on:click -> event:kill-persons
+            on:click +> true -> event:kill-persons
         }
         button[data-name="new"] {
             attr:name <- i18n(param:lang, "new-persons")
-            on:click -> event:new-persons
+            on:click +> true -> event:new-persons
         }
     }
     div[data-name="neg"] (length(data:persons) == 0) {
