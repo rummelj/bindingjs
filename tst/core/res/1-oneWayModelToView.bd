@@ -1,0 +1,5 @@
+@binding {
+     #target {
+         text <- $text
+     }
+}

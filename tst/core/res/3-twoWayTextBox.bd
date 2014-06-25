@@ -1,0 +1,5 @@
+@binding {
+    #textbox{
+        on:change +> %value <-> $value
+    }
+}
