@@ -1,4 +1,4 @@
-@binding {
+@binding "foo" {
     #textbox{
         on:change +> %value <-> $value
     }
