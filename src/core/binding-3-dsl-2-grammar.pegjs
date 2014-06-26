@@ -291,6 +291,7 @@ exprOther
     =   exprArray
     /   exprHash
     /   exprLiteral
+    /   exprFunctionDef
     /   exprFunctionCall
     /   exprVariable
     /   exprParenthesis
@@ -301,9 +302,17 @@ exprLiteral
     /   number
     /   value
 
+exprFunctionDef
+    =   "(" _ f:id? l:(_ "," _ id)* _ ")" _ "=>" _ e:expr {  /* RECURSION */
+            return AST("FuncDef").add(
+                AST("FuncDefParams").add(unroll(f, l, 3)),
+                AST("FuncDefBody").add(e)
+            )
+        }
+
 exprFunctionCall
     =   v:variable "(" _ p:exprFunctionCallParams? _ ")" {  /* RECURSION */
-            return AST("Func").set({ ns: v.get("ns"), id: v.get("id") }).add(p)
+            return AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") }).add(p)
         }
 
 exprFunctionCallParams
