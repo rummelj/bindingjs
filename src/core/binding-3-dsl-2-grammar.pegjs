@@ -223,6 +223,12 @@ exprConditional
     =   e1:exprLogical _ "?" _ e2:expr _ ":" _ e3:expr {
             return AST("Conditional").add(e1, e2, e3)
         }
+    /   e1:exprLogical _ "??" _ e2:expr {
+            return AST("Conditional").add(e1, e2, e1)
+        }
+    /   e1:exprLogical _ "?:" _ e2:expr {
+            return AST("Conditional").add(e1, e1, e2)
+        }
     /   exprLogical
 
 exprLogical
