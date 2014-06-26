@@ -282,7 +282,9 @@ exprDereference
     /   exprOther
 
 exprOther
-    =   exprLiteral
+    =   exprArray
+    /   exprHash
+    /   exprLiteral
     /   exprFunctionCall
     /   exprVariable
     /   exprParenthesis
@@ -317,6 +319,21 @@ exprVariable
 exprParenthesis
     =   "(" _ e:expr _ ")" {  /* RECURSION */
              return e
+        }
+
+exprArray
+    =   "[" _ f:expr? l:(_ "," _ expr)* _ "]" {
+            return AST("Array").add(unroll(f, l, 3))
+        }
+
+exprHash
+    =   "{" _ f:exprHashKV? l:(_ "," _ exprHashKV)* _ "}" {
+            return AST("Hash").add(unroll(f, l, 3))
+        }
+
+exprHashKV
+    =   k:id _ ":" _ v:expr {
+            return AST("KeyVal").add(k, v)
         }
 
 
