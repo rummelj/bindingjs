@@ -1,5 +1,5 @@
 /*
-**  foo-view.binding.bd -- BindingJS view binding for "foo" mask
+**  foo-view.bind -- BindingJS view binding for "foo" mask
 */
 
 @binding "foo" {

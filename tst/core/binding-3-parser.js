@@ -14,7 +14,7 @@ describe("BindingJS DSL Parser", function () {
     describe("parse()", function () {
         it("allows the binding DSL to be parsed", () => {
             let dsl = fs.readFileSync(
-                path.join(__dirname, "../../../../smp/foo-view.binding.bd"),
+                path.join(__dirname, "../../../../smp/foo-view.bind"),
                 { encoding: "utf8" })
             let ast = BindingJS.parse(dsl, "spec")
             if (ast.error !== null) {
