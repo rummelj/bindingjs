@@ -37,7 +37,7 @@ block
     /   rule
 
 group
-    =   "@binding" _ n:string _  "{" b:blocks "}" {  /* RECURSION */
+    =   "@binding" ws n:string ws "{" b:blocks "}" {  /* RECURSION */
             return AST("Group").set({ name: n.get("value") }).add(b)
         }
 
@@ -233,9 +233,6 @@ exprConditional
     =   e1:exprLogical _ "?" _ e2:expr _ ":" _ e3:expr {  /* RECURSION */
             return AST("Conditional").add(e1, e2, e3)
         }
-    /   e1:exprLogical _ "??" _ e2:expr {  /* RECURSION */
-            return AST("Conditional").add(e1, e2, e1)
-        }
     /   e1:exprLogical _ "?:" _ e2:expr {  /* RECURSION */
             return AST("Conditional").add(e1, e1, e2)
         }
@@ -289,10 +286,10 @@ exprMultiplicativeOp "multiplicative arithmetic operator"
         }
 
 exprDereference
-    =   e1:exprOther e2:("." id)+ {
+    =   e1:exprOther _ e2:("." id)+ {
             return AST("Deref").add(unroll(e1, e2, 1))
         }
-    /   e1:exprOther e2:("[" _ expr _ "]")+ {  /* RECURSION */
+    /   e1:exprOther _ e2:("[" _ expr _ "]")+ {  /* RECURSION */
             return AST("Deref").add(unroll(e1, e2, 2))
         }
     /   exprOther
@@ -334,7 +331,7 @@ exprFunctionCallParam
     =   id:id _ "=" _ e:expr {  /* RECURSION */
             return AST("FuncParamNamed").set({ id: id.get("id") }).add(e)
         }
-    /   e:expr {
+    /   e:expr {  /* RECURSION */
             return AST("FuncParamPositional").add(e)
         }
 
