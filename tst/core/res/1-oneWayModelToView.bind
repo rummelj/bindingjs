@@ -1,7 +1,0 @@
-
-@binding "foo" {
-     #target {
-         text <- $text
-     }
-}
-
