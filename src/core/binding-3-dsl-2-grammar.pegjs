@@ -230,22 +230,22 @@ expr
     =   exprConditional
 
 exprConditional
-    =   e1:exprLogical _ "?" _ e2:expr _ ":" _ e3:expr {
+    =   e1:exprLogical _ "?" _ e2:expr _ ":" _ e3:expr {  /* RECURSION */
             return AST("Conditional").add(e1, e2, e3)
         }
-    /   e1:exprLogical _ "??" _ e2:expr {
+    /   e1:exprLogical _ "??" _ e2:expr {  /* RECURSION */
             return AST("Conditional").add(e1, e2, e1)
         }
-    /   e1:exprLogical _ "?:" _ e2:expr {
+    /   e1:exprLogical _ "?:" _ e2:expr {  /* RECURSION */
             return AST("Conditional").add(e1, e1, e2)
         }
     /   exprLogical
 
 exprLogical
-    =   "!" _ e:expr {
+    =   "!" _ e:expr {  /* RECURSION */
             return AST("LogicalNot").add(e)
         }
-    /   e1:exprRelational e2:(_ exprLogicalOp _ expr)+ {
+    /   e1:exprRelational e2:(_ exprLogicalOp _ expr)+ {  /* RECURSION */
             return AST("Logical").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprRelational
@@ -256,7 +256,7 @@ exprLogicalOp "boolean logical operator"
         }
 
 exprRelational
-    =   e1:exprAdditive e2:(_ exprRelationalOp _ expr)+ {
+    =   e1:exprAdditive e2:(_ exprRelationalOp _ expr)+ {  /* RECURSION */
             return AST("Relational").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprAdditive
@@ -267,7 +267,7 @@ exprRelationalOp "relational operator"
         }
 
 exprAdditive
-    =   e1:exprMultiplicative e2:(_ exprAdditiveOp _ expr)+ {
+    =   e1:exprMultiplicative e2:(_ exprAdditiveOp _ expr)+ {  /* RECURSION */
             return AST("Arith").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprMultiplicative
@@ -278,7 +278,7 @@ exprAdditiveOp "additive arithmetic operator"
         }
 
 exprMultiplicative
-    =   e1:exprDereference e2:(_ exprMultiplicativeOp _ expr)+ {
+    =   e1:exprDereference e2:(_ exprMultiplicativeOp _ expr)+ {  /* RECURSION */
             return AST("Arith").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprDereference
@@ -292,7 +292,7 @@ exprDereference
     =   e1:exprOther e2:("." id)+ {
             return AST("Deref").add(unroll(e1, e2, 1))
         }
-    /   e1:exprOther e2:("[" _ expr _ "]")+ {
+    /   e1:exprOther e2:("[" _ expr _ "]")+ {  /* RECURSION */
             return AST("Deref").add(unroll(e1, e2, 2))
         }
     /   exprOther
@@ -321,7 +321,7 @@ exprFunctionDef
         }
 
 exprFunctionCall
-    =   v:variable "(" _ p:exprFunctionCallParams? _ ")" {  /* RECURSION */
+    =   v:variable "(" _ p:exprFunctionCallParams? _ ")" {
             return AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") }).add(p)
         }
 
@@ -331,7 +331,7 @@ exprFunctionCallParams
         }
 
 exprFunctionCallParam
-    =   id:id _ "=" _ e:expr {
+    =   id:id _ "=" _ e:expr {  /* RECURSION */
             return AST("FuncParamNamed").set({ id: id.get("id") }).add(e)
         }
     /   e:expr {
@@ -347,7 +347,7 @@ exprParenthesis
         }
 
 exprArray
-    =   "[" _ f:expr? l:(_ "," _ expr)* _ "]" {
+    =   "[" _ f:expr? l:(_ "," _ expr)* _ "]" {  /* RECURSION */
             return AST("Array").add(unroll(f, l, 3))
         }
 
@@ -357,7 +357,7 @@ exprHash
         }
 
 exprHashKV
-    =   k:id _ ":" _ v:expr {
+    =   k:id _ ":" _ v:expr {  /* RECURSION */
             return AST("KeyVal").add(k, v)
         }
 
