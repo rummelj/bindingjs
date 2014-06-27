@@ -45,17 +45,8 @@ rule
     =   s:selectors _ i:ruleIterator? _ e:ruleExport? _ "{" b:(_ ruleBody _ ";"?)* _ "}" {
             return AST("Rule").add(s, i, e, unroll(null, b, 1))
         }
-    /   s:selectors _ l:ruleLabel {
-            return AST("Rule").add(s, l)
-        }
-    /   s:selectors _ i:ruleIterator {
-            return AST("Rule").add(s, i)
-        }
-    /   s:selectors _ i:ruleImport {
-            return AST("Rule").add(s, i)
-        }
-    /   s:selectors _ e:ruleExport {
-            return AST("Rule").add(s, e)
+    /   s:selectors _ x:(ruleLabel / ruleIterator / ruleImport / ruleExport) {
+            return AST("Rule").add(s, x)
         }
 
 ruleLabel
