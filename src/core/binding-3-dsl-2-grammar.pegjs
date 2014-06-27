@@ -42,11 +42,28 @@ group
         }
 
 rule
-    =   s:selectors _ i:iterator? _ ie:importExport? _ "{" b:(_ body _ ";"?)* _ "}" {
-            return AST("Rule").add(s, i, ie, unroll(null, b, 1))
+    =   s:selectors _ i:ruleIterator? _ e:ruleExport? _ "{" b:(_ ruleBody _ ";"?)* _ "}" {
+            return AST("Rule").add(s, i, e, unroll(null, b, 1))
+        }
+    /   s:selectors _ l:ruleLabel {
+            return AST("Rule").add(s, l)
+        }
+    /   s:selectors _ i:ruleIterator {
+            return AST("Rule").add(s, i)
+        }
+    /   s:selectors _ i:ruleImport {
+            return AST("Rule").add(s, i)
+        }
+    /   s:selectors _ e:ruleExport {
+            return AST("Rule").add(s, e)
         }
 
-iterator
+ruleLabel
+    =   "::" _ id:id {
+            return AST("Label").set({ id: id.get("id") })
+        }
+
+ruleIterator
     =   "(" _ v:(variable (_ "," _ variable)? _ ":")? _ e:expr _ ")" {
             return AST("Iterator").add(
                 AST("Variables")
@@ -56,16 +73,18 @@ iterator
             )
         }
 
-importExport
+ruleImport
     =   "<<" _ id:id "(" _ p:exprSeq? _ ")" {
             return AST("Import").set({ id: id.get("id") }).add(p)
         }
-    /   ">>" _ id:id "(" _ p:(variable (_ "," _ variable)*)? _ ")" {
+
+ruleExport
+    =   ">>" _ id:id "(" _ p:(variable (_ "," _ variable)*)? _ ")" {
             return AST("Export").set({ id: id.get("id") })
                 .add(p !== null ? unroll(p[0], p[1], 3) : null)
         }
 
-body
+ruleBody
     =   rule      /* RECURSION */
     /   binding
 
