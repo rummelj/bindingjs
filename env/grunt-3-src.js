@@ -31,7 +31,8 @@ module.exports = function (grunt) {
                 "src/plugin/*.js"
             ],
             "stage1-tst": [
-                "tst/**/*.js"
+                "tst/**/*.js",
+                "!tst/res/*.js"
             ]
         },
         touch: {

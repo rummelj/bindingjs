@@ -1,21 +1,28 @@
+/* global setTimeout */
 module.exports = {
-    test: function(model, $) {
-        console.log("executing test");
-        return describe("BindingJS Direction and Connector Test", () => {
-            it("should always suceed", () => {
-                expect("foo").to.be.equal("foo")
-            })
-            it("should one-way bind a model attribute to the view", () => {
-                expect(model.m2vText).to.be.equal($("#m2v").text());
+    test: function(model, window) {
+        var $ = window.$
+        
+        describe("BindingJS Direction and Connector Test", () => {
+            it("should one-way bind a model attribute to the view", (done) => {
+                // Test Success
+                model.m2vText = "foobar"
+                $("#m2v").one("change", () => {
+                    // TODO
+                    // expect($("#m2v").text()).to.be.equal(model.m2vText);
+                    
+                    // Test Failure
+                    $("#m2v").one("change", () => {
+                        // Should not be called
+                        throw "View was changed"
+                    })
+                    model.m2vText = "otherText"
+                    // Wait for error to occur
+                    setTimeout(done, 50)
+                })
                 
-                // Changes to model should propagate to view
-                var newText = "foo"
-                model.m2vText = newText;
-                expect($("#m2v").text()).to.be.equal(newText);
-                
-                // Changes to view should not propagate to model
-                $("#m2v").text(newText + newText);
-                expect(model.m2vText).to.be.equal(newText);
+                // TODO: Remove
+                $("#m2v").trigger("change")
             })
         })
     }
