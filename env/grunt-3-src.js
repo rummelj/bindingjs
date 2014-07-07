@@ -31,7 +31,8 @@ module.exports = function (grunt) {
                 "src/plugin/*.js"
             ],
             "stage1-tst": [
-                "tst/**/*.js"
+                "tst/**/*.js",
+                "!tst/res/*.js"
             ]
         },
         touch: {
@@ -81,7 +82,7 @@ module.exports = function (grunt) {
             "stage2-tst": {
                 src: [ "tst/**/*.js" ],
                 dest: "bld/stage2/tst/common.js",
-                options: { tasks: [ "es6transpiler:stage2-tst" ] }
+                options: { tasks: [ "es6transpiler:stage2-tst", "copy:stage2-tst" ] }
             }
         },
         es6transpiler: {
@@ -143,6 +144,18 @@ module.exports = function (grunt) {
                 files: [{
                     expand: true,
                     src: [ "src/umd/*.js" ],
+                    dest: "bld/stage2/",
+                    flatten: false
+                }]
+            },
+            "stage2-tst": {
+                files: [{
+                    expand: true,
+                    src: [
+                        "tst/integration/**/*.json",
+                        "tst/integration/**/*.html",
+                        "tst/integration/**/*.bind"
+                    ],
                     dest: "bld/stage2/",
                     flatten: false
                 }]

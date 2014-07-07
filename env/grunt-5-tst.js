@@ -15,6 +15,9 @@ module.exports = function (grunt) {
             "core": {
                 src: [ "bld/stage2/tst/core/**/*.js" ]
             },
+            "integration": {
+                src: [ "bld/stage2/tst/integration/testrunner.js" ]
+            },
             options: {
                 reporter: "spec",
                 require: "bld/stage2/tst/common.js",
@@ -25,7 +28,8 @@ module.exports = function (grunt) {
 
     /*  register testing task  */
     grunt.registerTask("test", [
-        "mochaTest:core"
+        "mochaTest:core",
+        "mochaTest:integration"
     ])
 }
 

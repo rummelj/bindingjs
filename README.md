@@ -259,3 +259,9 @@ connector
 - ohne {}
 - naming
 
+Build Instructions Windows (jsdom)
+----------------------------------
+- Use npm x86 (32 bit)
+- Install Python 2.x and make sure it is in PATH
+- Install Visual Studio 2010 Express (http://www.visualstudio.com/downloads/download-visual-studio-vs#d-2010-express)
+
