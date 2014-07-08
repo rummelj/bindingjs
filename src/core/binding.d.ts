@@ -33,15 +33,27 @@ interface BindingJS_API_external {
 /*  internal library API (available to plugins only)  */
 interface BindingJS_API_internal {
     registerAdapter     (   name: string,
-                            spec: BindingJS_API_adapter   ): void
+                            spec: BindingJS_SPEC_adapter   ): void
     registerConnector   (   name: string,
-                            spec: BindingJS_API_connector ): void
+                            spec: BindingJS_SPEC_connector ): void
     registerFunction    (   name: string,
-                            spec: BindingJS_API_function  ): void
+                            spec: BindingJS_SPEC_function  ): void
+}
+
+/*  internal adapter specification  */
+interface BindingJS_SPEC_adapter {
+    init?:              (                                 ) => void
+    shutdown?:          (                                 ) => void
+    observe?:           (                                 ) => number
+    unobserve?:         (   id: number                    ) => void
+    get?:               (   field: string                 ) => any
+    set?:               (   field: string,
+                            value: any                    ) => any
 }
 
 /*  internal adapter API  */
 interface BindingJS_API_adapter {
+    scope:              BindingJS_API_scope
     init                (                                 ): void
     shutdown            (                                 ): void
     observe             (                                 ): number
@@ -51,67 +63,89 @@ interface BindingJS_API_adapter {
                             value: any                    ): any
 }
 
+/*  internal connector specification  */
+interface BindingJS_SPEC_connector {
+    init?:              (                                 ) => void
+    shutdown?:          (                                 ) => void
+    process?:           (   params: Object,
+                            values: any[]                 ) => any[]
+}
+
 /*  internal connector API  */
 interface BindingJS_API_connector {
+    scope:              BindingJS_API_scope
     init                (                                 ): void
     shutdown            (                                 ): void
-    process             (   args: any[]                   ): any[]
+    process             (   params: Object,
+                            values: any[]                 ): any[]
+}
+
+/*  internal function specification  */
+interface BindingJS_SPEC_function {
+    init?:              (                                 ) => void
+    shutdown?:          (                                 ) => void
+    process?:           (   params: Object                ) => any
 }
 
 /*  internal function API  */
 interface BindingJS_API_function {
+    scope:              BindingJS_API_scope
     init                (                                 ): void
     shutdown            (                                 ): void
-    process             (   args: any[]                   ): any
+    process             (   params: Object                ): any
 }
 
 /*  external binding API  */
 interface BindingJS_API_binding {
-    destroy             (                                 ): void
     binding             (   dsl: string                   ): BindingJS_API_binding
-    template            (   selector: string              ): BindingJS_API_binding
+    binding             (   element: HTMLElement          ): BindingJS_API_binding
+    template            (   selectorOrHTML: string        ): BindingJS_API_binding
     template            (   element: HTMLElement          ): BindingJS_API_binding
     template            (   fragment: DocumentFragment    ): BindingJS_API_binding
     model               (   model: Object                 ): BindingJS_API_binding
     mounting            (   selector: string              ): BindingJS_API_binding
     mounting            (   element: HTMLElement          ): BindingJS_API_binding
-    mounting            (   cb: (
+    mounting            (   onMount: (
+                                fragment: DocumentFragment
+                            ) => void,
+                            onUnmount: (
                                 fragment: DocumentFragment
                             ) => void                     ): BindingJS_API_binding
+    activate            (                                 ): BindingJS_API_binding
+    deactivate          (                                 ): BindingJS_API_binding
+    pause               (                                 ): BindingJS_API_binding
+    resume              (                                 ): BindingJS_API_binding
     slot                (   name: string                  ): BindingJS_API_slot
-    activate            (                                 ): BindingJS_API_slot
-    deactivate          (                                 ): BindingJS_API_slot
-    pause               (                                 ): BindingJS_API_slot
-    resume              (                                 ): BindingJS_API_slot
+    destroy             (                                 ): void
 }
 
 /*  external slot API  */
 interface BindingJS_API_slot {
-    length              (                                 ): number
-    find                (   element: HTMLElement          ): number
-    get                 (                                 ): any[]
-    get                 (   indexBegin: number,
-                            indexEnd: number              ): any[]
-    get                 (   index: number                 ): any
-    set                 (   index: number,
-                            elements: HTMLElement[]       ): void
-    set                 (   index: number,
-                            ...element: HTMLElement[]     ): void
-    splice              (   index: number,
-                            len: number,
-                            elements: HTMLElement[]       ): any[]
-    splice              (   index: number,
-                            len: number,
-                            ...element: HTMLElement[]     ): any[]
-    push                (   elements: HTMLElement[]       ): void
-    push                (   ...element: HTMLElement[]     ): void
-    pop                 (                                 ): any
-    unshift             (   elements: HTMLElement[]       ): void
-    unshift             (   ...element: HTMLElement[]     ): void
-    shift               (                                 ): any
-    delete              (   index: number                 ): void
-    delete              (   elements: HTMLElement[]       ): void
-    delete              (   ...element: HTMLElement[]     ): void
-    delete              (                                 ): void
+    instances           (                                 ): number
+    instance            (   idx: number                   ): HTMLElement
+    onInsert            (   cb: (
+                                index: number,
+                                element: HTMLElement
+                            ) => void                     ): BindingJS_API_slot
+    onRemove            (   cb: (
+                                index: number,
+                                element: HTMLElement
+                            ) => void                     ): BindingJS_API_slot
+}
+
+/*  internal scope API  */
+interface BindingJS_API_scope {
+    parent                                                 : BindingJS_API_scope
+    children                                               : BindingJS_API_scope[]
+    template                                               : HTMLElement
+    variables                                              : { [key: string]: BindingJS_API_adapter }
+    binding                                                : BindingJS_API_chain[]
+}
+
+/*  internal binding chain API  */
+interface BindingJS_API_chain {
+    sourceAdapter                                          : any
+    connectors                                             : any[]
+    targetAdapter                                          : any
 }
 
