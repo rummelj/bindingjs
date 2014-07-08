@@ -68,16 +68,21 @@ interface BindingJS_API_function {
 /*  external binding API  */
 interface BindingJS_API_binding {
     destroy             (                                 ): void
+    binding             (   dsl: string                   ): BindingJS_API_binding
     template            (   selector: string              ): BindingJS_API_binding
     template            (   element: HTMLElement          ): BindingJS_API_binding
     template            (   fragment: DocumentFragment    ): BindingJS_API_binding
     model               (   model: Object                 ): BindingJS_API_binding
-    mount               (   selector: string              ): BindingJS_API_binding
-    mount               (   element: HTMLElement          ): BindingJS_API_binding
-    mount               (   cb: (
+    mounting            (   selector: string              ): BindingJS_API_binding
+    mounting            (   element: HTMLElement          ): BindingJS_API_binding
+    mounting            (   cb: (
                                 fragment: DocumentFragment
                             ) => void                     ): BindingJS_API_binding
     slot                (   name: string                  ): BindingJS_API_slot
+    activate            (                                 ): BindingJS_API_slot
+    deactivate          (                                 ): BindingJS_API_slot
+    pause               (                                 ): BindingJS_API_slot
+    resume              (                                 ): BindingJS_API_slot
 }
 
 /*  external slot API  */
