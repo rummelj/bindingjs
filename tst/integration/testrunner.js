@@ -1,5 +1,5 @@
 describe("BindingJS Integration", () => {
-    it("Wrapper", (done) => {
+    it("should execute all testcases", (done) => {
         var jsdom = require("jsdom")
         jsdom.defaultDocumentFeatures = {
             FetchExternalResources   : ["script"],

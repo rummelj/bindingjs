@@ -21,7 +21,8 @@ module.exports = function (grunt) {
             options: {
                 reporter: "spec",
                 require: "bld/stage2/tst/common.js",
-                clearRequireCache: true
+                clearRequireCache: true,
+                timeout: 86400000
             }
         }
     })

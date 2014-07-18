@@ -18,6 +18,7 @@ module.exports = {
                 }
             }
         })
+        
         bindingjs.registerConnector("reverse", function (value) {
             return value.split("").reverse().join("");
         })
