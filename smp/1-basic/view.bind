@@ -1,0 +1,40 @@
+/*
+**  foo-view.bind -- BindingJS view binding for "foo" mask
+*/
+
+@binding "foo" {
+    div[data-name="pos"] (length(data:persons) > 0) {
+        li (@person, @k: slice(sort("name", data:persons), param:window.begin, param:window.end)) {
+            attr:data-id <- @person.id
+            span[data-name="num"] {
+                text <- sprintf('%03d', param:window.begin + @k)
+            }
+            span[data-name="intro"] {
+                text <- data:intro
+            }
+            input {
+                @p <- @person // just alias person
+                on:change, on:keypress +> value <-> @p.name
+                class:error   <- validate(/^.+\s+.+$/) <- @p.name
+                attr:disabled <- !@p.enabled
+                css:color     <- @p.enabled ? "green" : "red"
+            }
+            button {
+                attr:name <~ i18n(lang = param:lang, id = "kill-person")
+                on:click +> true -> @person.kill
+            }
+        }
+        button[data-name="kill"] {
+            attr:name <- i18n(param:lang, "kill-persons")
+            on:click +> true -> event:kill-persons
+        }
+        button[data-name="new"] {
+            attr:name <- i18n(param:lang, "new-persons")
+            on:click +> true -> event:new-persons
+        }
+    }
+    div[data-name="neg"] (length(data:persons) == 0) {
+        text <~ i18n(param:lang, "no-persons-available")
+    }
+}
+

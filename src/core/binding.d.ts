@@ -103,9 +103,9 @@ interface BindingJS_API_binding {
     template            (   element: HTMLElement          ): BindingJS_API_binding
     template            (   fragment: DocumentFragment    ): BindingJS_API_binding
     model               (   model: Object                 ): BindingJS_API_binding
-    mounting            (   selector: string              ): BindingJS_API_binding
-    mounting            (   element: HTMLElement          ): BindingJS_API_binding
-    mounting            (   onMount: (
+    mount               (   selector: string              ): BindingJS_API_binding
+    mount               (   element: HTMLElement          ): BindingJS_API_binding
+    mount               (   onMount: (
                                 fragment: DocumentFragment
                             ) => void,
                             onUnmount: (

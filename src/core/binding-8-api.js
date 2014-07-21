@@ -7,7 +7,6 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-$api.binding = function () {
-    /*  FIXME  */
+$api.create = function () {
+    return new _api.binding()
 }
-

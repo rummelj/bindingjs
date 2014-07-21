@@ -93,7 +93,7 @@ module.exports = {
             it("should one-way bind a model attribute to the view with two connectors", (done) => {
                 model.m2vText = "  foobar  "
                 setTimeout(function() {
-                    expect($("#m2vcc").text()).to.be.equal(model.m2vText..trim().toUpperCase());
+                    expect($("#m2vcc").text()).to.be.equal(model.m2vText.trim().toUpperCase());
                     done()
                 }, 50)
             })
