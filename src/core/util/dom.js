@@ -7,11 +7,8 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-/*  create namespace  */
-_api.dom = {}
-
 /*  convert an XML string into a DOM document  */
-_api.dom.xml2doc = (xml) => {
+_api.util.dom.xml2doc = (xml) => {
     let doc
     /* global $: true */
     /* global document: true */
@@ -41,7 +38,7 @@ _api.dom.xml2doc = (xml) => {
 }
 
 /*  convert a HTML string into a DOM fragment  */
-_api.dom.html2dom = (html) => {
+_api.util.dom.html2dom = (html) => {
     /*  the necessary (= valid) inner wrapper elements  */
     let wrapMap = {
         option:   [ 1, "<select multiple='multiple'>", "</select>" ],

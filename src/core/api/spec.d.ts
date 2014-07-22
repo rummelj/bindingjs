@@ -28,6 +28,10 @@ interface BindingJS_API_external {
                                 GLOBAL: any
                             ) => void                     ): void
     create              (                                 ): BindingJS_API_binding
+    debug               (                                 ): number
+    debug               (   level: number                 ): void
+    debug               (   level: number,
+                            msg:   string                 ): void
 }
 
 /*  internal library API (available to plugins only)  */

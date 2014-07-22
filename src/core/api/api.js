@@ -7,29 +7,10 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-/*
-**  COMMON UTILITY FUNCTIONALITIES
-*/
-
-/*  utility function: create an exception string for throwing  */
-_api.exception = (method, error) => {
-    return new Error("[BindingJS]: ERROR: " + method + ": " + error)
+$api.create = function () {
+    return new _api.Binding()
 }
 
-/*  utility function: logging via environment console  */
-_api.log = (msg) => {
-    /*  try Firebug-style console (in regular browser or Node)  */
-    if (   typeof root.console     !== "undefined"
-        && typeof root.console.log !== "undefined")
-        root.console.log("[BindingJS]: " + msg)
-}
-
-/*  utility function: return a value or (if undefined) a fallback value  */
-_api.definedOrElse = (value, fallback) => {
-    return (typeof value !== "undefined" ? value : fallback)
-}
-
-/*  utility function: debugging  */
 $api.debug = (function () {
     let debug_level = 9
     return (level, msg) => {
@@ -48,9 +29,8 @@ $api.debug = (function () {
                     indent += "    "
 
                 /*  display debug message  */
-                _api.log("DEBUG[" + level + "]: " + indent + msg)
+                _api.util.log("DEBUG[" + level + "]: " + indent + msg)
             }
         }
     }
 })()
-

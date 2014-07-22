@@ -13,11 +13,11 @@ module.exports = function (grunt) {
     grunt.config.merge({
         watch: {
             "src-core": {
-                files: [ "src/umd/*.js", "src/core/*.js", "src/core/*.pegjs", "src/plugin/*.js" ],
+                files: [ "src/**/*.js", "src/**/*.pegjs" ],
                 tasks: [ "stage1", "stage2", "stage3", "test" ]
             },
             "tst-core": {
-                files: [ "tst/common.js", "tst/core/*.js" ],
+                files: [ "tst/**/*.js" ],
                 tasks: [ "test" ]
             },
             options: {

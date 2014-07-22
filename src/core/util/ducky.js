@@ -7,7 +7,7 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.Ducky = (function () {
+_api.util.Ducky = (function () {
     let module = { exports: {} };
     /* jshint -W062 */
     /* --- START VERBATIM EMBEDDING ---- */

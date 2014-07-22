@@ -66,12 +66,12 @@ module.exports = function (grunt) {
         newer: {
             "stage2-src": {
                 src: [ "src/**/*.js", "!src/umd/*.js" ],
-                dest: "bld/stage2/src/core/binding.js",
+                dest: "bld/stage2/src/core/wrapper.js",
                 options: { tasks: [ "es6transpiler:stage2-src" ] }
             },
             "stage2-src-peg": {
-                src: [ "src/core/binding-3-dsl-2-grammar.pegjs" ],
-                dest: "bld/stage2/src/core/binding-3-dsl-2-grammar.js",
+                src: [ "src/core/dsl/grammar.pegjs" ],
+                dest: "bld/stage2/src/core/dsl/grammar.js",
                 options: { tasks: [ "shell:stage2-src-peg" ] }
             },
             "stage2-src-umd": {
@@ -114,8 +114,8 @@ module.exports = function (grunt) {
         },
         peg: {
             "stage2-src-peg": {
-                src:  "src/core/binding-3-dsl-2-grammar.pegjs",
-                dest: "bld/stage2/src/core/binding-3-dsl-2-grammar.js",
+                src:  "src/core/dsl/grammar.pegjs",
+                dest: "bld/stage2/src/core/dsl/grammar.js",
                 options: {
                     exportVar: "module.exports",
                     allowedStartRules: [ "spec", "binding" ],
@@ -131,8 +131,8 @@ module.exports = function (grunt) {
                     "--allowed-start-rules spec,binding " +
                     "--optimize speed " +
                     "--cache " +
-                    "src/core/binding-3-dsl-2-grammar.pegjs " +
-                    "bld/stage2/src/core/binding-3-dsl-2-grammar.js",
+                    "src/core/dsl/grammar.pegjs " +
+                    "bld/stage2/src/core/dsl/grammar.js",
                 options: {
                     stdout: true,
                     stderr: true
@@ -191,13 +191,13 @@ module.exports = function (grunt) {
             },
             "stage3-src-plugin": {
                 src: [ "bld/stage2/src/plugin/*.js" ],
-                dest: "bld/stage3/src/plugin/binding.plugin.componentjs.js",
+                dest: "bld/stage3/src/plugin/binding.plugin.adapter-componentjs.js",
                 options: { tasks: [ "expand-include:stage3-src-plugin" ] }
             }
         },
         "expand-include": {
             "stage3-src-core": {
-                src: "bld/stage2/src/core/binding.js",
+                src: "bld/stage2/src/core/wrapper.js",
                 dest: "bld/stage3/src/core/binding.js",
                 options: {
                     directiveSyntax: "js",

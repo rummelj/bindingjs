@@ -4,11 +4,24 @@
         <script src="../../bld/stage3/src/core/binding.js"></script>
         <script type="text/binding">
             @binding "view" {
-                #nameIn {
-                    on:keyup +> value -> $name
+                #name {
+                    on:keyup +> value -> uppercase -> @temp
+                    @temp -> $name
                 }
-                #nameOut {
+                #label {
                     text <- $name
+                }
+                .inputField {
+                        @temp <- reverse <- $name
+                        attr:data-reverse <- @temp
+                }
+                div {    
+                    #label {
+                        attr:data-text <- $name
+                    }
+                    li (@person: $persons) {
+                        text <- @person.name
+                    }
                 }
             }
         </script>
@@ -30,8 +43,14 @@
     </head>
     <body>
         <div id="template">
-            <input type="text" id="nameIn" />
-            <span id="nameOut" />
+            <input id="name" class="inputField" type="text" />
+            <input class="inputField" type="text" />
+            <div>
+                <span id="label" class="spanField"></span>
+                <ul>
+                    <li></li>
+                </ul>
+            </div>
         </div>
     </body>
 </html>

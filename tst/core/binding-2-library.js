@@ -12,7 +12,7 @@ describe("BindingJS Library Management", function () {
         it("allows a plugin to access the internal and external API", function () {
             BindingJS.plugin("test", function (_bd, $bd, GLOBAL) {
                 expect(_bd).to.be.a("object")
-                expect(_bd.exception).to.be.a("function")
+                expect(_bd.util.exception).to.be.a("function")
                 expect($bd).to.be.equal(BindingJS)
                 expect(GLOBAL).to.be.equal(global)
             })

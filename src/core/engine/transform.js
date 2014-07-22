@@ -7,10 +7,8 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.dsl = {}
-
-$api.parse = (txt, rule) => {
-    let ast = _api.dsl.parser.parser(txt, rule)
-    ast = _api.dsl.transform(ast)
+_api.engine.transform.expandSelectors = (template, ast) => {
+	_api.util.log("Expanding selectors")
+    _api.util.log(ast.dump());
     return ast
 }

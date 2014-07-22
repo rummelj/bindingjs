@@ -8,7 +8,7 @@
 */
 
 /*  utility function: Promises/A+ compliant Promise  */
-_api.Promise = (function () {
+_api.util.Promise = (function () {
     let module = { exports: {} };
     /* jshint -W062 */
     /* --- START VERBATIM EMBEDDING ---- */
