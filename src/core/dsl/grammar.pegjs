@@ -318,10 +318,19 @@ exprFunctionDef
         }
 
 exprFunctionCall
-    =   v:variable "(" _ p:exprFunctionCallParams? _ ")" {
-            return AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") }).add(p)
+    =   v:variable b:exprFunctionCallBraces? {
+            var ast = AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") })
+            if (b) {
+                ast.add(b)
+            }
+            return ast
         }
 
+exprFunctionCallBraces
+    =   "(" _ p:exprFunctionCallParams? _ ")" {
+            return p
+        }
+        
 exprFunctionCallParams
     =   f:exprFunctionCallParam l:(_ "," _ exprFunctionCallParam)* {
             return unroll(f, l, 3)
