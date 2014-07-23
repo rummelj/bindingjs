@@ -26,7 +26,20 @@ class AST {
         this.A = {}
         this.C = []
         this.P = { L: 0, C: 0, O: 0 }
+        // this.parent (Set when add is called)
         return this
+    }
+    
+    clone () {
+        let clone = AST(this.T)
+        clone.A = $api.$().extend({}, this.A)
+        clone.P = $api.$().extend({}, this.P)
+        for (var i = 0; i < this.C.length; i++) {
+            clone.add(this.C[i].clone())
+        }
+        // Parent needs not to be cloned deep
+        clone.parent = this.parent
+        return clone
     }
 
     /*  check the type of an AST node  */
@@ -70,6 +83,7 @@ class AST {
     add () {
         if (arguments.length === 0)
             throw new Error("add: invalid argument")
+        let self = this
         let _add = (C, node) => {
             if (!(   (typeof node   === "object")
                   && (typeof node.T === "string")
@@ -77,6 +91,7 @@ class AST {
                   && (typeof node.A === "object")
                   && (typeof node.C === "object" && node.C instanceof Array)))
                 throw new Error("add: invalid AST node: " + JSON.stringify(node))
+            node.parent = self
             C.push(node)
         };
         Array.prototype.slice.call(arguments, 0).forEach((arg) => {
@@ -88,6 +103,51 @@ class AST {
         return this
     }
 
+    addAt () {
+        if (arguments.length < 2)
+            throw new Error("add: invalid argument")
+        let self = this
+        let _add = (C, node, index) => {
+            if (!(   (typeof node   === "object")
+                  && (typeof node.T === "string")
+                  && (typeof node.P === "object")
+                  && (typeof node.A === "object")
+                  && (typeof node.C === "object" && node.C instanceof Array)))
+                throw new Error("add: invalid AST node: " + node)
+            node.parent = self
+            C.splice(index, 0, node)
+        };
+        
+        // Iterate backwards and do not add first argument which is the index
+        let index = arguments[0]
+        for (var i = arguments.length - 1; i >= 1; i--) {
+            let arg = arguments[i]
+            if (typeof arg === "object" && arg instanceof Array)
+                arg.forEach((child) => _add(this.C, child, index))
+            else if (arg !== null)
+                _add(this.C, arg, index)
+        }
+        
+        return this
+    }
+    
+    replace() {
+        if (!this.parent) {
+            throw _api.util.exception("Cannot replace root of an AST")
+        }
+        
+        // Determine own index
+        var index = this.parent.childs().indexOf(this)
+        // Transform arguments to real array
+        let args = Array.prototype.slice.call(arguments)
+        // Push index in front
+        args.splice(0, 0, index)
+        // Add everything at this index
+        this.parent.addAt.apply(this.parent, args)
+        // Remove self from parent
+        this.parent.del(this)
+    }
+    
     /*  delete child AST node(s)  */
     del () {
         if (arguments.length === 0)

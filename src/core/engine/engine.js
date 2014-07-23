@@ -12,7 +12,9 @@ _api.engine.init = (binding) => {
     var template = binding.vars.template
     var binding = binding.vars.ast
     
+    console.log(binding.dump())
     _api.engine.transform.expandSelectors(template, binding)
+    console.log(binding.dump())
     
     return binding
 }

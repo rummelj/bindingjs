@@ -21,7 +21,7 @@ _api.binding.setBinding = (binding, arguments) => {
     if (typeof input === "object") {
         input = input.text()
     }
-    console.log(input)
+    
     // Set
     binding.vars.ast = _api.dsl.parser.safeParser(input)
     
@@ -72,8 +72,6 @@ _api.binding.initIfReady = (binding) => {
         // Replace AST with initialized binding
         binding.vars.binding = _api.engine.init(binding)
         binding.vars.ast = undefined
-        
-        console.log(binding.vars.binding)
     }
 }
 
@@ -92,7 +90,6 @@ class Binding {
     }
     
     template () {
-        console.log(_api);
         _api.binding.setTemplate(this, arguments)
         return this
     }
@@ -103,38 +100,31 @@ class Binding {
     }
     
     mount () {
-        _api.util.log(arguments)
         return this
     }
     
     activate () {
-        _api.util.log(arguments)
         return this
     }
     
     deactivate () {
-        _api.util.log(arguments)
         return this
     }
     
     pause () {
-        _api.util.log(arguments)
         return this
     }
     
     resume () {
-        _api.util.log(arguments)
         return this
     }
     
     slot () {
-        _api.util.log(arguments)
         // TODO: Find slot and return instance
     }
     
     destroy() {
-        _api.util.log(arguments)
-    
+       
     }
     
 }

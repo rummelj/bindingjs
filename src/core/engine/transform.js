@@ -8,7 +8,6 @@
 */
 
 _api.engine.transform.expandSelectors = (template, binding) => {
-    console.log(binding.dump())
     return _api.engine.transform.expandSelectorsRec(template, binding, [])
 }
 
@@ -96,16 +95,15 @@ _api.engine.transform.expandSelectorsRec = (template, binding, data) => {
                 $api.debug(1, "Found no element for selector " + selector)
             }
             
-            let newRule = data.rule.clone()
             for (var j = 0; j < elements.length; j++) {
+                let newRule = data.rule.clone()
                 newRule.addAt(0, AST("Element").set("element", elements[j]))
+                newRules.push(newRule)
             }
-            
-            newRules.push(newRule)
         }
         
         // Replace old rule with newRules
-        data.rule.replaceWith(newRules)
+        data.rule.replace(newRules)
     }
     return binding
 }
