@@ -12,6 +12,8 @@ declare var BindingJS: BindingJS_API_external;
 
 /*  external library API (available to everyone)  */
 interface BindingJS_API_external {
+    $                   (                                 ): jQuery
+    $                   (   jQuery: jQuery                ): void
     symbol              (   name?: string                 ): BindingJS_API_external
     version:            {   major: number;
                             minor: number;
@@ -36,6 +38,7 @@ interface BindingJS_API_external {
 
 /*  internal library API (available to plugins only)  */
 interface BindingJS_API_internal {
+    $                   (                                  ): jQuery
     registerAdapter     (   name: string,
                             spec: BindingJS_SPEC_adapter   ): void
     registerConnector   (   name: string,

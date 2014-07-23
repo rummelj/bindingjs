@@ -7,9 +7,6 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-// TODO: Remove (see below)
-/*global $ */
-
 _api.binding.setBinding = (binding, arguments) => {
     // Prevent setting binding more than once
     if (binding.vars.ast) {
@@ -26,7 +23,7 @@ _api.binding.setBinding = (binding, arguments) => {
     }
     console.log(input)
     // Set
-    binding.vars.ast = _api.safeParse(input)
+    binding.vars.ast = _api.dsl.parser.safeParser(input)
     
     _api.binding.initIfReady(binding)
 }
@@ -45,8 +42,7 @@ _api.binding.setTemplate = (binding, arguments) => {
     if (typeof input === "object") {
         // TODO: Handle DocumentFragment and HTMLElement
     } else if (typeof input === "string") {
-        // TODO: Store jQuery in Framework with configurable symbol
-        binding.vars.template = $(input).clone()
+        binding.vars.template = $api.$()(input).clone()
     } else {
         throw _api.util.exception("Unexpected type " + (typeof input) + " as input")
     }
@@ -73,7 +69,11 @@ _api.binding.setModel = (binding, arguments) => {
 _api.binding.initIfReady = (binding) => {
     let ready = binding.vars.template && binding.vars.ast && binding.vars.model
     if (ready) {
-        _api.engine.init(binding)
+        // Replace AST with initialized binding
+        binding.vars.binding = _api.engine.init(binding)
+        binding.vars.ast = undefined
+        
+        console.log(binding.vars.binding)
     }
 }
 
@@ -140,4 +140,4 @@ class Binding {
 }
 
 /*  export class  */
-_api.Binding = Binding
+_api.binding.Binding = Binding

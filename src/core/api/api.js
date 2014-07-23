@@ -8,7 +8,33 @@
 */
 
 $api.create = function () {
-    return new _api.Binding()
+    return new _api.binding.Binding()
+}
+
+$api.$ = function() {
+    if (arguments.length > 1) {
+        throw _api.util.exception("Expected no or one argument but received " + arguments.length)
+    }
+    
+    if (arguments.length == 0) {
+        // Return jQuery
+        if (_api.$) {
+            return _api.$
+        } else {
+            // Try default access
+            if (typeof jQuery !== 'undefined') {
+                return jQuery
+            } else {
+               throw _api.util.exception("BindingJS requires jQuery which is not loaded or not " +
+                                         "registered under its default name 'jQuery'. If you use " +
+                                         "another or no symbol for jQuery, please provide a " +
+                                         "reference to jQuery first by calling BindingJS.$(jQuery)")
+            }
+        }
+    } else /* if (arguments.length == 1) */ {
+        // Set jQuery
+        _api.$ = arguments[0]
+    }
 }
 
 $api.debug = (function () {

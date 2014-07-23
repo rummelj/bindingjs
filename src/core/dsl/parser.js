@@ -74,3 +74,22 @@ _api.dsl.parser.parser = (txt, rule) => {
     return result
 }
 
+_api.dsl.parser.safeParser = (txt, rule) => {
+    var astWrapper = _api.dsl.parser.parser(txt, rule)
+    if (astWrapper.error !== null) {
+        let e = astWrapper.error
+        let prefix1 = "line " + e.line + " (col " + e.column + "): "
+        let prefix2 = ""
+        for (let i = 0; i < prefix1.length + e.location.prolog.length; i++){
+            prefix2 += "-"
+        }
+        console.error(prefix1 + e.location.prolog + e.location.token + e.location.epilog)
+        console.error(prefix2 + "^")
+        console.error(e.message)
+        throw _api.util.exception("Parsing failed")
+    } else {
+        return astWrapper.ast
+    }
+}
+
+
