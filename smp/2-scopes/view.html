@@ -8,7 +8,7 @@
                     on:keyup +> value -> uppercase -> @temp
                     @temp -> $name
                 }
-                #label {
+                #label, #label2 {
                     text <- $name
                 }
                 .inputField {
@@ -19,7 +19,7 @@
                     #label {
                         attr:data-text <- $name
                     }
-                    li (@person: $persons) {
+                    li.first, li.second (@person: $persons) {
                         text <- @person.name
                     }
                 }
@@ -47,8 +47,10 @@
             <input class="inputField" type="text" />
             <div>
                 <span id="label" class="spanField"></span>
+                <span id="label2" class="spanField"></span>
                 <ul>
-                    <li></li>
+                    <li class="first"></li>
+                    <li class="second"></li>
                 </ul>
             </div>
         </div>

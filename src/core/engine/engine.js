@@ -8,5 +8,11 @@
 */
 
 _api.engine.init = (binding) => {
-    _api.engine.transform.expandSelectors(binding.vars.template, binding.vars.ast)
+    var model = binding.vars.model
+    var template = binding.vars.template
+    var binding = binding.vars.ast
+    
+    _api.engine.transform.expandSelectors(template, binding)
+    
+    return binding
 }
