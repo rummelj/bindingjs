@@ -139,3 +139,40 @@ _api.engine.transform.getAllPermutationsRec = (listOfLists, accumulator) => {
         _api.engine.transform.getAllPermutationsRec(listOfLists, accumulator)
     }
 }
+
+_api.engine.transform.makeTempRefsUnique = (binding, bindingScopePrefix, tempCounter) => {
+    _api.engine.transform.makeTempRefsUniqueRec(binding, bindingScopePrefix, tempCounter, {})
+}
+
+_api.engine.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix, tempCounter, assign) => {
+    if (binding.isA("Rule")) {
+        // Find all temp references in this rule
+        let assignCopied = false
+        let refs = binding.getAll("Variable", "Rule")
+        for (var i = 0; i < refs.length; i++) {
+            let ref = refs[i]
+            if (ref.get("ns") === bindingScopePrefix) {
+                // Check if ref was assigned before
+                if (!assign[ref.get("id")]) {
+                    // We are about to change assign
+                    // Since further recursion receives a reference
+                    // assign needs to be cloned once
+                    if (!assignCopied) {
+                        assign = $api.$().extend({}, assign)
+                        assignCopied = true
+                    }
+                    // Create new assign
+                    assign[ref.get("id")] = "temp" + tempCounter.getNext()
+                }
+                
+                // Change id
+                ref.set("id", assign[ref.get("id")])
+            }
+        }
+    }
+    
+    // Recursion
+    for (var i = 0; i < binding.childs().length; i++) {
+        _api.engine.transform.makeTempRefsUniqueRec(binding.childs()[i], bindingScopePrefix, tempCounter, assign)
+    }
+}

@@ -81,6 +81,7 @@ class Binding {
     
     constructor () {
         this.vars = {}
+        this.vars.tempCounter = new _api.util.Counter()
         return this
     }
     

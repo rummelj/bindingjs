@@ -12,6 +12,8 @@ _api.engine.init = (binding) => {
     var template = binding.vars.template
     var bind = binding.vars.ast
     var bindingScopePrefix = binding.bindingScopePrefix()
+    // A getter would be nicer, but it would be exposed in the public API
+    var tempCounter = binding.vars.tempCounter
     
     // Step 1: Check if iteration ids were used earlier
     // This is a sanity check. Counter example:
@@ -36,6 +38,24 @@ _api.engine.init = (binding) => {
     //  is then replaced by four new rules with these elements
     _api.engine.transform.expandSelectors(template, bind)
     
+    // Step 3: Make all references to the binding scope unique
+    // This way we do not have to deal with scoping later (except if new items
+    // in iterations are added
+    // Example (Brackets are scopes and elements inside the brackets are ids):
+    //                   (A)
+    //                   / \
+    //                 (B) (A)
+    //                  /    \
+    //                 (A)   (B)
+    // ===>
+    //                   (0)
+    //                   / \
+    //                 (1) (0)
+    //                  /    \
+    //                 (0)   (2)
+    // All A's reference the same value since they have a common ancestor
+    // The two B's however reference different values
+    _api.engine.transform.makeTempRefsUnique(bind, bindingScopePrefix, tempCounter)
     
     console.log(bind.dump())
     
