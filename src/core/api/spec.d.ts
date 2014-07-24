@@ -38,7 +38,6 @@ interface BindingJS_API_external {
 
 /*  internal library API (available to plugins only)  */
 interface BindingJS_API_internal {
-    $                   (                                  ): jQuery
     registerAdapter     (   name: string,
                             spec: BindingJS_SPEC_adapter   ): void
     registerConnector   (   name: string,
@@ -104,6 +103,8 @@ interface BindingJS_API_function {
 
 /*  external binding API  */
 interface BindingJS_API_binding {
+    bindingScopePrefix  (                                 ): string
+    bindingScopePrefix  (   prefix: string                ): BindingJS_API_binding
     binding             (   dsl: string                   ): BindingJS_API_binding
     binding             (   element: HTMLElement          ): BindingJS_API_binding
     template            (   selectorOrHTML: string        ): BindingJS_API_binding

@@ -10,7 +10,8 @@
 _api.engine.init = (binding) => {
     var model = binding.vars.model
     var template = binding.vars.template
-    var binding = binding.vars.ast
+    var bind = binding.vars.ast
+    var bindingScopePrefix = binding.bindingScopePrefix()
     
     // Step 1: Check if iteration ids were used earlier
     // This is a sanity check. Counter example:
@@ -18,8 +19,7 @@ _api.engine.init = (binding) => {
     //      @entry <- $foo
     //      li (@entry, @key: $bar) { ... }
     // }
-    console.log(binding.dump())
-    _api.engine.validate.checkIterationIds(binding)
+    _api.engine.validate.checkIterationIds(bind, bindingScopePrefix)
     
     // Step 2: Replace selectors with their elements in the template
     // Rules might be duplicated because of
@@ -34,10 +34,10 @@ _api.engine.init = (binding) => {
     //      - .bar .quux
     //  Assuming that each selector matches exactly one element, the original <rule>
     //  is then replaced by four new rules with these elements
-    _api.engine.transform.expandSelectors(template, binding)
+    _api.engine.transform.expandSelectors(template, bind)
     
     
-    console.log(binding.dump())
+    console.log(bind.dump())
     
     return binding
 }

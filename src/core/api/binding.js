@@ -127,6 +127,24 @@ class Binding {
        
     }
     
+    bindingScopePrefix () {
+        if (arguments.length > 1) {
+            throw _api.util.exception("Expected no or one argument but received " + arguments.length)
+        }
+        
+        if (arguments.length == 0) {
+            // Return
+            if (this.vars.bindingScopePrefix) {
+                return this.vars.bindingScopePrefix
+            } else {
+                return "@"
+            }
+        } else /* if (arguments.length == 1) */ {
+            // Set
+            this.vars.bindingScopePrefix = arguments[0]
+            return this
+        }
+    }
 }
 
 /*  export class  */

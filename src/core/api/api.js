@@ -38,11 +38,6 @@ $api.$ = function() {
     }
 }
 
-$api.bindingScopeAdapterPrefix = function() {
-    // TODO
-    return "@"
-}
-
 $api.debug = (function () {
     let debug_level = 9
     return (level, msg) => {

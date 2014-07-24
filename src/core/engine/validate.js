@@ -7,11 +7,11 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.engine.validate.checkIterationIds = (binding) => {
-    _api.engine.validate.checkIterationIdsRec(binding, [])
+_api.engine.validate.checkIterationIds = (binding, bindingScopePrefix) => {
+    _api.engine.validate.checkIterationIdsRec(binding, bindingScopePrefix, [])
 }
 
-_api.engine.validate.checkIterationIdsRec = (binding, ids) => {
+_api.engine.validate.checkIterationIdsRec = (binding, bindingScopePrefix, ids) => {
     if (binding.isA("Rule")) {
         // Check if the rule has an 'Iterator' child
         let iterator = null
@@ -37,7 +37,7 @@ _api.engine.validate.checkIterationIdsRec = (binding, ids) => {
             // TODO: Check if all start with @
             for (var i = 0; i < variables.length; i++) {
                 // Check if all start with correct prefix
-                if (variables[i].get("ns") !== $api.bindingScopeAdapterPrefix()) {
+                if (variables[i].get("ns") !== bindingScopePrefix) {
                     throw _api.util.exception("You can only use the binding scope adapter as the " +
                                               "variable for an iteration. Instead " + variables[i].get("text") + " " +
                                               "was used")
@@ -59,7 +59,7 @@ _api.engine.validate.checkIterationIdsRec = (binding, ids) => {
             // Only add those ids that are refs to the binding scope and that are neither
             // - in the ids already found (happens if same name used on multiple levels)
             // - in the variableNamesToAdd already (happens if occuring multiple times in rule)
-            if (variable.get("ns") === $api.bindingScopeAdapterPrefix() &&
+            if (variable.get("ns") === bindingScopePrefix &&
                 $api.$().inArray(variable.get("id"), ids) === -1 &&
                 $api.$().inArray(variable.get("id"), variableIdsToAdd) === -1) {
                 variableIdsToAdd.push(variable.get("id"))
@@ -71,7 +71,7 @@ _api.engine.validate.checkIterationIdsRec = (binding, ids) => {
     
     // Recursion
     for (var i = 0; i < binding.childs().length; i++) {
-        _api.engine.validate.checkIterationIdsRec(binding.childs()[i], ids)
+        _api.engine.validate.checkIterationIdsRec(binding.childs()[i], bindingScopePrefix, ids)
     }
 }
 
