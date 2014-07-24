@@ -208,9 +208,13 @@ bindingAdaptionR
         }
 
 bindingConnection
-    =   f:bindingOp l:(_ exprFunctionCall _ bindingOp)* {
+    =   f:bindingOp l:(_ connector _ bindingOp)* {
             return AST("Connector").add(unroll(f, l, [ 1, 3 ]))
         }
+        
+connector
+    = exprFunctionCall
+    / exprFunctionCallBare
 
 bindingOp "binding operator"
     =   op:$("<->" / "<-" / "->" / "<~" / "~>") {
@@ -300,8 +304,8 @@ exprOther
     /   exprHash
     /   exprLiteral
     /   exprFunctionDef
-    /   exprVariable
     /   exprFunctionCall
+    /   exprVariable
     /   exprParenthesis
 
 exprLiteral
@@ -318,13 +322,15 @@ exprFunctionDef
             )
         }
 
+// Only relevant for connector
+exprFunctionCallBare
+    =   v:variable {
+            return AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") })
+        }
+        
 exprFunctionCall
-    =   v:variable b:exprFunctionCallBraces? {
-            var ast = AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") })
-            if (b) {
-                ast.add(b)
-            }
-            return ast
+    =   v:variable b:exprFunctionCallBraces {
+            return AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") }).add(b)
         }
 
 exprFunctionCallBraces
@@ -380,13 +386,13 @@ id "identifier"
 
 variable "variable"
     =   ns:$([@$#%&]) id:$([a-zA-Z_][a-zA-Z0-9_-]*) {
-            return AST("Variable").set({ ns: ns, id: id })
+            return AST("Variable").set({ ns: ns, id: id, text: text() })
         }
     /   ns:$([a-zA-Z_][a-zA-Z0-9_]*) ":" id:$([a-zA-Z_][a-zA-Z0-9_-]*) {
-            return AST("Variable").set({ ns: ns, id: id })
+            return AST("Variable").set({ ns: ns, id: id, text: text() })
         }
     /   id:$([a-zA-Z_][a-zA-Z0-9_-]*) {
-            return AST("Variable").set({ ns: "", id: id })
+            return AST("Variable").set({ ns: "", id: id , text: text() })
         }
 
 bareword "bareword"
