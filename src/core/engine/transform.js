@@ -41,7 +41,7 @@ _api.engine.transform.expandSelectorsRec = (template, binding, data) => {
                 
                 // Add all found selectors to the last list in selectorList
                 dataCopy.selectorList[dataCopy.selectorList.length - 1]
-                    .push(selectorCombination.get("selector"))
+                    .push(selectorCombination.get("text"))
             }
             
             // Push a new empty list onto the selector list for the next recursion

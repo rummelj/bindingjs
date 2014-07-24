@@ -95,7 +95,7 @@ selectors
 selector
     =   f:selectorSingle l:(_ selectorCombinator _ selectorSingle)* {
             return AST("SelectorCombination").add(unroll(f, l, [ 1, 3 ]))
-                                             .set({ selector: text() })
+                                             .set({ text: text() })
         }
 
 selectorSingle
