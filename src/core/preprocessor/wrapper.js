@@ -7,10 +7,10 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- _api.engine = {}
- _api.engine.transform = {}
- _api.engine.validate = {}
+ _api.binding.preprocessor = {}
+ _api.binding.preprocessor.transform = {}
+ _api.binding.preprocessor.validate = {}
 
-include("engine.js")
+include("preprocessor.js")
 include("transform.js")
 include("validate.js")

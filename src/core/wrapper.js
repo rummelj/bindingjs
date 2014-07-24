@@ -13,7 +13,7 @@ include("../umd/umd-library-prolog.js", {
 
 include("api/wrapper.js")
 include("dsl/wrapper.js")
-include("engine/wrapper.js")
+include("preprocessor/wrapper.js")
 include("util/wrapper.js")
 
 include("../umd/umd-library-epilog.js")

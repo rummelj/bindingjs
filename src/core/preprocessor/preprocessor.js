@@ -7,7 +7,7 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.engine.init = (binding) => {
+_api.binding.preprocessor.preprocess = (binding) => {
     var model = binding.vars.model
     var template = binding.vars.template
     var bind = binding.vars.ast
@@ -21,7 +21,7 @@ _api.engine.init = (binding) => {
     //      @entry <- $foo
     //      li (@entry, @key: $bar) { ... }
     // }
-    _api.engine.validate.checkIterationIds(bind, bindingScopePrefix)
+    _api.binding.preprocessor.validate.checkIterationIds(bind, bindingScopePrefix)
     
     
     // Step 2: Replace selectors with their elements in the template
@@ -37,7 +37,7 @@ _api.engine.init = (binding) => {
     //      - .bar .quux
     //  Assuming that each selector matches exactly one element, the original <rule>
     //  is then replaced by four new rules with these elements
-    _api.engine.transform.expandSelectors(template, bind)
+    _api.binding.preprocessor.transform.expandSelectors(template, bind)
     
     
     // Step 3: Make all references to the binding scope unique
@@ -57,7 +57,7 @@ _api.engine.init = (binding) => {
     //                 (0)   (2)
     // All A's reference the same value since they have a common ancestor
     // The two B's however reference different values
-    _api.engine.transform.makeTempRefsUnique(bind, bindingScopePrefix, tempCounter)
+    _api.binding.preprocessor.transform.makeTempRefsUnique(bind, bindingScopePrefix, tempCounter)
     
     
     // Step 4: Make every iteration read out of the temp scope.
@@ -77,7 +77,7 @@ _api.engine.init = (binding) => {
     // since @input is artificial and never written. The elements
     // inside however may be references or values, and a back-propagation
     // always happens through references and never through the binding
-    _api.engine.transform.extractIterationCollections(bind, bindingScopePrefix, tempCounter)
+    _api.binding.preprocessor.transform.extractIterationCollections(bind, bindingScopePrefix, tempCounter)
     
     console.log(bind.dump())
     

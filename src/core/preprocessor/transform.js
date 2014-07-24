@@ -7,11 +7,11 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.engine.transform.expandSelectors = (template, binding) => {
-    return _api.engine.transform.expandSelectorsRec(template, binding, [])
+_api.binding.preprocessor.transform.expandSelectors = (template, binding) => {
+    return _api.binding.preprocessor.transform.expandSelectorsRec(template, binding, [])
 }
 
-_api.engine.transform.expandSelectorsRec = (template, binding, data) => {
+_api.binding.preprocessor.transform.expandSelectorsRec = (template, binding, data) => {
     // data = { selectorList:string[][], rule: AST }
     // Bottom up recursion
     $api.$()(binding.childs()).each((_, child) => {
@@ -50,10 +50,10 @@ _api.engine.transform.expandSelectorsRec = (template, binding, data) => {
             dataCopy.rule = child
             
             // Recursion
-            _api.engine.transform.expandSelectorsRec(template, child, dataCopy)
+            _api.binding.preprocessor.transform.expandSelectorsRec(template, child, dataCopy)
         } else {
             // Recursion
-            _api.engine.transform.expandSelectorsRec(template, child, data)
+            _api.binding.preprocessor.transform.expandSelectorsRec(template, child, data)
         }
     })
     
@@ -66,7 +66,7 @@ _api.engine.transform.expandSelectorsRec = (template, binding, data) => {
         // e.g. [[a], [b, c], [d]] yields two permutations
         // - [a, b, d]
         // - [a, c, d]
-        let permutations = _api.engine.transform.getAllPermutations(data.selectorList)
+        let permutations = _api.binding.preprocessor.transform.getAllPermutations(data.selectorList)
         
         // foreach permutation select all elements
         // foreach element hat a new rule in the same place as the old rule
@@ -108,13 +108,13 @@ _api.engine.transform.expandSelectorsRec = (template, binding, data) => {
     return binding
 }
 
-_api.engine.transform.getAllPermutations = (listOfLists) => {
+_api.binding.preprocessor.transform.getAllPermutations = (listOfLists) => {
     var accumulator = [[]]
-    _api.engine.transform.getAllPermutationsRec(listOfLists, accumulator)
+    _api.binding.preprocessor.transform.getAllPermutationsRec(listOfLists, accumulator)
     return accumulator
 }
 
-_api.engine.transform.getAllPermutationsRec = (listOfLists, accumulator) => {
+_api.binding.preprocessor.transform.getAllPermutationsRec = (listOfLists, accumulator) => {
     if (listOfLists.length > 0) {
         var firstList = listOfLists[0]
         
@@ -136,15 +136,15 @@ _api.engine.transform.getAllPermutationsRec = (listOfLists, accumulator) => {
         
         // Continue recursively with listOfLists without the first element
         listOfLists.shift()
-        _api.engine.transform.getAllPermutationsRec(listOfLists, accumulator)
+        _api.binding.preprocessor.transform.getAllPermutationsRec(listOfLists, accumulator)
     }
 }
 
-_api.engine.transform.makeTempRefsUnique = (binding, bindingScopePrefix, tempCounter) => {
-    _api.engine.transform.makeTempRefsUniqueRec(binding, bindingScopePrefix, tempCounter, {})
+_api.binding.preprocessor.transform.makeTempRefsUnique = (binding, bindingScopePrefix, tempCounter) => {
+    _api.binding.preprocessor.transform.makeTempRefsUniqueRec(binding, bindingScopePrefix, tempCounter, {})
 }
 
-_api.engine.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix, tempCounter, assign) => {
+_api.binding.preprocessor.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix, tempCounter, assign) => {
     if (binding.isA("Rule")) {
         // Find all temp references in this rule
         let assignCopied = false
@@ -173,11 +173,11 @@ _api.engine.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix, temp
     
     // Recursion
     for (var i = 0; i < binding.childs().length; i++) {
-        _api.engine.transform.makeTempRefsUniqueRec(binding.childs()[i], bindingScopePrefix, tempCounter, assign)
+        _api.binding.preprocessor.transform.makeTempRefsUniqueRec(binding.childs()[i], bindingScopePrefix, tempCounter, assign)
     }
 }
 
-_api.engine.transform.extractIterationCollections = (bind, bindingScopePrefix, tempCounter) => {
+_api.binding.preprocessor.transform.extractIterationCollections = (bind, bindingScopePrefix, tempCounter) => {
     let iterators = bind.getAll("Iterator")
     if (iterators.length > 0) {
         for (var i = 0; i < iterators.length; i++) {

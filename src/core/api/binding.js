@@ -70,7 +70,7 @@ _api.binding.initIfReady = (binding) => {
     let ready = binding.vars.template && binding.vars.ast && binding.vars.model
     if (ready) {
         // Replace AST with initialized binding
-        binding.vars.binding = _api.engine.init(binding)
+        binding.vars.binding = _api.binding.preprocessor.preprocess(binding)
         binding.vars.ast = undefined
     }
 }
