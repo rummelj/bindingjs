@@ -300,8 +300,8 @@ exprOther
     /   exprHash
     /   exprLiteral
     /   exprFunctionDef
-    /   exprFunctionCall
     /   exprVariable
+    /   exprFunctionCall
     /   exprParenthesis
 
 exprLiteral
