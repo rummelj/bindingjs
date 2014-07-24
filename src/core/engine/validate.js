@@ -33,7 +33,7 @@ _api.engine.validate.checkIterationIdsRec = (binding, bindingScopePrefix, ids) =
                                           "be Variables, but it was not")
             }
             
-            let variables = _api.engine.validate.getAllVariables(variablesNode)
+            let variables = variablesNode.getAll("Variable", "Rule")
             // TODO: Check if all start with @
             for (var i = 0; i < variables.length; i++) {
                 // Check if all start with correct prefix
@@ -52,7 +52,7 @@ _api.engine.validate.checkIterationIdsRec = (binding, bindingScopePrefix, ids) =
             }
         }
         
-        let variables = _api.engine.validate.getAllVariables(binding, "Rule")
+        let variables = binding.getAll("Variable", "Rule")
         let variableIdsToAdd = []
         for (var i = 0; i < variables.length; i++) {
             let variable = variables[i]
@@ -72,28 +72,5 @@ _api.engine.validate.checkIterationIdsRec = (binding, bindingScopePrefix, ids) =
     // Recursion
     for (var i = 0; i < binding.childs().length; i++) {
         _api.engine.validate.checkIterationIdsRec(binding.childs()[i], bindingScopePrefix, ids)
-    }
-}
-
-_api.engine.validate.getAllVariables = (binding, stopAt) => {
-    let result = []
-    _api.engine.validate.getAllVariablesRec(binding, stopAt, true, result)
-    return result
-}
-
-_api.engine.validate.getAllVariablesRec = (binding, stopAt, firstCall, accumulator) => {
-    // binding: AST
-    // stopAt: string if walk comes to AST with that type and this AST is not the root of the search,
-    //         search is not continued at this point
-    // firstCall: boolean whether it is the first call. Prevents stopping if ROOT.T === stopAt
-    // accumulator: [] reference to a list of all variables found so far
-    
-    if (binding.isA("Variable")) {
-        accumulator.push(binding)
-    }
-    if (firstCall || !stopAt || !binding.isA(stopAt)) {
-        for (var i = 0; i < binding.childs().length; i++) {
-            _api.engine.validate.getAllVariablesRec(binding.childs()[i], stopAt, false, accumulator)
-        }
     }
 }

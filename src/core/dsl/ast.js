@@ -8,6 +8,24 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+
+_api.dsl.ast.getAllRec = (ast, type, stopAtType, firstCall, accumulator) => {
+    // type: string elements to search for with this type
+    // stopAtType: string if walk comes to AST with that type and this AST is not the root of the search,
+    //         search is not continued at this point (optional)
+    // firstCall: boolean whether it is the first call. Prevents stopping if ROOT.T === stopAt
+    // accumulator: [] reference to a list of all variables found so far
+    
+    if (ast.isA(type)) {
+        accumulator.push(ast)
+    }
+    if (firstCall || !stopAtType || !ast.isA(stopAtType)) {
+        for (var i = 0; i < ast.childs().length; i++) {
+            _api.dsl.ast.getAllRec(ast.childs()[i], type, stopAtType, false, accumulator)
+        }
+    }
+}
+    
 /*  Abstract Syntax Tree (AST)  */
 class AST {
     /*  constructor for an AST node  */
@@ -78,6 +96,12 @@ class AST {
     /*  get child AST nodes  */
     childs () {
         return this.C
+    }
+
+    getAll (type, stopAtType) {
+        let result = []
+        _api.dsl.ast.getAllRec(this, type, stopAtType, true, result)
+        return result
     }
 
     /*  add child AST node(s)  */
