@@ -19,7 +19,7 @@
                     #label {
                         attr:data-text <- $name
                     }
-                    li.first, li.second (@person: $persons) {
+                    li.first, li.second (@person: $decide ? $persons1 : $persons2) {
                         text <- @person.name
                     }
                 }

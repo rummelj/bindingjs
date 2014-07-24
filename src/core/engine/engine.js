@@ -23,6 +23,7 @@ _api.engine.init = (binding) => {
     // }
     _api.engine.validate.checkIterationIds(bind, bindingScopePrefix)
     
+    
     // Step 2: Replace selectors with their elements in the template
     // Rules might be duplicated because of
     // - Multiple matches for one selector
@@ -37,6 +38,7 @@ _api.engine.init = (binding) => {
     //  Assuming that each selector matches exactly one element, the original <rule>
     //  is then replaced by four new rules with these elements
     _api.engine.transform.expandSelectors(template, bind)
+    
     
     // Step 3: Make all references to the binding scope unique
     // This way we do not have to deal with scoping later (except if new items
@@ -56,6 +58,26 @@ _api.engine.init = (binding) => {
     // All A's reference the same value since they have a common ancestor
     // The two B's however reference different values
     _api.engine.transform.makeTempRefsUnique(bind, bindingScopePrefix, tempCounter)
+    
+    
+    // Step 4: Make every iteration read out of the temp scope.
+    // This makes it easier to implement the iteration since it has
+    // to only observe the temp scope
+    // Example
+    // ... {
+    //      li (@temp: $collection) { ... }
+    // }
+    // ===>
+    // ... {
+    //      @input <- $collection
+    //      li (@temp: @input) { ... }
+    // }
+    //
+    // NOTE: It is never necessary to extract a two way binding
+    // since @input is artificial and never written. The elements
+    // inside however may be references or values, and a back-propagation
+    // always happens through references and never through the binding
+    _api.engine.transform.extractIterationCollections(bind, bindingScopePrefix, tempCounter)
     
     console.log(bind.dump())
     

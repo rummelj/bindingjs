@@ -1,4 +1,6 @@
 {
     "name": "Enter your name!"
-    "persons": ["Tom", "Tim", "Max"]
+    "decide": true
+    "persons1": ["Tom", "Tim", "Max"]
+    "persons2": ["Alice", "Cate", "Maria"]
 }

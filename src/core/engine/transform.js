@@ -176,3 +176,65 @@ _api.engine.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix, temp
         _api.engine.transform.makeTempRefsUniqueRec(binding.childs()[i], bindingScopePrefix, tempCounter, assign)
     }
 }
+
+_api.engine.transform.extractIterationCollections = (bind, bindingScopePrefix, tempCounter) => {
+    let iterators = bind.getAll("Iterator")
+    if (iterators.length > 0) {
+        for (var i = 0; i < iterators.length; i++) {
+            let iterator = iterators[i]
+            
+            // Create a new rule (in front) of the iteratied rule
+            // With the same viewElement but without anything else
+            // It would seem easier to just add the new binding to the parent,
+            // but this wont work for two reasons
+            // 1. There could be no parent
+            // 2. The expression that is iterated could contain a view adapter
+            let newRule = _api.dsl.AST("Rule")
+            
+            // Rules look different since Step 2 (expandSelectors)
+            let iteratedRule = iterator.getParent()
+            let iteratedElement = iteratedRule.childs()[0]
+            if (!iteratedElement.isA("Element")) {
+                throw _api.util.exception("Expected first child of Rule to be a Element after expandSelectors, but it was not")
+            }
+            newRule.add(iteratedElement.clone())
+            
+            // Create binding
+            let newTempId = "temp" + tempCounter.getNext()
+            let newTempRef = bindingScopePrefix + newTempId
+            let newBinding = _api.dsl.parser.safeParser(newTempRef + " <- foo", "binding")
+            // foo needs to be replaced by the original iteration expression
+            let iterationExpression = iterator.childs()[1]
+            if (!iterationExpression.isA("Expr")) {
+                throw _api.util.expression("Expected second child of Iterator to always be Expr, but it was not")
+            }
+            if (iterationExpression.childs().length !== 1) {
+                throw _api.util.expression("Expected that Expr in Iterator always has exactly one child, but there were " +
+                                            iterationExpression.childs().length)
+            }
+            iterationExpression = iterationExpression.childs()[0]
+            let variables = newBinding.getAll("Variable")
+            let found = false
+            for (var j = 0; j < variables.length; j++) {
+                let variable = variables[j]
+                if (variable.get("ns") === "" && variable.get("id") === "foo") {
+                    variable.replace(iterationExpression.clone())
+                    found = true
+                    break
+                }
+            }
+            if (!found) {
+                throw _api.util.expression("Could not find foo element, please check parsing")
+            }
+            
+            // Reset iteration expression
+            iterationExpression.replace(_api.dsl.AST("Variable").set({ ns: bindingScopePrefix, id: newTempId, text: newTempRef }))
+            
+            // Add binding to newRule
+            newRule.add(newBinding)
+            
+            // Add newRule (in front) of iteratedRule
+            iteratedRule.getParent().addAt(iteratedRule.getParent().childs().indexOf(iteratedRule), newRule)
+        }
+    }
+}

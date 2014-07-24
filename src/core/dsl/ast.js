@@ -98,6 +98,10 @@ class AST {
         return this.C
     }
 
+    getParent () {
+        return this.parent
+    }
+    
     getAll (type, stopAtType) {
         let result = []
         _api.dsl.ast.getAllRec(this, type, stopAtType, true, result)
@@ -128,9 +132,9 @@ class AST {
         return this
     }
 
-    addAt () {
+    addAt (/* index, node */) {
         if (arguments.length < 2)
-            throw new Error("add: invalid argument")
+            throw new Error("addAt: invalid argument")
         let self = this
         let _add = (C, node, index) => {
             if (!(   (typeof node   === "object")
