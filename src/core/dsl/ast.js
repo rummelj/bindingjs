@@ -56,8 +56,7 @@ class AST {
         for (var i = 0; i < this.C.length; i++) {
             clone.add(this.C[i].clone())
         }
-        // Parent needs not to be cloned deep
-        clone.parent = this.parent
+        // Intentionally not setting parent
         return clone
     }
 
@@ -96,6 +95,15 @@ class AST {
     /*  get child AST nodes  */
     childs () {
         return this.C
+    }
+    
+    hasChild (type) {
+        for (var i = 0; i < this.childs().length; i++) {
+            if (this.childs()[i].isA(type)) {
+                return true
+            }
+        }
+        return false
     }
 
     getParent () {
@@ -186,6 +194,7 @@ class AST {
             for (let j = 0; j < this.C.length; j++) {
                 if (this.C[j] === arg) {
                     this.C.splice(j, 1)
+                    arg.parent = null
                     found = true
                     break
                 }

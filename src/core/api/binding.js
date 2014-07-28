@@ -69,9 +69,7 @@ _api.binding.setModel = (binding, arguments) => {
 _api.binding.initIfReady = (binding) => {
     let ready = binding.vars.template && binding.vars.ast && binding.vars.model
     if (ready) {
-        // Replace AST with initialized binding
-        binding.vars.binding = _api.binding.preprocessor.preprocess(binding)
-        binding.vars.ast = undefined
+        _api.binding.preprocessor.preprocess(binding)
     }
 }
 
@@ -101,11 +99,12 @@ class Binding {
     }
     
     mount () {
+        _api.engine.mount(this, arguments)
         return this
     }
     
     activate () {
-        return this
+        _api.engine.activate(this)
     }
     
     deactivate () {

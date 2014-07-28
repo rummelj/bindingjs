@@ -79,7 +79,6 @@ _api.binding.preprocessor.preprocess = (binding) => {
     // always happens through references and never through the binding
     _api.binding.preprocessor.transform.extractIterationCollections(bind, bindingScopePrefix, tempCounter)
     
-    console.log(bind.dump())
-    
-    return binding
+    binding.vars.binding = bind
+    binding.vars.ast = null
 }
