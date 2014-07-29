@@ -84,25 +84,30 @@
         }
     }
     
+    // Set template
+    if (iteratedNode.isIterated()) {
+        let $template = $api.$()(template)
+        let virtual = $api.$()("<!-- -->")
+        $template.after(virtual)
+        $template.detach()
+        iteratedNode.setIterationTemplate(template)
+        iteratedNode.setTemplate(virtual)
+    } else {
+        iteratedNode.setTemplate(template)
+    }
+    
     // Recursion
     for (var i = 0; i < iterators.length; i++) {
         let iterator = iterators[i]
         let rule = iterator.getParent()
-        
-        // Extract template
-        let element = rule.get("element")
-        if (!element) {
-            throw _api.util.exception("Expected Rule to have an element after preprocessing")
-        }
-        let $element = $api.$()(element)
-        let child = _api.preprocessor.iterator.setupIterations(rule, $element)
         let virtualAst = AST("IterationChild").set("index", i)
         rule.replace(virtualAst)
         
+        // Recursion
+        let child = _api.preprocessor.iterator.setupIterations(rule, rule.get("element"))
         iteratedNode.add(child)
     }
     iteratedNode.setBinding(binding.clone())
-    iteratedNode.setTemplate(template)
 
     return iteratedNode
  }

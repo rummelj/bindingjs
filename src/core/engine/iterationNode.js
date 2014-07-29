@@ -15,7 +15,7 @@
     }
     
     clone() {
-        let clone = new _api.engine.iterator.IterationNode(this.iterated)
+        let clone = new _api.engine.IterationNode(this.iterated)
         clone.iterated = this.iterated
         clone.iterationInstances = this.iterationInstances
         clone.iterationSourceId = this.iterationSourceId
@@ -28,6 +28,7 @@
         for (var i = 0; i < this.children.length; i++) {
             clone.add(this.children[i].clone())
         }
+        return clone
     }
     
     spawnChild(bindingScopePrefix, tempRefCounter) {
@@ -35,7 +36,7 @@
             throw _api.util("Can only spawn children of iterated nodes")
         }
         
-        let newChild = new _api.engine.iterator.IterationNode(false)
+        let newChild = new _api.engine.IterationNode(false)
         
         let newBinding = this.binding.clone()
         // Add binding @entryId <- get(<index>) <- @input
@@ -59,7 +60,7 @@
             }
             this.children = []
             this.add(newChild)
-            let newTemplate = this.$iteratedTemplate.clone()
+            let newTemplate = this.getIterationTemplate().clone()
             this.getTemplate().after(newTemplate)
             newChild.setTemplate(newTemplate)
         } else {
@@ -67,7 +68,7 @@
             for (var i = 0; i < sample.getChildren().length; i++) {
                 newChild.add(sample.getChildren()[i].clone())
             }
-            let newTemplate = this.$iteratedTemplate.clone()
+            let newTemplate = this.getIterationTemplate().clone()
             sample.getTemplate().after(newTemplate)
             newChild.setTemplate(newTemplate)
             this.add(newChild)
@@ -92,13 +93,6 @@
                     }
                 }
             }
-        }
-        
-        // If this was the first child, set the entryIds and keyIds
-        // Since new children will use the first as a sample
-        if (this.iterationInstances === 0) {
-            //this.setIterationEntryId(newEntryId)
-            //this.setIterationKeyId(newKeyId)
         }
         
         this.iterationInstances++
@@ -160,17 +154,19 @@
     }
     
     getTemplate() {
-        return this.$template
+        return $api.$()(this.$template)
     }
     
     setTemplate($template) {
-        if (this.isIterated()) {
-            this.$template = $("<!-- -->")
-            this.$iterationTemplate = $template.clone()
-            $template.replaceWith(this.$template)
-        } else {
-            this.$template = $template
-        }
+        this.$template = $template
+    }
+    
+    getIterationTemplate() {
+        return $api.$()(this.$iterationTemplate)
+    }
+    
+    setIterationTemplate($iterationTemplate) {
+        this.$iterationTemplate = $iterationTemplate
     }
     
     getParent() {
@@ -178,6 +174,10 @@
     }
     
     add(child) {
+        if (!child) {
+            throw _api.util.exception("Illegal parameter undefined")
+        }
+        
         this.children.push(child)
         child.parent = this
     }
@@ -228,6 +228,42 @@
     
     getIterationInstances() {
         return this.iterationInstances
+    }
+    
+    walk (cb, after = false) {
+        let _walk = (node, depth) => {
+            if (!after)
+                cb.call(null, node, depth)
+            node.getChildren().forEach((child) => _walk(child, depth + 1))
+            if (after)
+                cb.call(null, node, depth)
+        }
+        _walk(this, 0)
+    }
+    
+    dump() {
+        let out = ""
+        this.walk((node, depth) => {
+            for (let i = 0; i < depth; i++)
+                out += "    "
+            out += "iterated=" + node.isIterated() + "\n"
+            for (let i = 0; i < depth; i++)
+                out += "    "
+            out += "template=" + 
+                (node.$template ?
+                node.getTemplate().clone().wrap("<div>").parent().html() + "\n" :
+                "undefined\n")
+            for (let i = 0; i < depth; i++)
+                out += "    "
+            out += "iterationTemplate=" + 
+                (node.$iterationTemplate ? 
+                node.getIterationTemplate().clone().wrap("<div>").parent().html() + "\n" :
+                "undefined\n")
+            for (let i = 0; i < depth; i++)
+                out += "    "
+            out += "-----------------\n"
+        })
+        return out   
     }
  }
  
