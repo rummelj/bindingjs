@@ -8,9 +8,12 @@
  */
 
  _api.binding.preprocessor = {}
+ _api.binding.preprocessor.iterator = {}
  _api.binding.preprocessor.transform = {}
  _api.binding.preprocessor.validate = {}
 
+include("iterationNode.js")
+include("iterator.js")
 include("preprocessor.js")
 include("transform.js")
 include("validate.js")

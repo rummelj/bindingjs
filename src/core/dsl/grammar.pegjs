@@ -43,10 +43,10 @@ group
 
 rule
     =   s:selectors _ i:ruleIterator? _ e:ruleExport? _ "{" b:(_ ruleBody _ ";"?)* _ "}" {
-            return AST("Rule").add(s, i, e, unroll(null, b, 1))
+            return AST("Rule").add(s, i, e, unroll(null, b, 1)).set("text", text())
         }
     /   s:selectors _ x:(ruleLabel / ruleIterator / ruleImport / ruleExport) {
-            return AST("Rule").add(s, x)
+            return AST("Rule").add(s, x).set("text", text())
         }
 
 ruleLabel

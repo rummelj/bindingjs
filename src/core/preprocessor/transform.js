@@ -8,109 +8,119 @@
 */
 
 _api.binding.preprocessor.transform.expandSelectors = (template, binding) => {
-    return _api.binding.preprocessor.transform.expandSelectorsRec(template, binding, [])
+    _api.binding.preprocessor.transform.expandSelectorsRec(template, binding, [[]])
+    
+    // Remove all placeholder
+    let placeholders = binding.getAll("Placeholder")
+    for (var i = 0; i < placeholders.length; i++) {
+        let placeholder = placeholders[i]
+        placeholder.getParent().del(placeholder)
+    }
+    
+    // Check if every rule received a template element
+    let rules = binding.getAll("Rule")
+    for (var i = 0; i < rules.length; i++) {
+        let rule = rules[i]
+        if(!rule.get("element")) {
+            throw _api.util.exception("Internal Error: Rule did not receive a template element")
+        }
+    }
 }
 
-_api.binding.preprocessor.transform.expandSelectorsRec = (template, binding, data) => {
-    // data = { selectorList:string[][], rule: AST }
-    // Bottom up recursion
-    $api.$()(binding.childs()).each((_, child) => {
-        if (child.isA("Rule")) {
-            // Deep copy selectorList inside data if exists already
-            var dataCopy
-            if (data.selectorList && data.rule) {
-                dataCopy = { selectorList: $api.$().extend(true, [], data.selectorList),
-                             rule: data.rule }
-            } else {
-                dataCopy = { selectorList: [[]], rule: child }
-            }
+_api.binding.preprocessor.transform.expandSelectorsRec = (template, binding) => {
+    if (binding.isA("Rule")) {
+        // If the rule already has an element it was processed before and can be safely skipped
+        if (!binding.get("element")) {
+            let selectorList = []
             
             // Add intermediate selectors on the way down
-            var selectorListElem = child.childs()[0]
+            var selectorListElem = binding.childs()[0]
             if (!selectorListElem.isA("SelectorList")) {
-                _api.util.exception("Expected the first child of Rule to always be " +
-                                    "a SelectorList, but it was not")
+                throw _api.util.exception("Expected the first child of Rule to always be " +
+                                          "a SelectorList, but it was not")
             }
             
             for (var i = 0; i < selectorListElem.childs().length; i++) {
                 var selectorCombination = selectorListElem.childs()[i]
                 if (!selectorCombination.isA("SelectorCombination")) {
-                    _api.util.exception("Expected all children of SelectorList to " +
-                                        "always be SelectorCombination, but it was not")
+                    throw _api.util.exception("Expected all children of SelectorList to " +
+                                              "always be SelectorCombination, but it was not")
                 }
                 
                 // Add all found selectors to the last list in selectorList
-                dataCopy.selectorList[dataCopy.selectorList.length - 1]
-                    .push(selectorCombination.get("text"))
+                selectorList.push(selectorCombination.get("text"))
             }
             
-            // Push a new empty list onto the selector list for the next recursion
-            dataCopy.selectorList.push([])
-            // Update the rule to the last rule found
-            dataCopy.rule = child
+            // Permutate the list of selectors
+            // e.g. [[a], [b, c], [d]] yields two permutations
+            // - [a, b, d]
+            // - [a, c, d]
+            //let permutations = _api.binding.preprocessor.transform.getAllPermutations(selectorList)
             
-            // Recursion
-            _api.binding.preprocessor.transform.expandSelectorsRec(template, child, dataCopy)
-        } else {
-            // Recursion
-            _api.binding.preprocessor.transform.expandSelectorsRec(template, child, data)
-        }
-    })
-    
-    // Do work
-    if (binding.isA("Rule")) {
-        // Last element of selectorList is always empty, remove it
-        data.selectorList.splice(data.selectorList.length - 1, 1)
-        
-        // Permutate the list of selectors
-        // e.g. [[a], [b, c], [d]] yields two permutations
-        // - [a, b, d]
-        // - [a, c, d]
-        let permutations = _api.binding.preprocessor.transform.getAllPermutations(data.selectorList)
-        
-        // foreach permutation select all elements
-        // foreach element hat a new rule in the same place as the old rule
-        // in every such rule the part with SelectorList is replace by the element
-        let newRules = []
-        
-        // Prepare old rule by removing its first child to prevent
-        // doing it for every clone
-        // First child must be SelectorList (was checked above)
-        data.rule.del(data.rule.childs()[0])
-        
-        for (var i = 0; i < permutations.length; i++) {
-            let permutation = permutations[i]
-            // Reconstruct selector
-            let selector = ""
-            for (var j = 0; j < permutation.length; j++) {
-                selector += permutation[j]
-                if (j < permutation.length - 1) {
-                    selector += " "
+            // foreach permutation select all elements
+            // foreach element put a new rule in the same place as the old rule
+            // in every such rule the part with SelectorList is replace by the element
+            let newRules = []
+            
+            // Prepare old rule by removing its first child to prevent
+            // doing it for every clone
+            // First child must be SelectorList (was checked above)
+            binding.del(binding.childs()[0])
+            
+            for (var i = 0; i < selectorList.length; i++) {
+                let selector = selectorList[i]
+                
+                // Select all matching elements in template
+                var elements = $api.$()(selector, template)
+                if (elements.length === 0) {
+                    $api.debug(5, "Found no element for selector " + selector + " in\n" +
+                               $api.$()(template).clone().wrap("<div>").parent().html())
+                }
+                
+                // Note. If the selector did not match any elements, the rule disappears
+                for (var j = 0; j < elements.length; j++) {
+                    let newRule = binding.clone()
+                    newRule.set("element", elements[j])
+                    newRules.push(newRule)
                 }
             }
             
-            // Select all matching elements in template
-            var elements = $api.$()(selector, template)
-            if (elements.length === 0) {
-                $api.debug(1, "Found no element for selector " + selector)
+            if (newRules.length > 0) {
+                // Replace old rule with newRules
+                binding.replace(newRules)
+            } else {
+                // The parent call iterates over its children in ascending order
+                // If the amount of children is increased it is not a problem
+                // If however it is decreased elements might get skipped
+                // So a placeholder is added, which is later removed
+                binding.replace(AST("Placeholder"))
             }
             
-            for (var j = 0; j < elements.length; j++) {
-                let newRule = data.rule.clone()
-                newRule.addAt(0, AST("Element").set("element", elements[j]))
-                newRules.push(newRule)
+            // Push a new empty list onto the selector list for the next recursion
+            selectorList.push([])
+            
+            // Recursion over every newly generated rule
+            for (var i = 0; i < newRules.length; i++) {
+                let newRule = newRules[i]
+                for (var j = 0; j < newRule.childs().length; j++) {
+                    let child = newRule.childs()[j]
+                    _api.binding.preprocessor.transform.expandSelectorsRec(newRule.get("element"), child)
+                }
             }
         }
-        
-        // Replace old rule with newRules
-        data.rule.replace(newRules)
+    } else {
+        // Recursion
+        for (var i = 0; i < binding.childs().length; i++) {
+            let child = binding.childs()[i]
+            _api.binding.preprocessor.transform.expandSelectorsRec(template, child)
+        }
     }
-    return binding
 }
 
 _api.binding.preprocessor.transform.getAllPermutations = (listOfLists) => {
     var accumulator = [[]]
-    _api.binding.preprocessor.transform.getAllPermutationsRec(listOfLists, accumulator)
+    listOfListsClone = $api.$().extend(true, [], listOfLists)
+    _api.binding.preprocessor.transform.getAllPermutationsRec(listOfListsClone, accumulator)
     return accumulator
 }
 
@@ -193,11 +203,11 @@ _api.binding.preprocessor.transform.extractIterationCollections = (bind, binding
             
             // Rules look different since Step 2 (expandSelectors)
             let iteratedRule = iterator.getParent()
-            let iteratedElement = iteratedRule.childs()[0]
-            if (!iteratedElement.isA("Element")) {
-                throw _api.util.exception("Expected first child of Rule to be a Element after expandSelectors, but it was not")
+            let iteratedElement = iteratedRule.get("element")
+            if (!iteratedElement) {
+                throw _api.util.exception("Expected Rule to have an element")
             }
-            newRule.add(iteratedElement.clone())
+            newRule.set(iteratedElement)
             
             // Create binding
             let newTempId = "temp" + tempCounter.getNext()
@@ -206,10 +216,10 @@ _api.binding.preprocessor.transform.extractIterationCollections = (bind, binding
             // foo needs to be replaced by the original iteration expression
             let iterationExpression = iterator.childs()[1]
             if (!iterationExpression.isA("Expr")) {
-                throw _api.util.expression("Expected second child of Iterator to always be Expr, but it was not")
+                throw _api.util.exception("Expected second child of Iterator to always be Expr, but it was not")
             }
             if (iterationExpression.childs().length !== 1) {
-                throw _api.util.expression("Expected that Expr in Iterator always has exactly one child, but there were " +
+                throw _api.util.exception("Expected that Expr in Iterator always has exactly one child, but there were " +
                                             iterationExpression.childs().length)
             }
             iterationExpression = iterationExpression.childs()[0]

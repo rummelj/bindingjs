@@ -74,3 +74,24 @@ _api.binding.preprocessor.validate.checkIterationIdsRec = (binding, bindingScope
         _api.binding.preprocessor.validate.checkIterationIdsRec(binding.childs()[i], bindingScopePrefix, ids)
     }
 }
+
+_api.binding.preprocessor.validate.preventMultiIteration = (binding) => {
+    let iterators = binding.getAll("Iterator")
+    let elements = []
+    for (var i = 0; i < iterators.length; i++) {
+        let iterator = iterators[i]
+        let rule = iterator.getParent()
+        if (!rule.isA("Rule")) {
+            throw _api.util.exception("Expected the parent of an Iterator to always be a Rule")
+        }
+        let element = rule.get("element")
+        if (!element) {
+            throw _api.util.exception("Expected a Rule to have an element after preprocessing")
+        }
+        if (elements.indexOf(element) !== -1) {
+            throw _api.util.exception("It is not allowed to iterate the same template element multiple times as in\n" + 
+                rule.get("text"))
+        }
+        elements.push(element)
+    }
+}

@@ -13,10 +13,7 @@
  _api.engine.getVars = (binding) => {
     if (!_api.engine.vars[binding]) {
         _api.engine.vars[binding] = {
-            iterationTree: null,
             localScope: new _api.engine.LocalScope(),
-            initialized: false,
-            
         }
     }
     return _api.engine.vars[binding]
@@ -25,23 +22,13 @@
  _api.engine.activate = (binding) => {
     // TODO: Refactor iterationSetup to transform
     var vars = _api.engine.getVars(binding)
-    
-    if (!vars.initialized) {
-        vars.iterationTree = _api.engine.iterator.setupIterations(
-                                                    binding.vars.binding,
-                                                    binding.vars.template
-                             )
-        vars.initialized = true
-    }
-    
-    _api.engine.init(binding, vars.iterationTree)
+    _api.engine.init(binding, vars, binding.vars.iterationTree)
  }
  
- _api.engine.init = (binding, iterationTree, $hook) => {
-    let vars = _api.engine.getVars(binding)
+ _api.engine.init = (binding, vars, iterationTree) => {
     for (var i = 0; i < iterationTree.getChildren().length; i++) {
         let child = iterationTree.getChildren()[i]
-        _api.engine.init(binding, child)
+        _api.engine.init(binding, vars, child)
     }
     
     if (iterationTree.isIterated()) {
@@ -63,15 +50,11 @@
                 }
             }
             for (var i = 0; i < newLen; i++) {
-                _api.engine.init(binding, iterationTree.getChildren()[i])
+                _api.engine.init(binding, vars, iterationTree.getChildren()[i])
             }
         })
         iterationTree.setObserverId(observerId)
     }
-    
-    let bind = iterationTree.getBinding()
-    let template = iterationTree.getTemplate()
-    
  }
  
  _api.engine.destroy = (binding, iterationTree) => {
@@ -79,8 +62,6 @@
  }
  
  _api.engine.mount = (binding, arguments) => {
-    let vars = _api.engine.getVars(binding)
-    
     if (arguments.length == 1) {
         let arg = arguments[0]
         if (typeof arg === "string") {
@@ -89,7 +70,7 @@
                 throw _api.util.exception("Selector " + arg + " did not match exactly one element, but " +
                                           mountPoint.length)
             }
-            mountPoint.replaceWith(vars.iterationTree.getTemplate())
+            mountPoint.replaceWith(binding.vars.iterationTree.getTemplate())
         } else {
             // TOOD
         }
@@ -98,5 +79,4 @@
     } else {
         throw _api.util.exception("Illegal number of arguments")
     }
-    
  }

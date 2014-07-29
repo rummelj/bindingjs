@@ -8,9 +8,6 @@
  */
 
 _api.engine = {}
-_api.engine.iterator = {}
 
 include("engine.js")
-include("iterationNode.js")
-include("iterator.js")
 include("localscope.js")

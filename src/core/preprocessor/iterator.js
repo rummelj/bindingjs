@@ -7,15 +7,15 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- _api.engine.iterator.setupIterations = (binding, template) => {
-    let iteratedNode = new _api.engine.iterator.IterationNode(false)
+ _api.binding.preprocessor.iterator.setupIterations = (binding, template) => {
+    let iteratedNode = new _api.binding.preprocessor.iterator.IterationNode(false)
     // Move the iteration information into interatedNode
     if (binding.isA("Rule") && binding.hasChild("Iterator")) {
         // Create iterated node
         iteratedNode.setIterated(true)
-        let iterator = binding.childs()[1]
+        let iterator = binding.childs()[0]
         if (!iterator.isA("Iterator")) {
-            throw _api.util.exception("Expected the second child of an iterated " +
+            throw _api.util.exception("Expected the first child of an iterated " +
                                       "rule to be Iterator, but it was not")
         }
         let variables = iterator.getAll("Variables")
@@ -90,13 +90,12 @@
         let rule = iterator.getParent()
         
         // Extract template
-        let element = rule.childs()[0]
-        if (!element.isA("Element")) {
-            throw _api.util.exception("Expected first child of Rule to always be " +
-                                      "an Element after preprocessing, but it was not")
+        let element = rule.get("element")
+        if (!element) {
+            throw _api.util.exception("Expected Rule to have an element after preprocessing")
         }
-        let $element = $api.$()(element.get("element"))
-        let child = _api.engine.iterator.setupIterations(rule, $element)
+        let $element = $api.$()(element)
+        let child = _api.binding.preprocessor.iterator.setupIterations(rule, $element)
         let virtualAst = AST("IterationChild").set("index", i)
         rule.replace(virtualAst)
         

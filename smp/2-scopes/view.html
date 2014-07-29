@@ -22,6 +22,7 @@
                     li.first, li.second (@person: $decide ? $persons1 : $persons2) {
                         text <- @person.name
                     }
+                    attr:data-id <~ "This is a div"
                 }
                 div.gender (@gender: ["Male", "Female"]) {
                     div.age (@age: [20, 30, 40, 50, 60, 70]) {

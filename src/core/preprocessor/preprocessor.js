@@ -39,7 +39,6 @@ _api.binding.preprocessor.preprocess = (binding) => {
     //  is then replaced by four new rules with these elements
     _api.binding.preprocessor.transform.expandSelectors(template, bind)
     
-    
     // Step 3: Make all references to the binding scope unique
     // This way we do not have to deal with scoping later (except if new items
     // in iterations are added
@@ -79,6 +78,18 @@ _api.binding.preprocessor.preprocess = (binding) => {
     // always happens through references and never through the binding
     _api.binding.preprocessor.transform.extractIterationCollections(bind, bindingScopePrefix, tempCounter)
     
+    // Step 5: Prevent iterating over the same element more than once
+    // This would lead to confusion and the order in which the binding is written would affect the template
+    // It is however always possible to define the same element multiple times in the template
+    _api.binding.preprocessor.validate.preventMultiIteration(bind)
+    
     binding.vars.binding = bind
     binding.vars.ast = null
+    
+    // Step 6: Setup iteration tree
+    binding.vars.iterationTree =
+        _api.binding.preprocessor.iterator.setupIterations(
+                                                    binding.vars.binding,
+                                                    binding.vars.template
+                                                )
 }

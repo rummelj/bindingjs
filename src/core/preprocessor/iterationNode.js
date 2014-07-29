@@ -164,7 +164,7 @@
     }
     
     setTemplate($template) {
-        if (this.isIterated) {
+        if (this.isIterated()) {
             this.$template = $("<!-- -->")
             this.$iterationTemplate = $template.clone()
             $template.replaceWith(this.$template)
@@ -231,4 +231,4 @@
     }
  }
  
- _api.engine.iterator.IterationNode = IterationNode
+ _api.binding.preprocessor.iterator.IterationNode = IterationNode
