@@ -3,11 +3,14 @@
     "description":    "View Data Binding for JavaScript",
     "keywords":       [ "view", "data", "binding" ],
     "version":        "0.0.0",
-    "author": {       
+    "contributors": [{       
         "name":       "Ralf S. Engelschall",
         "email":      "rse@engelschall.com",
         "url":        "http://engelschall.com/"
-    },
+    },{
+        "name":       "Johannes Rummel",
+        "email":      "johannes@rummel.cc"
+    }],
     "repository": {
         "type":       "git",
         "url":        "https://github.com/rse/bindingjs.git"
