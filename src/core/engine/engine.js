@@ -23,6 +23,12 @@
     // TODO: Refactor iterationSetup to transform
     var vars = _api.engine.getVars(binding)
     _api.engine.init(binding, vars, binding.vars.iterationTree)
+    
+    // TODO: Remove
+    let ids = vars.localScope.getIds()
+    for (var i = 0; i < ids.length; i++) {
+        vars.localScope.set(ids[i], [0,1,2])
+    }
  }
  
  _api.engine.init = (binding, vars, iterationTree) => {

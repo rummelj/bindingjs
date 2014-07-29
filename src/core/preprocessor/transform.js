@@ -7,8 +7,8 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.binding.preprocessor.transform.expandSelectors = (template, binding) => {
-    _api.binding.preprocessor.transform.expandSelectorsRec(template, binding, [[]])
+_api.preprocessor.transform.expandSelectors = (template, binding) => {
+    _api.preprocessor.transform.expandSelectorsRec(template, binding, [[]])
     
     // Remove all placeholder
     let placeholders = binding.getAll("Placeholder")
@@ -27,7 +27,7 @@ _api.binding.preprocessor.transform.expandSelectors = (template, binding) => {
     }
 }
 
-_api.binding.preprocessor.transform.expandSelectorsRec = (template, binding) => {
+_api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
     if (binding.isA("Rule")) {
         // If the rule already has an element it was processed before and can be safely skipped
         if (!binding.get("element")) {
@@ -55,7 +55,7 @@ _api.binding.preprocessor.transform.expandSelectorsRec = (template, binding) => 
             // e.g. [[a], [b, c], [d]] yields two permutations
             // - [a, b, d]
             // - [a, c, d]
-            //let permutations = _api.binding.preprocessor.transform.getAllPermutations(selectorList)
+            //let permutations = _api.preprocessor.transform.getAllPermutations(selectorList)
             
             // foreach permutation select all elements
             // foreach element put a new rule in the same place as the old rule
@@ -104,7 +104,7 @@ _api.binding.preprocessor.transform.expandSelectorsRec = (template, binding) => 
                 let newRule = newRules[i]
                 for (var j = 0; j < newRule.childs().length; j++) {
                     let child = newRule.childs()[j]
-                    _api.binding.preprocessor.transform.expandSelectorsRec(newRule.get("element"), child)
+                    _api.preprocessor.transform.expandSelectorsRec(newRule.get("element"), child)
                 }
             }
         }
@@ -112,19 +112,19 @@ _api.binding.preprocessor.transform.expandSelectorsRec = (template, binding) => 
         // Recursion
         for (var i = 0; i < binding.childs().length; i++) {
             let child = binding.childs()[i]
-            _api.binding.preprocessor.transform.expandSelectorsRec(template, child)
+            _api.preprocessor.transform.expandSelectorsRec(template, child)
         }
     }
 }
 
-_api.binding.preprocessor.transform.getAllPermutations = (listOfLists) => {
+_api.preprocessor.transform.getAllPermutations = (listOfLists) => {
     var accumulator = [[]]
     listOfListsClone = $api.$().extend(true, [], listOfLists)
-    _api.binding.preprocessor.transform.getAllPermutationsRec(listOfListsClone, accumulator)
+    _api.preprocessor.transform.getAllPermutationsRec(listOfListsClone, accumulator)
     return accumulator
 }
 
-_api.binding.preprocessor.transform.getAllPermutationsRec = (listOfLists, accumulator) => {
+_api.preprocessor.transform.getAllPermutationsRec = (listOfLists, accumulator) => {
     if (listOfLists.length > 0) {
         var firstList = listOfLists[0]
         
@@ -146,15 +146,15 @@ _api.binding.preprocessor.transform.getAllPermutationsRec = (listOfLists, accumu
         
         // Continue recursively with listOfLists without the first element
         listOfLists.shift()
-        _api.binding.preprocessor.transform.getAllPermutationsRec(listOfLists, accumulator)
+        _api.preprocessor.transform.getAllPermutationsRec(listOfLists, accumulator)
     }
 }
 
-_api.binding.preprocessor.transform.makeTempRefsUnique = (binding, bindingScopePrefix, tempCounter) => {
-    _api.binding.preprocessor.transform.makeTempRefsUniqueRec(binding, bindingScopePrefix, tempCounter, {})
+_api.preprocessor.transform.makeTempRefsUnique = (binding, bindingScopePrefix, tempCounter) => {
+    _api.preprocessor.transform.makeTempRefsUniqueRec(binding, bindingScopePrefix, tempCounter, {})
 }
 
-_api.binding.preprocessor.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix, tempCounter, assign) => {
+_api.preprocessor.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix, tempCounter, assign) => {
     if (binding.isA("Rule")) {
         // Find all temp references in this rule
         let assignCopied = false
@@ -183,11 +183,11 @@ _api.binding.preprocessor.transform.makeTempRefsUniqueRec = (binding, bindingSco
     
     // Recursion
     for (var i = 0; i < binding.childs().length; i++) {
-        _api.binding.preprocessor.transform.makeTempRefsUniqueRec(binding.childs()[i], bindingScopePrefix, tempCounter, assign)
+        _api.preprocessor.transform.makeTempRefsUniqueRec(binding.childs()[i], bindingScopePrefix, tempCounter, assign)
     }
 }
 
-_api.binding.preprocessor.transform.extractIterationCollections = (bind, bindingScopePrefix, tempCounter) => {
+_api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePrefix, tempCounter) => {
     let iterators = bind.getAll("Iterator")
     if (iterators.length > 0) {
         for (var i = 0; i < iterators.length; i++) {

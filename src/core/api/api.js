@@ -9,7 +9,7 @@
 */
 
 $api.create = function () {
-    return new _api.binding.Binding()
+    return new _api.Binding()
 }
 
 $api.$ = function() {

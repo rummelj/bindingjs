@@ -7,7 +7,7 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.binding.preprocessor.preprocess = (binding) => {
+_api.preprocessor.preprocess = (binding) => {
     var model = binding.vars.model
     var template = binding.vars.template
     var bind = binding.vars.ast
@@ -21,7 +21,7 @@ _api.binding.preprocessor.preprocess = (binding) => {
     //      @entry <- $foo
     //      li (@entry, @key: $bar) { ... }
     // }
-    _api.binding.preprocessor.validate.checkIterationIds(bind, bindingScopePrefix)
+    _api.preprocessor.validate.checkIterationIds(bind, bindingScopePrefix)
     
     
     // Step 2: Replace selectors with their elements in the template
@@ -37,7 +37,7 @@ _api.binding.preprocessor.preprocess = (binding) => {
     //      - .bar .quux
     //  Assuming that each selector matches exactly one element, the original <rule>
     //  is then replaced by four new rules with these elements
-    _api.binding.preprocessor.transform.expandSelectors(template, bind)
+    _api.preprocessor.transform.expandSelectors(template, bind)
     
     // Step 3: Make all references to the binding scope unique
     // This way we do not have to deal with scoping later (except if new items
@@ -56,7 +56,7 @@ _api.binding.preprocessor.preprocess = (binding) => {
     //                 (0)   (2)
     // All A's reference the same value since they have a common ancestor
     // The two B's however reference different values
-    _api.binding.preprocessor.transform.makeTempRefsUnique(bind, bindingScopePrefix, tempCounter)
+    _api.preprocessor.transform.makeTempRefsUnique(bind, bindingScopePrefix, tempCounter)
     
     
     // Step 4: Make every iteration read out of the temp scope.
@@ -76,19 +76,19 @@ _api.binding.preprocessor.preprocess = (binding) => {
     // since @input is artificial and never written. The elements
     // inside however may be references or values, and a back-propagation
     // always happens through references and never through the binding
-    _api.binding.preprocessor.transform.extractIterationCollections(bind, bindingScopePrefix, tempCounter)
+    _api.preprocessor.transform.extractIterationCollections(bind, bindingScopePrefix, tempCounter)
     
     // Step 5: Prevent iterating over the same element more than once
     // This would lead to confusion and the order in which the binding is written would affect the template
     // It is however always possible to define the same element multiple times in the template
-    _api.binding.preprocessor.validate.preventMultiIteration(bind)
+    _api.preprocessor.validate.preventMultiIteration(bind)
     
     binding.vars.binding = bind
     binding.vars.ast = null
     
     // Step 6: Setup iteration tree
     binding.vars.iterationTree =
-        _api.binding.preprocessor.iterator.setupIterations(
+        _api.preprocessor.iterator.setupIterations(
                                                     binding.vars.binding,
                                                     binding.vars.template
                                                 )

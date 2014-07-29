@@ -7,12 +7,11 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- _api.binding.preprocessor = {}
- _api.binding.preprocessor.iterator = {}
- _api.binding.preprocessor.transform = {}
- _api.binding.preprocessor.validate = {}
+ _api.preprocessor = {}
+ _api.preprocessor.iterator = {}
+ _api.preprocessor.transform = {}
+ _api.preprocessor.validate = {}
 
-include("iterationNode.js")
 include("iterator.js")
 include("preprocessor.js")
 include("transform.js")

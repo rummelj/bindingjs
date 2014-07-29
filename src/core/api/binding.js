@@ -69,7 +69,7 @@ _api.binding.setModel = (binding, arguments) => {
 _api.binding.initIfReady = (binding) => {
     let ready = binding.vars.template && binding.vars.ast && binding.vars.model
     if (ready) {
-        _api.binding.preprocessor.preprocess(binding)
+        _api.preprocessor.preprocess(binding)
     }
 }
 
@@ -148,4 +148,4 @@ class Binding {
 }
 
 /*  export class  */
-_api.binding.Binding = Binding
+_api.Binding = Binding

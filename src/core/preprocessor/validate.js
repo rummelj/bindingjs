@@ -7,11 +7,11 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.binding.preprocessor.validate.checkIterationIds = (binding, bindingScopePrefix) => {
-    _api.binding.preprocessor.validate.checkIterationIdsRec(binding, bindingScopePrefix, [])
+_api.preprocessor.validate.checkIterationIds = (binding, bindingScopePrefix) => {
+    _api.preprocessor.validate.checkIterationIdsRec(binding, bindingScopePrefix, [])
 }
 
-_api.binding.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, ids) => {
+_api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, ids) => {
     if (binding.isA("Rule")) {
         // Check if the rule has an 'Iterator' child
         let iterator = null
@@ -71,11 +71,11 @@ _api.binding.preprocessor.validate.checkIterationIdsRec = (binding, bindingScope
     
     // Recursion
     for (var i = 0; i < binding.childs().length; i++) {
-        _api.binding.preprocessor.validate.checkIterationIdsRec(binding.childs()[i], bindingScopePrefix, ids)
+        _api.preprocessor.validate.checkIterationIdsRec(binding.childs()[i], bindingScopePrefix, ids)
     }
 }
 
-_api.binding.preprocessor.validate.preventMultiIteration = (binding) => {
+_api.preprocessor.validate.preventMultiIteration = (binding) => {
     let iterators = binding.getAll("Iterator")
     let elements = []
     for (var i = 0; i < iterators.length; i++) {

@@ -10,4 +10,5 @@
 _api.engine = {}
 
 include("engine.js")
+include("iterationNode.js")
 include("localscope.js")

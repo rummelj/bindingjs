@@ -7,8 +7,8 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- _api.binding.preprocessor.iterator.setupIterations = (binding, template) => {
-    let iteratedNode = new _api.binding.preprocessor.iterator.IterationNode(false)
+ _api.preprocessor.iterator.setupIterations = (binding, template) => {
+    let iteratedNode = new _api.engine.IterationNode(false)
     // Move the iteration information into interatedNode
     if (binding.isA("Rule") && binding.hasChild("Iterator")) {
         // Create iterated node
@@ -95,7 +95,7 @@
             throw _api.util.exception("Expected Rule to have an element after preprocessing")
         }
         let $element = $api.$()(element)
-        let child = _api.binding.preprocessor.iterator.setupIterations(rule, $element)
+        let child = _api.preprocessor.iterator.setupIterations(rule, $element)
         let virtualAst = AST("IterationChild").set("index", i)
         rule.replace(virtualAst)
         

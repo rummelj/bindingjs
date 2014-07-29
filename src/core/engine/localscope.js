@@ -14,19 +14,29 @@ class LocalScope {
         this.observerId = 0
     }
 
+    getIds() {
+        let result = []
+        for (id in this.data) {
+            result.push(id)
+        }
+        return result
+    }
+    
     get(id) {
         return this.data[id]
     }
     
     set(id, to) {
-        if (data[id] !== to) {
+        if (this.data[id] !== to) {
             this.data[id] = to
-            notify(id)
+            this.notify(id)
         }
     }
     
     observe(id, callback) {
         $api.debug(3, "LocalScope observer for " + id + " registered")
+        // TODO: Remove
+        this.set(id, null)
         if(!this.observer[id]) {
             this.observer[id] = []
         }
@@ -53,7 +63,7 @@ class LocalScope {
     }
     
     notify(id) {
-        for (var i = 0; i < this.observer[id].length; i++) {
+        for (var i = 0; this.observer[id] && i < this.observer[id].length; i++) {
             this.observer[id][i].callback()
         }
     }
