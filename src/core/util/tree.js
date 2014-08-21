@@ -248,10 +248,10 @@ class Tree {
                                     .replace(/\//g, "\\/") +
                                 "/"
                             else
-                                out += value ? value.toString() : "null"
+                                out += value !== null && value !== undefined ? value.toString() : "null"
                             break
                         default:
-                            out += value ? value.toString() : "null"
+                            out += value !== null && value !== undefined ? value.toString() : "null"
                             break
                     }
                 })

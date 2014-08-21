@@ -8,11 +8,11 @@
  */
 
  _api.preprocessor.iterator.setupIterations = (binding, template) => {
-    let iteratedNode = new _api.engine.IterationNode(false)
+    let iteratedNode = new _api.util.Tree("PlainIteration").set("isRoot", true)
     // Move the iteration information into interatedNode
     if (binding.isA("Scope") && binding.hasChild("Iterator")) {
         // Create iterated node
-        iteratedNode.setIterated(true)
+        iteratedNode.set("isRoot", false)
         let iterator = binding.childs()[0]
         if (!iterator.isA("Iterator")) {
             throw _api.util.exception("Expected the first child of an iterated " +
@@ -27,10 +27,10 @@
         // Parse variables
         let variableNodes = variables[0].getAll("Variable")
         if (variableNodes.length === 1) {
-            iteratedNode.setIterationEntryId(variableNodes[0].get("id"))
+            iteratedNode.set("entryId", variableNodes[0].get("id"))
         } else if (variableNodes.length === 2) /* Could also be 0 */ {
-            iteratedNode.setIterationEntryId(variableNodes[0].get("id"))
-            iteratedNode.setIterationKeyId(variableNodes[1].get("id"))
+            iteratedNode.set("entryId", variableNodes[0].get("id"))
+            iteratedNode.set("keyId", variableNodes[1].get("id"))
         }
         
         // After the preprocessing the iterator always has a temp ref as input
@@ -48,7 +48,7 @@
             throw _api.util.exception("Expected the expr of an iteration to always " +
                                       "be a Variable after the preprocessing")
         }
-        iteratedNode.setIterationSourceId(inputVariable.get("id"))
+        iteratedNode.set("sourceId", inputVariable.get("id"))
         
         // Delete the iterator
         binding.del(iterator)
@@ -85,15 +85,15 @@
     }
     
     // Set template
-    if (iteratedNode.isIterated()) {
+    if (!iteratedNode.get("isRoot")) {
         let $template = $api.$()(template)
         let virtual = $api.$()("<!-- -->")
         $template.after(virtual)
         $template.detach()
-        iteratedNode.setIterationTemplate(template)
-        iteratedNode.setTemplate(virtual)
+        iteratedNode.set("iterationTemplate", template)
+        iteratedNode.set("template", virtual)
     } else {
-        iteratedNode.setTemplate(template)
+        iteratedNode.set("template", template)
     }
     
     // Recursion
@@ -107,7 +107,7 @@
         let child = _api.preprocessor.iterator.setupIterations(scope, scope.get("element"))
         iteratedNode.add(child)
     }
-    iteratedNode.setBinding(binding.clone())
+    iteratedNode.set("binding", binding.clone())
 
     return iteratedNode
  }
