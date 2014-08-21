@@ -9,35 +9,35 @@
 */
 
 
-_api.dsl.ast.getAllRec = (ast, type, stopAtType, firstCall, accumulator) => {
+_api.util.tree.getAllRec = (tree, type, stopAtType, firstCall, accumulator) => {
     // type: string elements to search for with this type
-    // stopAtType: string if walk comes to AST with that type and this AST is not the root of the search,
+    // stopAtType: string if walk comes to a tree with that type and this tree is not the root of the search,
     //         search is not continued at this point (optional)
     // firstCall: boolean whether it is the first call. Prevents stopping if ROOT.T === stopAt
     // accumulator: [] reference to a list of all variables found so far
     
-    if (ast.isA(type)) {
-        accumulator.push(ast)
+    if (tree.isA(type)) {
+        accumulator.push(tree)
     }
-    if (firstCall || !stopAtType || !ast.isA(stopAtType)) {
-        for (var i = 0; i < ast.childs().length; i++) {
-            _api.dsl.ast.getAllRec(ast.childs()[i], type, stopAtType, false, accumulator)
+    if (firstCall || !stopAtType || !tree.isA(stopAtType)) {
+        for (var i = 0; i < tree.childs().length; i++) {
+            _api.util.tree.getAllRec(tree.childs()[i], type, stopAtType, false, accumulator)
         }
     }
 }
     
-/*  Abstract Syntax Tree (AST)  */
-class AST {
-    /*  constructor for an AST node  */
+/*  Tree (Tree)  */
+class Tree {
+    /*  constructor for a Tree node  */
     constructor () {
-        if (!(this instanceof AST)) {
-            let self = new AST("")
+        if (!(this instanceof Tree)) {
+            let self = new Tree("")
             return self.init.apply(self, arguments)
         }
         return this.init.apply(this, arguments)
     }
 
-    /*  constructor helper: AST node initialization  */
+    /*  constructor helper: Tree node initialization  */
     init (T) {
         if (typeof T === "undefined")
             throw new Error("init: invalid argument")
@@ -50,7 +50,7 @@ class AST {
     }
     
     clone () {
-        let clone = AST(this.T)
+        let clone = Tree(this.T)
         clone.A = $api.$().extend({}, this.A)
         clone.P = $api.$().extend({}, this.P)
         for (var i = 0; i < this.C.length; i++) {
@@ -60,7 +60,7 @@ class AST {
         return clone
     }
 
-    /*  check the type of an AST node  */
+    /*  check the type of an Tree node  */
     isA (T) {
         return this.T === T
     }
@@ -73,7 +73,7 @@ class AST {
         return this
     }
 
-    /*  set AST node attributes  */
+    /*  set Tree node attributes  */
     set () {
         let args = arguments
         if (args.length === 1 && typeof args[0] === "object")
@@ -85,14 +85,14 @@ class AST {
         return this
     }
 
-    /*  get AST node attributes  */
+    /*  get Tree node attributes  */
     get (key) {
         if (typeof key !== "string")
             throw new Error("get: invalid argument")
         return this.A[key]
     }
 
-    /*  get child AST nodes  */
+    /*  get child Tree nodes  */
     childs () {
         return this.C
     }
@@ -112,11 +112,11 @@ class AST {
     
     getAll (type, stopAtType) {
         let result = []
-        _api.dsl.ast.getAllRec(this, type, stopAtType, true, result)
+        _api.util.tree.getAllRec(this, type, stopAtType, true, result)
         return result
     }
 
-    /*  add child AST node(s)  */
+    /*  add child Tree node(s)  */
     add () {
         if (arguments.length === 0)
             throw new Error("add: invalid argument")
@@ -127,7 +127,7 @@ class AST {
                   && (typeof node.P === "object")
                   && (typeof node.A === "object")
                   && (typeof node.C === "object" && node.C instanceof Array)))
-                throw new Error("add: invalid AST node: " + JSON.stringify(node))
+                throw new Error("add: invalid Tree node: " + JSON.stringify(node))
             node.parent = self
             C.push(node)
         };
@@ -150,7 +150,7 @@ class AST {
                   && (typeof node.P === "object")
                   && (typeof node.A === "object")
                   && (typeof node.C === "object" && node.C instanceof Array)))
-                throw new Error("add: invalid AST node: " + node)
+                throw new Error("add: invalid Tree node: " + node)
             node.parent = self
             C.splice(index, 0, node)
         };
@@ -170,7 +170,7 @@ class AST {
     
     replace() {
         if (!this.parent) {
-            throw _api.util.exception("Cannot replace root of an AST")
+            throw _api.util.exception("Cannot replace root of a Tree")
         }
         
         // Determine own index
@@ -185,7 +185,7 @@ class AST {
         this.parent.del(this)
     }
     
-    /*  delete child AST node(s)  */
+    /*  delete child Tree node(s)  */
     del () {
         if (arguments.length === 0)
             throw new Error("del: invalid argument")
@@ -205,7 +205,7 @@ class AST {
         return this
     }
 
-    /*  walk the AST recursively  */
+    /*  walk the Tree recursively  */
     walk (cb, after = false) {
         let _walk = (node, depth) => {
             if (!after)
@@ -217,7 +217,7 @@ class AST {
         _walk(this, 0)
     }
 
-    /*  dump the AST recursively  */
+    /*  dump the Tree recursively  */
     dump () {
         let out = ""
         this.walk((node, depth) => {
@@ -264,4 +264,4 @@ class AST {
 }
 
 /*  export class  */
-_api.dsl.AST = AST
+_api.util.Tree = Tree

@@ -93,7 +93,7 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
                 // If the amount of children is increased it is not a problem
                 // If however it is decreased elements might get skipped
                 // So a placeholder is added, which is later removed
-                binding.replace(AST("Placeholder"))
+                binding.replace(new _api.util.Tree("Placeholder"))
             }
             
             // Push a new empty list onto the selector list for the next recursion
@@ -199,7 +199,7 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
             // but this wont work for two reasons
             // 1. There could be no parent
             // 2. The expression that is iterated could contain a view adapter
-            let newScope = _api.dsl.AST("Scope")
+            let newScope = _api.util.Tree("Scope")
             
             // Scopes look different since Step 2 (expandSelectors)
             let iteratedScope = iterator.getParent()
@@ -238,7 +238,7 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
             }
             
             // Reset iteration expression
-            iterationExpression.replace(_api.dsl.AST("Variable").set({ ns: bindingScopePrefix, id: newTempId, text: newTempRef }))
+            iterationExpression.replace(_api.util.Tree("Variable").set({ ns: bindingScopePrefix, id: newTempId, text: newTempRef }))
             
             // Add binding to newScope
             newScope.add(newBinding)

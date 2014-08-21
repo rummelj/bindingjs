@@ -13,7 +13,7 @@
 
     /*  generate an AST node  */
     var AST = function (T, A, C) {
-        return _api.dsl.AST(T, A, C).pos(line(), column(), offset())
+        return _api.util.Tree(T, A, C).pos(line(), column(), offset())
     }
 }
 

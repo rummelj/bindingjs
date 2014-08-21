@@ -8,8 +8,6 @@
  */
 
  _api.dsl = {}
- _api.dsl.ast = {}
 
-include("ast.js")
 include("dsl.js")
 include("parser.js")

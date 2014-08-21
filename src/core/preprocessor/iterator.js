@@ -100,7 +100,7 @@
     for (var i = 0; i < iterators.length; i++) {
         let iterator = iterators[i]
         let scope = iterator.getParent()
-        let virtualAst = AST("IterationChild").set("index", i)
+        let virtualAst = new _api.util.Tree("IterationChild").set("index", i)
         scope.replace(virtualAst)
         
         // Recursion

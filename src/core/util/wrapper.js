@@ -9,9 +9,11 @@
 
 _api.util = {}
 _api.util.dom = {}
+_api.util.tree = {}
 
 include("common.js")
 include("counter.js")
 include("dom.js")
 include("ducky.js")
 include("promise.js")
+include("tree.js")
