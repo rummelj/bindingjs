@@ -17,26 +17,26 @@ _api.preprocessor.transform.expandSelectors = (template, binding) => {
         placeholder.getParent().del(placeholder)
     }
     
-    // Check if every rule received a template element
-    let rules = binding.getAll("Rule")
-    for (var i = 0; i < rules.length; i++) {
-        let rule = rules[i]
-        if(!rule.get("element")) {
-            throw _api.util.exception("Internal Error: Rule did not receive a template element")
+    // Check if every scope received a template element
+    let scopes = binding.getAll("Scope")
+    for (var i = 0; i < scopes.length; i++) {
+        let scope = scopes[i]
+        if(!scope.get("element")) {
+            throw _api.util.exception("Internal Error: Scope did not receive a template element")
         }
     }
 }
 
 _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
-    if (binding.isA("Rule")) {
-        // If the rule already has an element it was processed before and can be safely skipped
+    if (binding.isA("Scope")) {
+        // If the scope already has an element it was processed before and can be safely skipped
         if (!binding.get("element")) {
             let selectorList = []
             
             // Add intermediate selectors on the way down
             var selectorListElem = binding.childs()[0]
             if (!selectorListElem.isA("SelectorList")) {
-                throw _api.util.exception("Expected the first child of Rule to always be " +
+                throw _api.util.exception("Expected the first child of Scope to always be " +
                                           "a SelectorList, but it was not")
             }
             
@@ -58,11 +58,11 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
             //let permutations = _api.preprocessor.transform.getAllPermutations(selectorList)
             
             // foreach permutation select all elements
-            // foreach element put a new rule in the same place as the old rule
-            // in every such rule the part with SelectorList is replace by the element
-            let newRules = []
+            // foreach element put a new scope in the same place as the old scope
+            // in every such scope the part with SelectorList is replace by the element
+            let newScopes = []
             
-            // Prepare old rule by removing its first child to prevent
+            // Prepare old scope by removing its first child to prevent
             // doing it for every clone
             // First child must be SelectorList (was checked above)
             binding.del(binding.childs()[0])
@@ -77,17 +77,17 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
                                $api.$()(template).clone().wrap("<div>").parent().html())
                 }
                 
-                // Note. If the selector did not match any elements, the rule disappears
+                // Note. If the selector did not match any elements, the scope disappears
                 for (var j = 0; j < elements.length; j++) {
-                    let newRule = binding.clone()
-                    newRule.set("element", elements[j])
-                    newRules.push(newRule)
+                    let newScope = binding.clone()
+                    newScope.set("element", elements[j])
+                    newScopes.push(newScope)
                 }
             }
             
-            if (newRules.length > 0) {
-                // Replace old rule with newRules
-                binding.replace(newRules)
+            if (newScopes.length > 0) {
+                // Replace old scope with newScopes
+                binding.replace(newScopes)
             } else {
                 // The parent call iterates over its children in ascending order
                 // If the amount of children is increased it is not a problem
@@ -99,12 +99,12 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
             // Push a new empty list onto the selector list for the next recursion
             selectorList.push([])
             
-            // Recursion over every newly generated rule
-            for (var i = 0; i < newRules.length; i++) {
-                let newRule = newRules[i]
-                for (var j = 0; j < newRule.childs().length; j++) {
-                    let child = newRule.childs()[j]
-                    _api.preprocessor.transform.expandSelectorsRec(newRule.get("element"), child)
+            // Recursion over every newly generated scope
+            for (var i = 0; i < newScopes.length; i++) {
+                let newScope = newScopes[i]
+                for (var j = 0; j < newScope.childs().length; j++) {
+                    let child = newScope.childs()[j]
+                    _api.preprocessor.transform.expandSelectorsRec(newScope.get("element"), child)
                 }
             }
         }
@@ -155,10 +155,10 @@ _api.preprocessor.transform.makeTempRefsUnique = (binding, bindingScopePrefix, t
 }
 
 _api.preprocessor.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix, tempCounter, assign) => {
-    if (binding.isA("Rule")) {
-        // Find all temp references in this rule
+    if (binding.isA("Scope")) {
+        // Find all temp references in this scope
         let assignCopied = false
-        let refs = binding.getAll("Variable", "Rule")
+        let refs = binding.getAll("Variable", "Scope")
         for (var i = 0; i < refs.length; i++) {
             let ref = refs[i]
             if (ref.get("ns") === bindingScopePrefix) {
@@ -193,21 +193,21 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
         for (var i = 0; i < iterators.length; i++) {
             let iterator = iterators[i]
             
-            // Create a new rule (in front) of the iteratied rule
+            // Create a new scope (in front) of the iteratied scope
             // With the same viewElement but without anything else
             // It would seem easier to just add the new binding to the parent,
             // but this wont work for two reasons
             // 1. There could be no parent
             // 2. The expression that is iterated could contain a view adapter
-            let newRule = _api.dsl.AST("Rule")
+            let newScope = _api.dsl.AST("Scope")
             
-            // Rules look different since Step 2 (expandSelectors)
-            let iteratedRule = iterator.getParent()
-            let iteratedElement = iteratedRule.get("element")
+            // Scopes look different since Step 2 (expandSelectors)
+            let iteratedScope = iterator.getParent()
+            let iteratedElement = iteratedScope.get("element")
             if (!iteratedElement) {
-                throw _api.util.exception("Expected Rule to have an element")
+                throw _api.util.exception("Expected Scope to have an element")
             }
-            newRule.set(iteratedElement)
+            newScope.set("element", iteratedElement)
             
             // Create binding
             let newTempId = "temp" + tempCounter.getNext()
@@ -240,11 +240,11 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
             // Reset iteration expression
             iterationExpression.replace(_api.dsl.AST("Variable").set({ ns: bindingScopePrefix, id: newTempId, text: newTempRef }))
             
-            // Add binding to newRule
-            newRule.add(newBinding)
+            // Add binding to newScope
+            newScope.add(newBinding)
             
-            // Add newRule (in front) of iteratedRule
-            iteratedRule.getParent().addAt(iteratedRule.getParent().childs().indexOf(iteratedRule), newRule)
+            // Add newScope (in front) of iteratedScope
+            iteratedScope.getParent().addAt(iteratedScope.getParent().childs().indexOf(iteratedScope), newScope)
         }
     }
 }

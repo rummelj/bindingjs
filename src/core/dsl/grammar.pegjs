@@ -34,27 +34,27 @@ blocks
 
 block
     =   group
-    /   rule
+    /   scope
 
 group
-    =   "@binding" ws n:string ws "{" b:blocks "}" {  /* RECURSION */
-            return AST("Group").set({ name: n.get("value") }).add(b)
+    =   "@binding" ws n:id ws "{" b:blocks "}" {  /* RECURSION */
+            return AST("Group").set({ id: n.get("id") }).add(b)
         }
 
-rule
-    =   s:selectors _ i:ruleIterator? _ e:ruleExport? _ "{" b:(_ ruleBody _ ";"?)* _ "}" {
-            return AST("Rule").add(s, i, e, unroll(null, b, 1)).set("text", text())
+scope
+    =   s:selectors _ i:scopeIterator? _ e:scopeExport? _ "{" b:(_ scopeBody _ ";"?)* _ "}" {
+            return AST("Scope").add(s, i, e, unroll(null, b, 1)).set("text", text())
         }
-    /   s:selectors _ x:(ruleLabel / ruleIterator / ruleImport / ruleExport) {
-            return AST("Rule").add(s, x).set("text", text())
+    /   s:selectors _ x:(scopeLabel / scopeIterator / scopeImport / scopeExport) {
+            return AST("Scope").add(s, x).set("text", text())
         }
 
-ruleLabel
+scopeLabel
     =   "::" _ id:id {
             return AST("Label").set({ id: id.get("id") })
         }
 
-ruleIterator
+scopeIterator
     =   "(" _ v:(variable (_ "," _ variable)? _ ":")? _ e:expr _ ")" {
             return AST("Iterator").add(
                 AST("Variables")
@@ -64,19 +64,19 @@ ruleIterator
             )
         }
 
-ruleImport
+scopeImport
     =   "<<" _ id:id "(" _ p:exprSeq? _ ")" {
             return AST("Import").set({ id: id.get("id") }).add(p)
         }
 
-ruleExport
+scopeExport
     =   ">>" _ id:id "(" _ p:(variable (_ "," _ variable)*)? _ ")" {
             return AST("Export").set({ id: id.get("id") })
                 .add(p !== null ? unroll(p[0], p[1], 3) : null)
         }
 
-ruleBody
-    =   rule      /* RECURSION */
+scopeBody
+    =   block      /* RECURSION */
     /   binding
 
 
@@ -211,7 +211,8 @@ bindingConnection
     =   f:bindingOp l:(_ connector _ bindingOp)* {
             return AST("Connector").add(unroll(f, l, [ 1, 3 ]))
         }
-        
+
+// TODO: Change according to thesis
 connector
     = exprFunctionCall
     / exprFunctionCallBare
@@ -314,6 +315,7 @@ exprLiteral
     /   number
     /   value
 
+// TODO: Remove
 exprFunctionDef
     =   "(" _ f:id? l:(_ "," _ id)* _ ")" _ "=>" _ e:expr {  /* RECURSION */
             return AST("FuncDef").add(
@@ -327,7 +329,8 @@ exprFunctionCallBare
     =   v:variable {
             return AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") })
         }
-        
+
+// TODO: Remove
 exprFunctionCall
     =   v:variable b:exprFunctionCallBraces {
             return AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") }).add(b)

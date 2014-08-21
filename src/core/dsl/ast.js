@@ -248,10 +248,10 @@ class AST {
                                     .replace(/\//g, "\\/") +
                                 "/"
                             else
-                                out += value.toString()
+                                out += value ? value.toString() : "null"
                             break
                         default:
-                            out += value.toString()
+                            out += value ? value.toString() : "null"
                             break
                     }
                 })

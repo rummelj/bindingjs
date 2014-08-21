@@ -2,10 +2,10 @@
 **  foo-view.bind -- BindingJS view binding for "foo" mask
 */
 
-@binding "foo" {
+@binding foo {
     div[data-name="pos"] (length(data:persons) > 0) {
         li (@person, @k: slice(sort("name", data:persons), param:window.begin, param:window.end)) {
-            attr:data-id <- @person.id
+            attr:data-id <- @person.id;
             span[data-name="num"] {
                 text <- sprintf('%03d', param:window.begin + @k)
             }

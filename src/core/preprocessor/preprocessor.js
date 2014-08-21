@@ -25,18 +25,18 @@ _api.preprocessor.preprocess = (binding) => {
     
     
     // Step 2: Replace selectors with their elements in the template
-    // Rules might be duplicated because of
+    // Scopes might be duplicated because of
     // - Multiple matches for one selector
     // - CombinationLists (e.g. '.foo, #bar')
-    // - Nested structures with CombinationLists which result in exponential many new rules
-    //   e.g. '.foo, .bar { ... .baz, .quux {<rule>} }) evaluates the following selectors
+    // - Nested structures with CombinationLists which result in exponential many new scopes
+    //   e.g. '.foo, .bar { ... .baz, .quux {<scope>} }) evaluates the following selectors
     //   against the template:
     //      - .foo .baz
     //      - .foo .quux
     //      - .bar .baz
     //      - .bar .quux
-    //  Assuming that each selector matches exactly one element, the original <rule>
-    //  is then replaced by four new rules with these elements
+    //  Assuming that each selector matches exactly one element, the original <scope>
+    //  is then replaced by four new scopes with these elements
     _api.preprocessor.transform.expandSelectors(template, bind)
     
     // Step 3: Make all references to the binding scope unique

@@ -12,8 +12,8 @@ _api.preprocessor.validate.checkIterationIds = (binding, bindingScopePrefix) => 
 }
 
 _api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, ids) => {
-    if (binding.isA("Rule")) {
-        // Check if the rule has an 'Iterator' child
+    if (binding.isA("Scope")) {
+        // Check if the scope has an 'Iterator' child
         let iterator = null
         for (var i = 0; i < binding.childs().length; i++) {
             if (binding.childs()[i].isA("Iterator")) {
@@ -33,7 +33,7 @@ _api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, 
                                           "be Variables, but it was not")
             }
             
-            let variables = variablesNode.getAll("Variable", "Rule")
+            let variables = variablesNode.getAll("Variable", "Scope")
             // TODO: Check if all start with @
             for (var i = 0; i < variables.length; i++) {
                 // Check if all start with correct prefix
@@ -52,13 +52,13 @@ _api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, 
             }
         }
         
-        let variables = binding.getAll("Variable", "Rule")
+        let variables = binding.getAll("Variable", "Scope")
         let variableIdsToAdd = []
         for (var i = 0; i < variables.length; i++) {
             let variable = variables[i]
             // Only add those ids that are refs to the binding scope and that are neither
             // - in the ids already found (happens if same name used on multiple levels)
-            // - in the variableNamesToAdd already (happens if occuring multiple times in rule)
+            // - in the variableNamesToAdd already (happens if occuring multiple times in scope)
             if (variable.get("ns") === bindingScopePrefix &&
                 $api.$().inArray(variable.get("id"), ids) === -1 &&
                 $api.$().inArray(variable.get("id"), variableIdsToAdd) === -1) {
@@ -80,17 +80,17 @@ _api.preprocessor.validate.preventMultiIteration = (binding) => {
     let elements = []
     for (var i = 0; i < iterators.length; i++) {
         let iterator = iterators[i]
-        let rule = iterator.getParent()
-        if (!rule.isA("Rule")) {
-            throw _api.util.exception("Expected the parent of an Iterator to always be a Rule")
+        let scope = iterator.getParent()
+        if (!scope.isA("Scope")) {
+            throw _api.util.exception("Expected the parent of an Iterator to always be a Scope")
         }
-        let element = rule.get("element")
+        let element = scope.get("element")
         if (!element) {
-            throw _api.util.exception("Expected a Rule to have an element after preprocessing")
+            throw _api.util.exception("Expected a Scope to have an element after preprocessing")
         }
         if (elements.indexOf(element) !== -1) {
             throw _api.util.exception("It is not allowed to iterate the same template element multiple times as in\n" + 
-                rule.get("text"))
+                scope.get("text"))
         }
         elements.push(element)
     }
