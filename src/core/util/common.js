@@ -29,3 +29,31 @@ _api.util.definedOrElse = (value, fallback) => {
     return (typeof value !== "undefined" ? value : fallback)
 }
 
+/* Returns a unique jquery selector for $element
+   Taken from http://stackoverflow.com/questions/2068272/getting-a-jquery-selector-for-an-element */
+_api.util.getPath = (context, element) => {
+    let $current = $api.$()(element)
+    let $context = $api.$()(context)
+    let path = new Array();
+    let realpath = "";
+    // Since this code is taken from the web, we limit the number of iterations to
+    // avoid hard to track errors
+    let iterations = 0
+    while (!$current.is($context)) {
+        let index = $current.parent().find($current.prop("tagName")).index($current);
+        let name = $current.prop("tagName");
+        let selector = " " + name + ":eq(" + index + ") ";
+        path.push(selector);
+        $current = $current.parent();
+        
+        iterations++
+        if (iterations > 10000) {
+            throw _api.util.exception("Internal error: Too many iterations")
+        }
+    }
+    while (path.length != 0) {
+        realpath += path.pop();
+    }
+    return realpath;
+}
+

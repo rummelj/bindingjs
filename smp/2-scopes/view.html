@@ -2,7 +2,7 @@
     <head>
         <script src="../jquery-1.11.1.min.js"></script>
         <script src="../../bld/stage3/src/core/binding.js"></script>
-        <!-- script type="text/binding">
+        <script type="text/binding">
             @binding view {
                 #name {
                     on:keyup +> value -> uppercase -> @temp
@@ -24,31 +24,35 @@
                     }
                     attr:data-id <~ "This is a div"
                 }
-                div.gender (@gender: ["Male", "Female"]) {
-                    div.age (@age: [20, 30, 40, 50, 60, 70]) {
-                        text <- @gender + " - " + @age
+                div.genders {
+                    div.gender (@gender: ["Male", "Female"]) {
+                        div.age (@age: [20, 30, 40, 50, 60, 70]) {
+                            text <- @gender + " - " + @age
+                        }
+                        .manText (@gender == "Male")
+                        .womanText (@gender == "Female")
                     }
-                    .manText (@gender == "Male")
-                    .womanText (@gender == "Female")
                 }
             }
-        </script -->
-        <script type="text/binding">
+        </script>
+        <!-- script type="text/binding">
             @binding view {
                 div {
                     li.first, li.second (@person: $decide ? $persons1 : $persons2) {
                         text <- @person.name
                     }
                 }
-                div.gender (@gender: ["Male", "Female"]) {
-                    div.age (@age: [20, 30, 40, 50, 60, 70]) {
-                        text <- @gender + " - " + @age
+                div.genders {
+                    div.gender (@gender: ["Male", "Female"]) {
+                        div.age (@age: [20, 30, 40, 50, 60, 70]) {
+                            text <- @gender + " - " + @age
+                        }
+                        .manText (@gender == "Male")
+                        .womanText (@gender == "Female")
                     }
-                    .manText (@gender == "Male")
-                    .womanText (@gender == "Female")
                 }
             }
-        </script>
+        </script -->
         <script type="text/javascript">
             var model = {
                 name: "Enter your name!"
@@ -77,11 +81,13 @@
                     <li class="second"></li>
                 </ul>
             </div>
-            <div class="gender">
-                <h3>Gender</h3>
-                <div class="age"></div>
-                <span class="mantext">What a man!</span>
-                <span class="womanText">What a woman!</span>
+            <div class="genders">
+                <div class="gender">
+                    <h3>Gender</h3>
+                    <div class="age"></div>
+                    <span class="mantext">What a man!</span>
+                    <span class="womanText">What a woman!</span>
+                </div>
             </div>
         </div>
     </body>

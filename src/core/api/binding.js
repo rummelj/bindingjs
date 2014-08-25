@@ -80,6 +80,7 @@ class Binding {
     constructor () {
         this.vars = {}
         this.vars.tempCounter = new _api.util.Counter()
+        this.vars.active = false
         return this
     }
     
@@ -104,18 +105,33 @@ class Binding {
     }
     
     activate () {
-        _api.engine.activate(this)
+        if (!this.vars.active) {
+            _api.engine.activate(this)
+            this.vars.active = true
+        } else {
+            $api.debug(1, "Tried to activate binding, which was already active")
+        }
+        return this
     }
     
     deactivate () {
+        if (this.vars.active) {
+            // TODO
+            _api.engine.deactivate(this)
+            this.vars.active = false
+        } else {
+            $api.debug(1, "Tried to deactivate binding, which was already deactive")
+        }
         return this
     }
     
     pause () {
+        // TODO
         return this
     }
     
     resume () {
+        // TODO
         return this
     }
     

@@ -83,13 +83,13 @@ _api.preprocessor.preprocess = (binding) => {
     // It is however always possible to define the same element multiple times in the template
     _api.preprocessor.validate.preventMultiIteration(bind)
     
-    binding.vars.binding = bind
-    binding.vars.ast = null
+    // Step 6: Move Bindings that affect iterated elements into the iteration
+    _api.preprocessor.transform.nestIteratedBindings(bind)
     
-    // Step 6: Setup iteration tree
-    binding.vars.iterationTree =
-        _api.preprocessor.iterator.setupIterations(
-                                                    binding.vars.binding,
-                                                    binding.vars.template
-                                                )
+    // Step 7: Setup iteration tree
+    let iterationTree = _api.preprocessor.iterator.setupIterations(bind, template)
+    binding.vars.iterationTree = iterationTree
+    
+    binding.vars.binding = bind
+    delete binding.vars.ast
 }

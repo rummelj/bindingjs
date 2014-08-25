@@ -35,8 +35,6 @@ class LocalScope {
     
     observe(id, callback) {
         $api.debug(3, "LocalScope observer for " + id + " registered")
-        // TODO: Remove
-        if (!this.data[id]) { this.set(id, null) }
         if(!this.observer[id]) {
             this.observer[id] = []
         }

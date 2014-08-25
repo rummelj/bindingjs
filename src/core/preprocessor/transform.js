@@ -193,21 +193,17 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
         for (var i = 0; i < iterators.length; i++) {
             let iterator = iterators[i]
             
-            // Create a new scope (in front) of the iteratied scope
-            // With the same viewElement but without anything else
-            // It would seem easier to just add the new binding to the parent,
-            // but this wont work for two reasons
-            // 1. There could be no parent
-            // 2. The expression that is iterated could contain a view adapter
-            let newScope = _api.util.Tree("Scope")
-            
             // Scopes look different since Step 2 (expandSelectors)
             let iteratedScope = iterator.getParent()
-            let iteratedElement = iteratedScope.get("element")
-            if (!iteratedElement) {
-                throw _api.util.exception("Expected Scope to have an element")
+            
+            // Find parent Scope
+            let parentScope = iteratedScope.getParent()
+            while (parentScope && !parentScope.isA("Scope")) {
+                parentScope = parentScope.getParent()
             }
-            newScope.set("element", iteratedElement)
+            if (!parentScope) {
+                throw _api.util.exception("It is not allowed that a Scope which has no parent is iterated!")
+            }
             
             // Create binding
             let newTempId = "temp" + tempCounter.getNext()
@@ -240,11 +236,14 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
             // Reset iteration expression
             iterationExpression.replace(_api.util.Tree("Variable").set({ ns: bindingScopePrefix, id: newTempId, text: newTempRef }))
             
-            // Add binding to newScope
-            newScope.add(newBinding)
-            
-            // Add newScope (in front) of iteratedScope
-            iteratedScope.getParent().addAt(iteratedScope.getParent().childs().indexOf(iteratedScope), newScope)
+            // Add binding to parentScope
+            parentScope.add(newBinding)
         }
     }
+}
+
+_api.preprocessor.transform.nestIteratedBindings = (binding) => {
+    // 1. Remember all elements in a map
+    // 2. Push around Bindings
+    // 3. Remove empty Scopes
 }

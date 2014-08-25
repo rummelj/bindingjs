@@ -20,18 +20,43 @@
  }
  
  _api.engine.activate = (binding) => {
-    // TODO: Refactor iterationSetup to transform
-    var vars = _api.engine.getVars(binding)
-    _api.engine.init(binding, vars, binding.vars.iterationTree)
+    var vars = _api.engine.getVars(binding)  
+    _api.engine.init(binding, vars)
     
     // TODO: Remove
-    let ids = vars.localScope.getIds()
-    for (var i = 0; i < ids.length; i++) {
-        vars.localScope.set(ids[i], [0, 1, 2, 3])
+    for (var i = 0; i < 20; i++) {
+        vars.localScope.set("temp" + i, [0,1, 2, 3])
+    }
+    
+    _api.engine.colorred(binding.vars.iterationTree.get("links")[0]);
+ }
+ 
+ _api.engine.colorred = (node) => {
+    let scopes = node.get("binding").getAll("Scope")
+    for (var i = 0; i < scopes.length; i++) {
+        let scope = scopes[i]
+        let element = scope.get("element")
+        console.log(element)
+        $api.$()(element).attr("style", "background: " + _api.engine.getRandomColor())
+    }
+    for (var i = 0; i < node.childs().length; i++) {
+        _api.engine.colorred(node.childs()[i])
     }
  }
  
- _api.engine.init = (binding, vars, iterationTree) => {
+ _api.engine.getRandomColor = () => {
+    var letters = '0123456789ABCDEF'.split('');
+    var color = '#';
+    for (var i = 0; i < 6; i++ ) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+ 
+ _api.engine.init = (binding, vars) => {
+    _api.engine.iterator.init(binding, vars)
+    
+    /*
     for (var i = 0; i < iterationTree.getChildren().length; i++) {
         let child = iterationTree.getChildren()[i]
         _api.engine.init(binding, vars, child)
@@ -83,6 +108,7 @@
         })
         iterationTree.setObserverId(observerId)
     }
+    */
  }
  
  _api.engine.destroy = (binding, iterationTree) => {
@@ -98,7 +124,7 @@
                 throw _api.util.exception("Selector " + arg + " did not match exactly one element, but " +
                                           mountPoint.length)
             }
-            mountPoint.replaceWith(binding.vars.iterationTree.get("template"))
+            mountPoint.replaceWith(_api.engine.iterator.getTemplate(binding))
         } else {
             // TOOD
         }
