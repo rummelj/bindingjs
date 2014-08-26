@@ -4,6 +4,19 @@
         <script src="../../bld/stage3/src/core/binding.js"></script>
         <script type="text/binding">
             @binding view {
+                div.genders {
+                    div.gender (@gender: $genders) {
+                        div.country (@country: $countries) {
+                            div.age (@age: @country.ages) {
+                                text <- @age
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+        <!-- script type="text/binding">
+            @binding view {
                 #name {
                     on:keyup +> value -> uppercase -> @temp
                     @temp -> $name
@@ -26,26 +39,13 @@
                 }
                 div.genders {
                     div.gender (@gender: ["Male", "Female"]) {
-                        div.age (@age: [20, 30, 40, 50, 60, 70]) {
-                            text <- @gender + " - " + @age
-                        }
-                        .manText (@gender == "Male")
-                        .womanText (@gender == "Female")
-                    }
-                }
-            }
-        </script>
-        <!-- script type="text/binding">
-            @binding view {
-                div {
-                    li.first, li.second (@person: $decide ? $persons1 : $persons2) {
-                        text <- @person.name
-                    }
-                }
-                div.genders {
-                    div.gender (@gender: ["Male", "Female"]) {
-                        div.age (@age: [20, 30, 40, 50, 60, 70]) {
-                            text <- @gender + " - " + @age
+                        div.country (@country: [{name: "de", ages: [1,2,3]}, {name: "com", ages: [4,5,6]}, {name: "tr", ages: [7,8,9]}]) {
+                            .name {
+                                text <- @country.name
+                            }
+                            div.age (@age: @country.ages) {
+                                text <- @age
+                            }
                         }
                         .manText (@gender == "Male")
                         .womanText (@gender == "Female")
@@ -71,6 +71,17 @@
     </head>
     <body>
         <div id="template">
+            <div class="genders">
+                <div class="gender">
+                    <div class="country">
+                        Country
+                        <div class="name">Name</div>
+                        <div class="age">Age</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- div id="template">
             <input id="name" class="inputField" type="text" />
             <input class="inputField" type="text" />
             <div>
@@ -84,11 +95,15 @@
             <div class="genders">
                 <div class="gender">
                     <h3>Gender</h3>
-                    <div class="age"></div>
+                    <div class="country">
+                        Country
+                        <div class="name">Name</div>
+                        <div class="age">Age</div>
+                    </div>
                     <span class="mantext">What a man!</span>
                     <span class="womanText">What a woman!</span>
                 </div>
             </div>
-        </div>
+        </div -->
     </body>
 </html>

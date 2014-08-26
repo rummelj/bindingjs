@@ -143,6 +143,7 @@
         value: true,
         template: rootLink.get("template"),
         binding: rootLink.get("binding"),
+        bindingRenames: {},
         placeholder: {
             template: rootLink.get("placeholder").template,
             binding: rootLink.get("placeholder").binding
@@ -177,6 +178,12 @@
     result.set("binding", binding)
     result.set("instances", [])
     result.set("placeholderIndex", isRoot ? -1 : node.getParent().childs().indexOf(node))
+    result.set("sourceId", node.get("sourceId"))
+    result.set("entryId", node.get("entryId"))
+    result.set("keyId", node.get("keyId"))
+    result.set("origin", node)
+    result.set("collection", [])
+    result.set("bindingRenames", {})
     
     // Update template placeholders
     result.set("placeholder", {template: [], binding: []})

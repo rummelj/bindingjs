@@ -7,11 +7,6 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-_api.engine = {}
-_api.engine.iterator = {}
-_api.engine.binding = {}
-
-include("binding.js")
-include("engine.js")
-include("iterator.js")
-include("localscope.js")
+ _api.engine.binding.init = (template, binding) => {
+ 
+ }

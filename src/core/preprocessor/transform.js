@@ -260,7 +260,18 @@ _api.preprocessor.transform.nestIteratedBindings = (binding) => {
             elementScopes[index].push(scope)
         }
     }
-    
+    let checkIfAnyAncestorIterated = (() => {
+        function rec(scope) {
+            if (scope.childs().length > 0 && scope.childs()[0].isA("Iterator")) {
+                return true
+            } else if (scope.getParent()) {
+                return rec(scope.getParent())
+            } else {
+                return false
+            }
+        }
+        return rec
+    })()
     
     for (var i = 0; i < scopes.length; i++) {
         let scope = scopes[i]
@@ -268,16 +279,15 @@ _api.preprocessor.transform.nestIteratedBindings = (binding) => {
         addScope(element, scope)
     }
     
-    // For each entry in the map, check if one of the scopes is iterated
+    // For each entry in the map, check if one of the scope has a parent scope that it is iterated
     for (var i = 0; i < elements.length; i++) {
         let element = elements[i]
-        // Check if one scope is iterated
-        // Since preventMultiIteration was executed before, there can never be more than one
+        // Check if the scope or one of its parents is iterated
         let iteratedScope = undefined
         let elementScopeList = elementScopes[i]
         for (var j = 0; j < elementScopeList.length; j++) {
             let elementScope = elementScopeList[j]
-            if (elementScope.childs().length > 0 && elementScope.childs()[0].isA("Iterator")) {
+            if (checkIfAnyAncestorIterated(elementScope)) {
                 iteratedScope = elementScope
                 break;
             }

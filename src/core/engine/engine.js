@@ -24,8 +24,8 @@
     _api.engine.init(binding, vars)
     
     // TODO: Remove
-    for (var i = 0; i < 20; i++) {
-        vars.localScope.set("temp" + i, [0,1, 2, 3])
+    for (var i = 0; i < 100; i++) {
+        vars.localScope.set("temp" + i, [0,1])
     }
     
     _api.engine.colorred(binding.vars.iterationTree.get("links")[0]);
