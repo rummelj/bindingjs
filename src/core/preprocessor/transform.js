@@ -202,6 +202,10 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
                 parentScope = parentScope.getParent()
             }
             if (!parentScope) {
+                // TODO:
+                // 1. Check if no View Mask Adpater are used
+                // 2. Create or use already existing virtual Scope, which must be in the same Group (@binding ...)
+                // 3. Set the templates root element as the element of that Scope to prevent later errros even element never used
                 throw _api.util.exception("It is not allowed that a Scope which has no parent is iterated!")
             }
             
@@ -243,7 +247,75 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
 }
 
 _api.preprocessor.transform.nestIteratedBindings = (binding) => {
-    // 1. Remember all elements in a map
-    // 2. Push around Bindings
-    // 3. Remove empty Scopes
+    let scopes = binding.getAll("Scope")
+    // Create a map of all elements and their scopes
+    let elements = []
+    let elementScopes = []
+    let addScope = (element, scope) => {
+        let index = elements.indexOf(element)
+        if (index == -1) {
+            elements.push(element)
+            elementScopes.push([scope])
+        } else {
+            elementScopes[index].push(scope)
+        }
+    }
+    
+    
+    for (var i = 0; i < scopes.length; i++) {
+        let scope = scopes[i]
+        let element = scope.get("element")
+        addScope(element, scope)
+    }
+    
+    // For each entry in the map, check if one of the scopes is iterated
+    for (var i = 0; i < elements.length; i++) {
+        let element = elements[i]
+        // Check if one scope is iterated
+        // Since preventMultiIteration was executed before, there can never be more than one
+        let iteratedScope = undefined
+        let elementScopeList = elementScopes[i]
+        for (var j = 0; j < elementScopeList.length; j++) {
+            let elementScope = elementScopeList[j]
+            if (elementScope.childs().length > 0 && elementScope.childs()[0].isA("Iterator")) {
+                iteratedScope = elementScope
+                break;
+            }
+        }
+        
+        // Move all Bindings of the other Scopes to this Scope if there is one
+        if (iteratedScope) {
+            for (var j = 0; j < elementScopeList.length; j++) {
+                let elementScope = elementScopeList[j]
+                if (elementScope.childs().length > 0 && elementScope.childs()[0].isA("Iterator")) {
+                    // This is the target, skip
+                    continue
+                }
+                let bindings = elementScope.getAll("Binding", "Scope")
+                for (var k = 0; k < bindings.length; k++) {
+                    let binding = bindings[k]
+                    binding.getParent().del(binding)
+                    iteratedScope.add(binding)
+                }
+            }
+        }
+    }
+    
+    // Check for empty Scopes and remove them
+    for (var i = 0; i < scopes.length; i++) {
+        let scope = scopes[i]
+        let bindings = scope.getAll("Binding")
+        let iterators = scope.getAll("Iterator")
+        let exports = scope.getAll("Export")
+        let imports = scope.getAll("Import")
+        let labels = scope.getAll("Label")
+        if (bindings.length === 0 &&
+            iterators.length === 0 &&
+            exports.length === 0 &&
+            imports.length === 0 &&
+            labels.length === 0) {
+                // Remove Scope
+                scope.getParent().del(scope)
+        }
+    }
 }

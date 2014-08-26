@@ -48,7 +48,7 @@ _api.util.getPath = (context, element) => {
         
         iterations++
         if (iterations > 10000) {
-            throw _api.util.exception("Internal error: Too many iterations")
+            throw _api.util.exception("Internal error: GetPath called with element, that is NOT a descendant of context")
         }
     }
     while (path.length != 0) {
@@ -56,4 +56,3 @@ _api.util.getPath = (context, element) => {
     }
     return realpath;
 }
-

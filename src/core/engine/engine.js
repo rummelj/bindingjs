@@ -32,12 +32,17 @@
  }
  
  _api.engine.colorred = (node) => {
-    let scopes = node.get("binding").getAll("Scope")
-    for (var i = 0; i < scopes.length; i++) {
-        let scope = scopes[i]
-        let element = scope.get("element")
-        console.log(element)
-        $api.$()(element).attr("style", "background: " + _api.engine.getRandomColor())
+    let instances = node.get("instances")
+    for (var i = 0; i < instances.length; i++) {
+        let instance = instances[i]
+        let binding = instance.binding
+        let scopes = binding.getAll("Scope")
+        for (var j = 0; j < scopes.length; j++) {
+            let scope = scopes[j]
+            let element = scope.get("element")
+            console.log(element)
+            $api.$()(element).attr("style", "background: " + _api.engine.getRandomColor())
+        }
     }
     for (var i = 0; i < node.childs().length; i++) {
         _api.engine.colorred(node.childs()[i])

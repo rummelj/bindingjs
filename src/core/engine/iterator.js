@@ -8,7 +8,7 @@
  */
 
  _api.engine.iterator.getTemplate = (binding) => {
-    return binding.vars.iterationTree.get("links")[0].get("template")
+    return binding.vars.iterationTree.get("links")[0].get("instances")[0].template[0]
  }
  
  _api.engine.iterator.init = (binding, vars) => {
@@ -50,6 +50,7 @@
  }
  
  _api.engine.iterator.remove = (node, index) => {
+    // TODO
     let childs = node.childs()
     for (var i = 0; i < childs.length; i++) {
         let child = childs[i]
@@ -62,34 +63,82 @@
     let childs = node.childs()
     for (var i = 0; i < links.length; i++) {
         let link = links[i]
-
-        let oldTemplate = link.get("template")
-        let newTemplate = oldTemplate.clone()
-        let newBinding = link.get("binding").clone()
+        let newInstance = _api.engine.iterator.addInstance(link, index, value)
         
-        // The references inside binding still refer to the template before it was cloned
-        let scopes = newBinding.getAll("Scope")
-        for (var j = 0; j < scopes.length; j++) {
-            let scope =  scopes[j]
-            let element = scope.get("element")
-            let selector = _api.util.getPath(oldTemplate, element)
-            let newElement = $api.$()(selector, newTemplate)
-            scope.set("element", newElement)
-        }
-        
+        // Initialize new children
         for (var j = 0; j < childs.length; j++) {
             let child = childs[j]
             let newChildLink = _api.engine.iterator.initChild(child)
             link.add(newChildLink)
+            
+            newChildLink.set("instance", newInstance)
         }
-        
-        link.getParent().get("placeholders").template[node.getParent().childs().indexOf(node)].after(link.get("template"))
-        // TODO insert binding
-        link.get("instances").push({template: newTemplate, binding: newBinding})
     }
+ }
+
+ _api.engine.iterator.addInstance = (link, index, value) => {
+    let instances = link.get("instances")
+    if (instances.length < index) {
+        throw _api.util.exception("Cannot add instance at index " + index + " because there are " +
+                                  "only " + instances.length + " instances present")
+    }
+    
+    // Template
+    let oldTemplate = link.get("template")
+    let newTemplate = oldTemplate.clone()
+    
+    // Template Placeholder
+    let oldTemplatePlaceholder = link.get("placeholder").template
+    let newTemplatePlaceholder = []
+    for (var i = 0; i < oldTemplatePlaceholder.length; i++) {
+        let oldPlaceholder = oldTemplatePlaceholder[i]
+        let selector = _api.util.getPath(oldTemplate, oldPlaceholder)
+        let newPlaceholder = selector == "" ? newTemplate : $api.$()(selector, newTemplate)
+        newTemplatePlaceholder.push(newPlaceholder)
+    }
+    
+    // Binding
+    let newBinding = link.get("binding").clone()
+    let scopes = newBinding.getAll("Scope")
+    for (var j = 0; j < scopes.length; j++) {
+        let scope =  scopes[j]
+        let element = scope.get("element")
+        let selector = _api.util.getPath(oldTemplate, element)
+        let newElement = selector == "" ? newTemplate : $api.$()(selector, newTemplate)
+        if (newElement.length !== 1) {
+            throw _api.util.exception("Could not locate element in template clone")
+        }
+        scope.set("element", newElement)
+    }
+    
+    let newInstance = {
+        value: value,
+        template: newTemplate,
+        binding: newBinding,
+        placeholder: {
+            template: newTemplatePlaceholder,
+            binding: undefined /* TODO */
+        }
+    }
+    
+    // Insert template
+    if (link.get("instances").length > 0) {
+        link.get("instances")[index].template.after(newTemplate)
+    } else {
+        // link.get("instance") === link.getParent().get("instances")[link.getParent().get("instances").indexOf(link.get("instance")]
+        link.get("instance").placeholder.template[link.get("placeholderIndex")].after(newTemplate)
+    }
+    
+    // TODO: Insert Binding
+   
+    // Add to instances
+    link.get("instances").splice(index, 0, newInstance)
+    
+    return newInstance
  }
  
  _api.engine.iterator.destroyChild = (node) => {
+    // TODO
     let links = node.get("links")
     let last = links[links.length - 1]
     last.getParent().del(last)
@@ -106,62 +155,21 @@
  }
  
  _api.engine.iterator.initChild = (node) => {
-    let newLink = new _api.util.Tree("ExpandedIteration")
-
+    let newLink = _api.preprocessor.iterator.initExpandedIterationNode(node)
+    node.get("links").push(newLink)
+    
     let collection = node.get("collection")
     let childs = node.childs()
     for (var i = 0; i < collection.length; i++) {
+        let newInstance = _api.engine.iterator.addInstance(newLink, i, collection[i])
         for (var j = 0; j < children.length; j++) {
             let child = childs[j]
             let newChildLink = _api.engine.iterator.initChild(child)
             newLink.add(newChildLink)
+            newChildLink.set("instance", newInstance)
         }
     }
     
-    newLink.set("instances", [])
-        
-    let oldTemplate = node.get("iterationTemplate")
-    let newTemplate = oldTemplate.clone()
-    
-    let newBinding = node.get("binding").clone()
-    newLink.set("template", newTemplate)
-    newLink.set("binding", newBinding)
-        
-    // Update placeholders
-    newLink.set("placeholders", {template: [], binding: []})
-    for (var i = 0; i < node.get("placeholders").template.length; i++) {
-        let templatePl = node.get("placeholders").template[i]
-        let selector = _api.util.getPath(node.get("iterationTemplate"), templatePl)
-        let newPlaceholder = $api.$()(selector, newTemplate)
-        newLink.get("placeholders").template.push(newPlaceholder)
-    }
-    // Replace template placeholders by comments
-    for (var i = 0; i < newLink.get("placeholders").template.length; i++) {
-        let templatePl = newLink.get("placeholders").template[i]
-        let comment = $api.$()("<!-- -->")
-        templatePl.replaceWith(comment)
-        newLink.get("placeholders").template[i] = comment
-    }
-    for (var i = 0; i < node.get("placeholders").binding.length; i++) {
-        let bindingPl =  node.get("placeholders").binding[i]
-        let newPlaceholders = newBinding.getAll("Iteration-" + i)
-        if (newPlaceholders.length != 1) {
-            throw _api.util.exception("Internal error")
-        }
-        newLink.get("placeholders").binding.push(newPlaceholders[0])
-    }
-    
-    // The references inside binding still refer to the template before it was cloned
-    let scopes = newBinding.getAll("Scope")
-    for (var i = 0; i < scopes.length; i++) {
-        let scope =  scopes[i]
-        let element = scope.get("element")
-        let selector = _api.util.getPath(oldTemplate, element)
-        let newElement = $api.$()(selector, newTemplate)
-        scope.set("element", newElement)
-    }
-        
-    node.get("links").push(newLink)
     return newLink
  }
  
