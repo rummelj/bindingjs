@@ -12,6 +12,9 @@ include("../umd/umd-library-prolog.js", {
 })
 
 include("api/wrapper.js")
+include("repository/wrapper.js")
+include("adapter/wrapper.js")
+include("connector/wrapper.js")
 include("dsl/wrapper.js")
 include("engine/wrapper.js")
 include("preprocessor/wrapper.js")

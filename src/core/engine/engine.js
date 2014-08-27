@@ -24,11 +24,11 @@
     _api.engine.init(binding, vars)
     
     // TODO: Remove
-    for (var i = 0; i < 100; i++) {
+    /*for (var i = 0; i < 100; i++) {
         vars.localScope.set("temp" + i, [0,1])
     }
     
-    _api.engine.colorred(binding.vars.iterationTree.get("links")[0]);
+    _api.engine.colorred(binding.vars.iterationTree.get("links")[0]);*/
  }
  
  _api.engine.colorred = (node) => {

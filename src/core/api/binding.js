@@ -63,6 +63,13 @@ _api.binding.setModel = (binding, arguments) => {
     let input = arguments[0]
     binding.vars.model = input
     
+    // Set model for all model adapter
+    let modelAdapter = _api.repository.adapter.getAll("model")
+    for (var i = 0; i < modelAdapter.length; i++) {
+        let adapter = modelAdapter[i]
+        adapter.setModel(input)
+    }
+    
     _api.binding.initIfReady(binding)
 }
 

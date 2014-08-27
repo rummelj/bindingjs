@@ -13,6 +13,8 @@
  
  _api.engine.iterator.init = (binding, vars) => {
     var root = binding.vars.iterationTree
+    // Init binding of root instance
+    _api.engine.binding.init(binding, vars, root.get("links")[0].get("instances")[0])
     for (var i = 0; i < root.childs().length; i++) {
         _api.engine.iterator.initInternal(binding, vars, root.childs()[i])
     }
@@ -33,17 +35,28 @@
     var oldCollection = node.get("collection")
     node.set("collection", newCollection)
     
-    var changes = _api.engine.iterator.levensthein(oldCollection, newCollection)
-    for (var i = 0; i < changes.length; i++) {
-        switch (changes[i].type) {
-            case "remove":
-                _api.engine.iterator.remove(binding, node, changes[i].index)
-                break
-            case "add":
-                _api.engine.iterator.add(binding, vars, node, changes[i].index, changes[i].value)
-                break
-            default:
-                throw new _api.util.exception("Internal Error: Unknown change type")
+    let newCollectionType = Object.prototype.toString.call(newCollection)
+    if (newCollectionType == "[object Boolean]") {
+        if (oldCollection && !newCollection) {
+            // Was there, now is not there anymore
+            _api.engine.iterator.remove(binding, node, 0)
+        } else if (!oldCollection && newCollection) {
+            // Was not there, now should be there
+            _api.engine.iterator.add(binding, vars, node, 0, true)
+        }
+    } else {
+        var changes = _api.engine.iterator.levensthein(oldCollection, newCollection)
+        for (var i = 0; i < changes.length; i++) {
+            switch (changes[i].type) {
+                case "remove":
+                    _api.engine.iterator.remove(binding, node, changes[i].index)
+                    break
+                case "add":
+                    _api.engine.iterator.add(binding, vars, node, changes[i].index, changes[i].value)
+                    break
+                default:
+                    throw new _api.util.exception("Internal Error: Unknown change type")
+            }
         }
     }
  }
@@ -64,15 +77,12 @@
     // Initialize new children
     for (var j = 0; j < childs.length; j++) {
         let child = childs[j]
-        let newChildLink = _api.engine.iterator.initChild(binding, vars, node, child)
+        let newChildLink = _api.engine.iterator.initChild(binding, vars, node, child, newInstance)
         node.add(newChildLink)
-        
-        newChildLink.set("instance", newInstance)
     }
     
     // Initialize binding for newInstance
-    let observerIds = _api.engine.binding.init(newInstance.template, newInstance.binding)
-    newInstance.set("observerIds", observerIds)
+    _api.engine.binding.init(binding, vars, newInstance)
  }
 
  _api.engine.iterator.addInstance = (binding, link, index, value) => {
@@ -113,6 +123,9 @@
     // Replace same what parent already did
     let bindingRenames = {}
     
+    if (!link.get("instance")) {
+        console.log("no Instance")
+    }
     let parentBindingRenames = link.get("instance").bindingRenames
     for (parentBindingRename in parentBindingRenames) {
         bindingRenames[parentBindingRename] = parentBindingRenames[parentBindingRename]
@@ -175,8 +188,6 @@
         // link.get("instance") === link.getParent().get("instances")[link.getParent().get("instances").indexOf(link.get("instance")]
         link.get("instance").placeholder.template[link.get("placeholderIndex")].after(newTemplate)
     }
-    
-    // TODO: Insert Binding
    
     // Add to instances
     link.get("instances").splice(index, 0, newInstance)
@@ -201,21 +212,11 @@
     }
  }
  
- _api.engine.iterator.initChild = (binding, vars, parentLink, node) => {
+ _api.engine.iterator.initChild = (binding, vars, parentLink, node, instance) => {
     let newLink = _api.preprocessor.iterator.initExpandedIterationNode(node)
     node.get("links").push(newLink)
     
-    /*let collection = node.get("collection")
-    let childs = node.childs()
-    for (var i = 0; i < collection.length; i++) {
-        let newInstance = _api.engine.iterator.addInstance(binding, newLink, i, collection[i])
-        for (var j = 0; j < children.length; j++) {
-            let child = childs[j]
-            let newChildLink = _api.engine.iterator.initChild(binding, vars, child)
-            newLink.add(newChildLink)
-            newChildLink.set("instance", newInstance)
-        }
-    }*/
+    newLink.set("instance", instance)
     
     // Replace in newLink's Binding all sourceIds of Iterations
     for (var i = 0; i < node.childs().length; i++) {
