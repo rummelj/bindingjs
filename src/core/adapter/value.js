@@ -22,7 +22,11 @@ _api.adapter.value = class ValueAdapter {
     unobserve () {
     }
     
-    get (element, path) {
+    getPaths (element, path) {
+        return [path]
+    }
+    
+    getValue (element, path) {
         if (path.length > 0) {
             throw _api.util.exception("value can not process paths")
         }

@@ -21,7 +21,12 @@ _api.adapter.attr = class AttrAdapter {
     unobserve (/* id */) {
     }
     
-    get (element, path) {
+    getPaths (element, path) {
+        // We could list all attributes, but that does not make sense
+        return [path]
+    }
+    
+    getValue (element, path) {
         if (path.length != 1) {
             throw _api.util.exception("attr needs a path of length 1")
         }

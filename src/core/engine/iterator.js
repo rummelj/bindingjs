@@ -31,6 +31,10 @@
  
  _api.engine.iterator.changeListener = (binding, vars, node) => {
     var newCollection = vars.localScope.get(node.get("sourceId"))
+    // Special case for true and false
+    if (newCollection instanceof _api.engine.binding.Reference) {
+        newCollection = newCollection.getValue()
+    }
     newCollection = newCollection ? newCollection : []
     var oldCollection = node.get("collection")
     node.set("collection", newCollection)
@@ -183,7 +187,9 @@
     
     // Insert template
     if (link.get("instances").length > 0) {
-        link.get("instances")[index].template.after(newTemplate)
+        // TODO: This wont work for text based keys
+        console.log(index)
+        link.get("instances")[index - 1].template.after(newTemplate)
     } else {
         // link.get("instance") === link.getParent().get("instances")[link.getParent().get("instances").indexOf(link.get("instance")]
         link.get("instance").placeholder.template[link.get("placeholderIndex")].after(newTemplate)
@@ -253,11 +259,15 @@
     // TODO: Resolve references to true values
     // TODO: Add Levensthein
     var result = []
-    for (var i = 0; i < oldCollection.length; i++) {
-        result.push({type: "remove", index: 0})
+    // TODO: Remove
+    if (oldCollection.length == newCollection.length) {
+        return result
     }
-    for (var i = newCollection.length - 1; i >= 0; i--) {
-        result.push({type: "add", index: 0, value: newCollection[i]})
+    for (key in oldCollection) {
+        result.push({type: "remove", index: key})
+    }
+    for (key in newCollection) {
+        result.push({type: "add", index: key, value: newCollection[key]})
     }
     return result
  }

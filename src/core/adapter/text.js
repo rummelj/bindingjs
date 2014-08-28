@@ -21,7 +21,11 @@ _api.adapter.text = class TextAdapter {
     unobserve (/* id */) {
     }
     
-    get (element, path) {
+    getPaths (element, path) {
+        return [path]
+    }
+    
+    getValue (element, path) {
         if (path.length > 0) {
             throw _api.util.exception("text can not process paths")
         }

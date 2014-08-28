@@ -15,11 +15,11 @@ _api.adapter.$ = class $Adapter {
     shutdown () {
     }
     
-    observe (path, callback) {
+    observe (model, path, callback) {
         if (path.length == 0) {
             throw _api.util.exception("$ Adapter cannot be used without path")
         }
-        let elem = this.model
+        let elem = model
         for (var i = 0; i < path.length - 1; i++) {
             elem = elem[path[i]]
         }
@@ -29,28 +29,39 @@ _api.adapter.$ = class $Adapter {
     unobserve (/* id */) {
     }
     
-    get (path) {
-        let elem = this.model
+    getValue (model, path) {
+        let elem = model
         for (var i = 0; i < path.length; i++) {
             elem = elem[path[i]]
         }
         return elem
     }
     
-    set (path, value) {
+    getPaths (model, path) {
+        let result = [path]
+        let value = this.getValue(model, path)
+        if (typeof value == "object") {
+            for (key in value) {
+                let newPath = path.slice()
+                newPath.push(key)
+                let subPaths = this.getPaths(model, newPath)
+                for (var i = 0; i < subPaths.length; i++) {
+                    result.push(subPaths[i])
+                }
+            }
+        }
+        return result
+    }
+    
+    set (model, path, value) {
         if (path.length == 0) {
             throw _api.util.exception("$ Adapter cannot be used without path")
         }
-        let elem = this.model
+        let elem = model
         for (var i = 0; i < path.length - 1; i++) {
             elem = elem[path[i]]
         }
         elem[path[path.length - 1]] = value
-    }
-    
-    setModel(model) {
-        $api.debug(5, "Model set: " + model)
-        this.model = model
     }
     
     type () {

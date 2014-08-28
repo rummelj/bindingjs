@@ -260,18 +260,14 @@ _api.preprocessor.transform.nestIteratedBindings = (binding) => {
             elementScopes[index].push(scope)
         }
     }
-    let checkIfAnyAncestorIterated = (() => {
-        function rec(scope) {
-            if (scope.childs().length > 0 && scope.childs()[0].isA("Iterator")) {
-                return true
-            } else if (scope.getParent()) {
-                return rec(scope.getParent())
-            } else {
-                return false
-            }
+    let getScopes = (element) => {
+        let index = elements.indexOf(element)
+        if (index == -1) {
+            return []
+        } else {
+            return elementScopes[index]
         }
-        return rec
-    })()
+    }
     
     for (var i = 0; i < scopes.length; i++) {
         let scope = scopes[i]
@@ -279,33 +275,42 @@ _api.preprocessor.transform.nestIteratedBindings = (binding) => {
         addScope(element, scope)
     }
     
-    // For each entry in the map, check if one of the scope has a parent scope that it is iterated
+    // For each entry in the map, check if the element has a parent with an iterated scope
     for (var i = 0; i < elements.length; i++) {
         let element = elements[i]
-        // Check if the scope or one of its parents is iterated
-        let iteratedScope = undefined
-        let elementScopeList = elementScopes[i]
-        for (var j = 0; j < elementScopeList.length; j++) {
-            let elementScope = elementScopeList[j]
-            if (checkIfAnyAncestorIterated(elementScope)) {
-                iteratedScope = elementScope
-                break;
-            }
-        }
         
-        // Move all Bindings of the other Scopes to this Scope if there is one
-        if (iteratedScope) {
-            for (var j = 0; j < elementScopeList.length; j++) {
-                let elementScope = elementScopeList[j]
-                if (elementScope.childs().length > 0 && elementScope.childs()[0].isA("Iterator")) {
-                    // This is the target, skip
-                    continue
+        // Check if any parent is iterated
+        let iteratedScope = undefined
+        while (element) {
+            let scopeList = getScopes(element)
+            let found = false
+            for (var j = 0; j < scopeList.length; j++) {
+                let scope = scopeList[j]
+                if (scope.childs().length > 0 && scope.childs()[0].isA("Iterator")) {
+                    iteratedScope = scope
+                    break
                 }
-                let bindings = elementScope.getAll("Binding", "Scope")
-                for (var k = 0; k < bindings.length; k++) {
-                    let binding = bindings[k]
-                    binding.getParent().del(binding)
-                    iteratedScope.add(binding)
+            }
+            if (iteratedScope) {
+                break
+            }
+            element = element.parentElement
+        }
+        element = elements[i]
+        
+        if (iteratedScope) {
+            // Check if all scopes are a descendant of the iterated scope
+            let scopeList = getScopes(element)
+            for (var j = 0; j < scopeList.length; j++) {
+                let scope = scopeList[j]
+                while (scope && scope !== iteratedScope) {
+                    scope = scope.getParent()
+                }
+                // If the scope is now undefined it has to be moved into iterated Scope
+                if (!scope) {
+                    scope = scopeList[j]
+                    scope.getParent().del(scope)
+                    iteratedScope.add(scope)
                 }
             }
         }

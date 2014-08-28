@@ -8,6 +8,7 @@
  */
 
  _api.engine.binding.init = (bindingObj, vars, instance) => {
+    let model = bindingObj.vars.model
     let template = instance.template
     let spec = instance.binding
     let scopes = spec.getAll("Scope")
@@ -26,19 +27,19 @@
             // Observe source
             if (parts.source.adapter == "binding") {
                 vars.localScope.observe(parts.source.path[0], () => {
-                    _api.engine.binding.propagate(vars, parts)
+                    _api.engine.binding.propagate(model, vars, parts)
                 })
-                _api.engine.binding.propagate(vars, parts)
+                _api.engine.binding.propagate(model, vars, parts)
             } else if (parts.source.adapter.type() == "view") {
                 parts.source.adapter.observe(element, parts.source.path, () => {
-                    _api.engine.binding.propagate(vars, parts)
+                    _api.engine.binding.propagate(model, vars, parts)
                 })
-                _api.engine.binding.propagate(vars, parts)
+                _api.engine.binding.propagate(model, vars, parts)
             } else if (parts.source.adapter.type() == "model") {
-                parts.source.adapter.observe(parts.source.path, () => {
-                    _api.engine.binding.propagate(vars, parts)
+                parts.source.adapter.observe(model, parts.source.path, () => {
+                    _api.engine.binding.propagate(model, vars, parts)
                 })
-                _api.engine.binding.propagate(vars, parts)
+                _api.engine.binding.propagate(model, vars, parts)
             } else {
                 throw _api.util.exception("Unknown adapter type: " + parts.source.adapter.type())
             }
@@ -46,18 +47,24 @@
     }
  }
  
- _api.engine.binding.propagate = (vars, parts) => {
+ _api.engine.binding.propagate = (model, vars, parts) => {
     // Read value from source
     let source = parts.source
     let value = ""
     if (source.adapter == "binding") {
         value = vars.localScope.get(source.path[0])
     } else if (source.adapter.type() == "view") {
-        value = source.adapter.get(parts.element, source.path)
+        value = source.adapter.getPaths(parts.element, source.path)
     } else if (source.adapter.type() == "model") {
-        value = source.adapter.get(source.path)
+        value = source.adapter.getPaths(model, source.path)
     } else {
         throw _api.util.exception("Unknown adapter type: " + source.adapter.type())
+    }
+    
+    if (source.adapter !== "binding" &&
+        (source.adapter.type() == "view"
+         || source.adapter.type() == "model")) {
+        value = _api.engine.binding.convertToReferences(source.adapter, source.path, value, model, parts.element)
     }
     
     // Propagate through connectors
@@ -66,16 +73,83 @@
         value = connectorChain[i].process(value)
     }
     
-    // Write to sink
     let sink = parts.sink
+    if (sink.adapter !== "binding" &&
+        (sink.adapter.type() == "view"
+         || sink.adapter.type() == "model")) {
+        value = _api.engine.binding.convertToValues(value)
+    }
+    
+    // Write to sink
     if (sink.adapter == "binding") {
         vars.localScope.set(sink.path[0], value)
     } else if (sink.adapter.type() == "view") {
         sink.adapter.set(parts.element, sink.path, value)
     } else if (sink.adapter.type() == "model") {
-        sink.adapter.set(sink.path, value)
+        sink.adapter.set(model, sink.path, value)
     } else {
         throw _api.util.exception("Unknown adapter type: " + sink.adapter.type())
+    }
+ }
+ 
+ _api.engine.binding.convertToReferences = (adapter, originalPath, paths, model, element) => {
+    let result = {}
+    for (var i = 0; i < paths.length; i++) {
+        let path = paths[i]
+        // Determine position in result
+        let position = result
+        for (var j = originalPath.length; j < path.length; j++) {
+            let key = path[j]
+            if (!position[key]) {
+                position[key] = {}
+            }
+            position = position[key]
+        } 
+    }
+    
+    // For every path write a reference into result if there still is a {}
+    for (var i = 0; i < paths.length; i++) {
+        let path = paths[i]
+        let current = result
+        for (var j = originalPath.length; j < path.length - 1; j++) {
+            let key = path[j]
+            current = current[key]
+        }
+        
+        if (path.length - originalPath.length > 0) {
+            if ($api.$().isEmptyObject(current[path[path.length - 1]])) {
+                let newReference = new _api.engine.binding.Reference(adapter, path)
+                if (adapter.type() == "view") {
+                    newReference.setElement(element)
+                } else if (adapter.type() == "model") {
+                    newReference.setModel(model)
+                }
+                current[path[path.length - 1]] = newReference
+            }
+        } else {
+            if ($api.$().isEmptyObject(result)) {
+                let newReference = new _api.engine.binding.Reference(adapter, path)
+                if (adapter.type() == "view") {
+                    newReference.setElement(element)
+                } else if (adapter.type() == "model") {
+                    newReference.setModel(model)
+                }
+                result = newReference
+            }
+        }
+    }
+    return result
+ }
+ 
+ _api.engine.binding.convertToValues = (value) => {
+    if (value instanceof _api.engine.binding.Reference) {
+        return value.getValue()
+    } else {
+        for (key in value) {
+            let newValue = _api.engine.binding.convertToValues(value[key])
+            value[key] = newValue
+        }
+        return value
     }
  }
  
