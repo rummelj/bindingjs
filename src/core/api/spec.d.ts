@@ -13,7 +13,7 @@ declare var BindingJS: BindingJS_API_external;
 /*  external library API (available to everyone)  */
 interface BindingJS_API_external {
     $                   (                                 ): jQuery
-    $                   (   jQuery: jQuery                ): void
+    $                   (   jQuery: jQuery                ): BindingJS_API_external
     symbol              (   name?: string                 ): BindingJS_API_external
     version:            {   major: number;
                             minor: number;

@@ -30,7 +30,8 @@ describe("BindingJS Integration", () => {
             var testCase = testcases[index];
             var dir = __dirname + "/" + testCase
             
-            var template = fs.readFileSync(dir + "/view.html")
+            var template = fs.readFileSync(dir + "/view.html") + ""
+            var binding = fs.readFileSync(dir + "/view.bind") + ""
             jsdom.env({
                 html: intro + template + outro,
                 // TODO: Add bindingjs
@@ -40,15 +41,22 @@ describe("BindingJS Integration", () => {
                         throw errors;
                     }
                     var model = require(dir + "/model.json");
-                    var setup = require(dir + "/setup.js")
+                    //var setup = require(dir + "/setup.js")
                     var test = require(dir + "/test.js")
                     
-                    // TODO: Remove
-                    BindingJS.create = () => { return BindingJS };
-                    var bindingjs = BindingJS.create();
-                    setup.setup(bindingjs);
-                    // TODO
-                    // window.bindingjs.init(model);
+                    BindingJS
+                        .$(window.$)
+                        .create()
+                        .template("#template")
+                        .binding(binding)
+                        .model(model)
+                        .mount("#template")
+                        .activate()
+                    console.log("Binding JS created succesfullly")
+                        
+                    // TODO: Adapt setup
+                    // setup.setup(bindingjs);
+                    
                     test.test(model, window);
                     
                     // Recursion

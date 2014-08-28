@@ -17,8 +17,10 @@ _api.binding.setBinding = (binding, arguments) => {
     }
             
     let input = arguments[0]
+    
     // If input is HTMLElement
     if (typeof input === "object") {
+        // HTMLElement
         input = input.text()
     }
     

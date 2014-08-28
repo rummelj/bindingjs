@@ -1,31 +1,29 @@
-@binding "view" {
-    div#template {
-        // One-way binding Model2View and View2Model
-        span#m2v { text <- $m2vText }
-        input#v2m { value -> $v2mValue }
+@binding view {
+    // One-way binding Model2View and View2Model
+    span#m2v { text <- $m2vText }
+    input#v2m { value -> $v2mValue }
 
-        // Two-way binding
-        input#twoway { value <-> $twowayValue }
+    // Two-way binding
+    //input#twoway { value <-> $twowayValue }
 
-        // One-time binding
-        span#otm2v { text <~ $otm2vText }
-        span#otv2m { text ~> $otv2mText }
+    // One-time binding
+    //span#otm2v { text <~ $otm2vText }
+    //span#otv2m { text ~> $otv2mText }
 
-        // One-way binding Model2View and View2Model with Connectors
-        span#m2vc { text <- uppercase <- $m2vText }
-        span#m2vcc { text <- uppercase <- trim <- $m2vText }
-        input#v2mc { value -> uppercase -> $v2mcValue }
-        input#v2mcc { value -> trim -> uppercase -> $v2mccValue }
+    // One-way binding Model2View and View2Model with Connectors
+    span#m2vc { text <- uppercase <- $m2vText }
+    span#m2vcc { text <- uppercase <- trim <- $m2vText }
+    input#v2mc { value -> uppercase -> $v2mcValue }
+    input#v2mcc { value -> trim -> uppercase -> $v2mccValue }
 
-        // Two-way binding with Connectors
-        input#twowayc { value <-> uppercase <-> $twowaycValue }
-        input#twowaycc { value <-> reverse <-> uppercase <-> $twowayccValue }
+    // Two-way binding with Connectors
+    //input#twowayc { value <-> uppercase <-> $twowaycValue }
+    //input#twowaycc { value <-> reverse <-> uppercase <-> $twowayccValue }
 
-        // One-time binding with Connectors
-        span#otm2vc { text <~ uppercase <~ $otm2vText }
-        input#otv2mc { text ~> uppercase ~> $otv2mcText }
+    // One-time binding with Connectors
+    //span#otm2vc { text <~ uppercase <~ $otm2vText }
+    //input#otv2mc { text ~> uppercase ~> $otv2mcText }
 
-        // Connector with different logic in each direction
-        input#c { value <-> format <-> $cValue }
-    }
+    // Connector with different logic in each direction
+    //input#c { value <-> format <-> $cValue }
 }

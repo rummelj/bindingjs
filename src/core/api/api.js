@@ -36,6 +36,7 @@ $api.$ = function() {
         // Set jQuery
         _api.$ = arguments[0]
     }
+    return $api
 }
 
 $api.debug = (function () {
