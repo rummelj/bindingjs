@@ -261,6 +261,57 @@ class Tree {
         })
         return out
     }
+    
+    /* Transforms the tree back into a human readable format */
+    asBindingSpec (level) {
+        // TODO: Extend to all elements from grammar.pegjs
+        if (!level) {
+            level = 0
+        }
+        let result = ""
+        
+        // Pre
+        if (this.isA("Variable")) {
+            result += this.get("ns") + (this.get("ns").length > 1 ? ":" : "") + this.get("id")
+        } else if (this.isA("Scope")) {
+            for (var i = 0; i < level; i++) {
+                result += "    "
+            }
+            let element = this.get("element")
+            let template = element
+            while (template.parentElement) {
+                template = template.parentElement
+            }
+            result += _api.util.getPath(template, element)
+            result += element.id ? "#" + element.id : (element.class ? "." + element.class : "")
+            result += " {\r\n"
+            level++
+        } else if (this.isA("BindingOperator")) {
+            result += " " + this.get("value") + " "
+        } else if (this.isA("Binding")) {
+            for (var i = 0; i < level + 1; i++) {
+                result += "    "
+            }
+        }
+        
+        // Recursion
+        for (var i = 0; i < this.childs().length; i++) {
+            result += this.childs()[i].asBindingSpec(level)
+        }
+        
+        // Post
+        if (this.isA("Scope")) {
+            level--
+            for (var i = 0; i < level; i++) {
+                result += "    "
+            }
+            result += "}\r\n"
+        } else if (this.isA("Binding")) {
+            result += "\r\n"
+        }
+        
+        return result
+    }
 }
 
 /*  export class  */

@@ -87,7 +87,7 @@ _api.preprocessor.preprocess = (binding) => {
     _api.preprocessor.transform.nestIteratedBindings(bind)
     
     // Step 7: Setup iteration tree
-    let iterationTree = _api.preprocessor.iterator.setupIterations(bind, template)
+    let iterationTree = _api.preprocessor.iterator.setupIterations(binding)
     binding.vars.iterationTree = iterationTree
     
     binding.vars.binding = bind

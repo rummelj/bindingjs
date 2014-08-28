@@ -76,7 +76,7 @@
  
  _api.engine.iterator.add = (binding, vars, node, index, value) => {
     let childs = node.get("origin").childs()
-    let newInstance = _api.engine.iterator.addInstance(binding, node, index, value)
+    let newInstance = _api.engine.iterator.addInstance(binding, vars, node, index, value)
     
     // Initialize new children
     for (var j = 0; j < childs.length; j++) {
@@ -89,7 +89,8 @@
     _api.engine.binding.init(binding, vars, newInstance)
  }
 
- _api.engine.iterator.addInstance = (binding, link, index, value) => {
+ _api.engine.iterator.addInstance = (binding, vars, link, index, value) => {
+    console.log("Adding instance, index: " + index + ", value: " + JSON.stringify(value))
     let instances = link.get("instances")
     if (instances.length < index) {
         throw _api.util.exception("Cannot add instance at index " + index + " because there are " +
@@ -124,19 +125,12 @@
         scope.set("element", newElement)
     }
     
-    // Replace same what parent already did
     let bindingRenames = {}
-    
-    if (!link.get("instance")) {
-        console.log("no Instance")
-    }
-    let parentBindingRenames = link.get("instance").bindingRenames
-    for (parentBindingRename in parentBindingRenames) {
-        bindingRenames[parentBindingRename] = parentBindingRenames[parentBindingRename]
-    }
-    let linkRenames = link.get("bindingRenames")
-    for (linkRename in linkRenames){
-        bindingRenames[linkRename] = linkRenames[linkRename]
+    // Rename all own variables
+    let ownVariables = link.get("ownVariables")
+    for (var i = 0; i < ownVariables.length; i++) {
+        let ownVariable = ownVariables[i]
+        bindingRenames[ownVariable] = "temp" + binding.vars.tempCounter.getNext()
     }
     
     // Generate new rename for entry and key
@@ -144,11 +138,15 @@
     if (entryId) {
         let newEntryId = "temp" + binding.vars.tempCounter.getNext()
         bindingRenames[entryId] = newEntryId
+        // Set the entry in localScope
+        vars.localScope.set(newEntryId, value)
     }
     let keyId = link.get("keyId")
     if (keyId) {
         let newKeyId = "temp" + binding.vars.tempCounter.getNext()
         bindingRenames[keyId] = newKeyId
+        // Set the key in localScope
+        vars.localScope.set(newKeyId, index)
     }
     
     // Do the renaming
@@ -166,13 +164,6 @@
             }
         }
     }
-    
-    // Rename all elements, which are newly introduced in this scope
-    
-    // Inject entry
-    // Inject key
-    // Replace all key adapter including sourceId of descendant iterations
-    // Replace all entry adapter including sourceIds of descendant iterations
     
     let newInstance = {
         value: value,
@@ -219,31 +210,14 @@
  }
  
  _api.engine.iterator.initChild = (binding, vars, parentLink, node, instance) => {
-    let newLink = _api.preprocessor.iterator.initExpandedIterationNode(node)
+    let newLink = _api.preprocessor.iterator.initExpandedIterationNode(binding, node, parentLink)
     node.get("links").push(newLink)
     
     newLink.set("instance", instance)
     
-    // Replace in newLink's Binding all sourceIds of Iterations
-    for (var i = 0; i < node.childs().length; i++) {
-        let child = node.childs()[i]
-        let oldSourceId = child.get("sourceId")
-        let newSourceId = "temp" + binding.vars.tempCounter.getNext()
-        newLink.get("bindingRenames")[oldSourceId] = newSourceId
-        // Replace all references in binding
-        let variables = newLink.get("binding").getAll("Variable")
-        for (var j = 0; j < variables.length; j++) {
-            let variable = variables[j]
-            if (variable.get("ns") === binding.bindingScopePrefix() &&
-                variable.get("id") === oldSourceId) {
-                    variable.set("id", newSourceId)
-            }
-        }
-    }
-    
     // Change sourceId if appropriate
-    if (parentLink.get("bindingRenames")[newLink.get("sourceId")]) {
-        newLink.set("sourceId", parentLink.get("bindingRenames")[newLink.get("sourceId")])
+    if (instance.bindingRenames[newLink.get("sourceId")]) {
+        newLink.set("sourceId", instance.bindingRenames[newLink.get("sourceId")])
     }
     
     // Setup observer

@@ -36,6 +36,13 @@ _api.adapter.text = class TextAdapter {
         if (path.length > 0) {
             throw _api.util.exception("value can not process paths")
         }
+        if (typeof value == "object") {
+            try {
+                value = JSON.stringify(value)
+            } catch (e) {
+                value = "{circular object}"
+            }
+        }
         element.text(value)
     }
     

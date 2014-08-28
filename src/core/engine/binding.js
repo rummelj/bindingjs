@@ -16,7 +16,7 @@
     for (var i = 0; i < scopes.length; i++) {
         let scope = scopes[i]
         let element = scope.get("element")
-        let bindings = scope.getAll("Binding")
+        let bindings = scope.getAll("Binding", "Scope")
         for (var j = 0; j < bindings.length; j++) {
             let binding = bindings[j]
             let parts = _api.engine.binding.getParts(bindingObj, binding)
@@ -145,9 +145,11 @@
     if (value instanceof _api.engine.binding.Reference) {
         return value.getValue()
     } else {
-        for (key in value) {
-            let newValue = _api.engine.binding.convertToValues(value[key])
-            value[key] = newValue
+        if (typeof value == "object") {
+            for (key in value) {
+                let newValue = _api.engine.binding.convertToValues(value[key])
+                value[key] = newValue
+            }
         }
         return value
     }

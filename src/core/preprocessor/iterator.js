@@ -7,9 +7,11 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- _api.preprocessor.iterator.setupIterations = (bindingSpec, template) => {    
+ _api.preprocessor.iterator.setupIterations = (bindingObj) => {
+    let bindingSpec = bindingObj.vars.ast
+    let template = bindingObj.vars.template
     let iterationTree = _api.preprocessor.iterator.setupIterationTree(bindingSpec, template)
-    _api.preprocessor.iterator.setupExpandedIterationTree(iterationTree)
+    _api.preprocessor.iterator.setupExpandedIterationTree(bindingObj, iterationTree)
     return iterationTree
  }
  
@@ -135,8 +137,8 @@
     return iteratedNode
  }
  
- _api.preprocessor.iterator.setupExpandedIterationTree = (root) => {
-    var rootLink = _api.preprocessor.iterator.initExpandedIterationNode(root)
+ _api.preprocessor.iterator.setupExpandedIterationTree = (bindingObj, root) => {
+    var rootLink = _api.preprocessor.iterator.initExpandedIterationNode(bindingObj, root)
     
     // rootLink always exactly has one instance
     let rootInstance = {
@@ -157,7 +159,7 @@
     // Each child iteration of root is initially present without instances
     for (var i = 0; i < root.childs().length; i++) {
         let child = root.childs()[i]
-        let newChildLink =  _api.preprocessor.iterator.initExpandedIterationNode(child, 0)
+        let newChildLink =  _api.preprocessor.iterator.initExpandedIterationNode(bindingObj, child, rootLink)
         newChildLink.set("instance", rootInstance)
         
         child.set("links", [newChildLink])
@@ -167,7 +169,7 @@
     return rootLink
  }
  
- _api.preprocessor.iterator.initExpandedIterationNode = (node) => {
+ _api.preprocessor.iterator.initExpandedIterationNode = (bindingObj, node, parentLink) => {
     let result = new _api.util.Tree("ExpandedIteration")
     
     let isRoot = !node.getParent()
@@ -179,11 +181,8 @@
     result.set("instances", [])
     result.set("placeholderIndex", isRoot ? -1 : node.getParent().childs().indexOf(node))
     result.set("sourceId", node.get("sourceId"))
-    result.set("entryId", node.get("entryId"))
-    result.set("keyId", node.get("keyId"))
     result.set("origin", node)
     result.set("collection", [])
-    result.set("bindingRenames", {})
     
     // Update template placeholders
     result.set("placeholder", {template: [], binding: []})
@@ -219,6 +218,73 @@
         }
         scope.set("element", newElement)
     }
+    
+    // Find all tempVariables in node, which are in no ancestor
+    let ancestorOwnVariables = []
+    let parent = parentLink
+    while (parent) {
+        for (var i = 0; i < parent.get("ownVariables").length; i++) {
+            ancestorOwnVariables.push(parent.get("ownVariables")[i])
+        }
+        parent = parent.getParent()
+    }
+    
+    let ownVariables = []
+    let variables = result.get("binding").getAll("Variable")
+    for (var i = 0; i < variables.length; i++) {
+        let variable = variables[i]
+        if (variable.get("ns") == bindingObj.bindingScopePrefix() &&
+            ancestorOwnVariables.indexOf(variable.get("id") == -1)) {
+            ownVariables.push(variable.get("id"))
+        }
+    }
+    
+    // Inherit renames from parent and add a new for each own variable
+    let bindingRenames = {}
+    if (parentLink) {
+        bindingRenames = $api.$().extend({}, parentLink.get("bindingRenames"))
+    }
+    for (var i = 0; i < ownVariables.length; i++) {
+        let ownVariable = ownVariables[i]
+        let newId = "temp" + bindingObj.vars.tempCounter.getNext()
+        bindingRenames[ownVariable] = newId
+        // ownVariable will be later renamed
+        ownVariables[i] = newId
+    }
+    
+    // Store ownVariables
+    result.set("ownVariables", ownVariables)
+    
+    // Rename entry and key
+    let oldEntryId = node.get("entryId")
+    if (oldEntryId) {
+        let newEntryId = "temp" + bindingObj.vars.tempCounter.getNext()
+        bindingRenames[oldEntryId] = newEntryId
+        result.set("entryId", newEntryId)
+    }
+    let oldKeyId = node.get("keyId")
+    if (oldKeyId) {
+        let newKeyId = "temp" + bindingObj.vars.tempCounter.getNext()
+        bindingRenames[oldKeyId] = newKeyId
+        result.set("keyId", newKeyId)
+    }
+    
+    // Do the renaming
+    for (var i = 0; i < variables.length; i++) {
+        let variable = variables[i]
+        for (oldId in bindingRenames) {
+            if (variable.get("ns") == bindingObj.bindingScopePrefix() &&
+                variable.get("id") == oldId) {
+                    variable.set("id", bindingRenames[oldId]) 
+            }
+        }
+    }   
+    // Including source
+    if (bindingRenames[result.get("sourceId")]) {
+        result.set("sourceId", bindingRenames[result.get("sourceId")])
+    }
+    
+    result.set("bindingRenames", bindingRenames)
     
     return result
  }

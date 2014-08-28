@@ -22,6 +22,7 @@
  _api.engine.activate = (binding) => {
     var vars = _api.engine.getVars(binding)  
     _api.engine.init(binding, vars)
+    _api.engine.showBinding(binding)
     
     // TODO: Remove
     /*for (var i = 0; i < 100; i++) {
@@ -29,6 +30,33 @@
     }
     
     _api.engine.colorred(binding.vars.iterationTree.get("links")[0]);*/
+ }
+ 
+ _api.engine.showBinding = (binding) => {
+    let iterationTreeRoot = binding.vars.iterationTree
+    let expandedIterationTreeRoot = iterationTreeRoot.get("links")[0]
+    let expandedIterationTreeRootInstance = expandedIterationTreeRoot.get("instances")[0]
+    console.log("<Root>")
+    console.log(expandedIterationTreeRootInstance.binding.asBindingSpec())
+    for (var i = 0; i < expandedIterationTreeRoot.childs().length; i++) {
+        _api.engine.showBindingRec(expandedIterationTreeRoot.childs()[i])
+    }
+ }
+ 
+ _api.engine.showBindingRec = (node) => {
+    console.log("<ExpandedIterationNode>")
+    console.log("sourceId: " + node.get("sourceId") + ", entryId: " + node.get("entryId") + ", keyId: " + node.get("keyId"))
+    console.log("bindingRenames: " + JSON.stringify(node.get("bindingRenames")))
+    let instances = node.get("instances")
+    for (var i = 0; i < instances.length; i++) {
+        let instance = instances[i]
+        console.log("<Instance-" + i + ">")
+        console.log("bindingRenames: " + JSON.stringify(instance.bindingRenames))
+        console.log(instance.binding.asBindingSpec())
+    }
+    for (var i = 0; i < node.childs().length; i++) {
+        _api.engine.showBindingRec(node.childs()[i])
+    }
  }
  
  _api.engine.colorred = (node) => {
