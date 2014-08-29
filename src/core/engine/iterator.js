@@ -93,7 +93,7 @@
  }
 
  _api.engine.iterator.addInstance = (binding, vars, link, index, property) => {
-    $api.debug(8, "Adding instance, index: " + index + ", value: " + JSON.stringify(property.value))
+    $api.debug(8, "Adding instance, index: " + index)
     let instances = link.get("instances")
     
     // Template

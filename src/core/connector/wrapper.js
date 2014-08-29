@@ -11,3 +11,4 @@ _api.connector = {}
 
 include("uppercase.js")
 include("reverse.js")
+include("trim.js")

@@ -29,8 +29,7 @@ module.exports = function (grunt) {
 
     /*  register testing task  */
     grunt.registerTask("test", [
-        "mochaTest:core",
-        "mochaTest:integration"
+        "mochaTest:core"
     ])
 }
 

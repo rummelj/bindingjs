@@ -8,13 +8,13 @@
 */
 
 
-_api.connector.reverse = class Reverse {
+_api.connector.trim = class Trim {
     process (input) {
         if (_api.util.isReference(input)) {
             input = input.getValue()
         }
-        return (input + "").split("").reverse().join("")
+        return (input + "").trim()
     }
 }
 
-_api.repository.connector.register("reverse", new _api.connector.reverse())
+_api.repository.connector.register("trim", new _api.connector.trim())

@@ -10,7 +10,10 @@
 
 _api.connector.uppercase = class Uppercase {
     process (input) {
-        return input
+        if (_api.util.isReference(input)) {
+            input = input.getValue()
+        }
+        return (input + "").toUpperCase()
     }
 }
 

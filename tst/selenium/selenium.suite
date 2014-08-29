@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://stackoverflow.com/" />
+<title>1-binding</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">1-binding</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>file:///C:/Users/rummelj/bindingjs_my/tst/selenium/1-binding.html</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.m2vText = &quot;val1&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=#m2v</td>
+	<td>val1</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=#v2m</td>
+	<td>val2</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.v2mValue</td>
+	<td>val2</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

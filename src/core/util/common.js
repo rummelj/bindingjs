@@ -85,3 +85,7 @@ _api.util.objectEquals = (a, b) => {
         }
     }
 }
+
+_api.util.isReference = (obj) => {
+    return obj && obj instanceof _api.engine.binding.Reference
+}

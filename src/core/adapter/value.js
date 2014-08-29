@@ -16,7 +16,7 @@ _api.adapter.value = class ValueAdapter {
     }
     
     observe (element, path, callback) {
-        element.on("input propertychange paste", callback)
+        element.on("change", callback)
     }
     
     unobserve () {

@@ -3,14 +3,18 @@
     "description":    "View Data Binding for JavaScript",
     "keywords":       [ "view", "data", "binding" ],
     "version":        "0.0.0",
-    "contributors": [{       
-        "name":       "Ralf S. Engelschall",
-        "email":      "rse@engelschall.com",
-        "url":        "http://engelschall.com/"
-    },{
-        "name":       "Johannes Rummel",
-        "email":      "johannes@rummel.cc"
-    }],
+    "contributors": [
+        {
+            "name":       "Johannes Rummel",
+            "email":      "johannes@rummel.cc",
+            "url":        "http://www.rummel.cc/"
+        },
+        {       
+            "name":       "Ralf S. Engelschall",
+            "email":      "rse@engelschall.com",
+            "url":        "http://engelschall.com/"
+        }
+    ],
     "repository": {
         "type":       "git",
         "url":        "https://github.com/rse/bindingjs.git"
@@ -57,8 +61,7 @@
         "chai-interface":       "~1.1.0",
         "sinon-chai":           "~2.5.0",
         "chalk":                "~0.4.0",
-        "node-fs":              "~0.1.7",
-        "jsdom":                "~0.10.2"
+        "node-fs":              "~0.1.7"
     },
     "engines": {
         "node":                 ">=0.10.0"

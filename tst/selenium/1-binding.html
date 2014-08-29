@@ -1,0 +1,81 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script type="text/binding">
+            @binding view {
+                // One-way binding Model2View and View2Model
+                span#m2v { text <- $m2vText }
+                input#v2m { value -> $v2mValue }
+
+                // Two-way binding
+                //input#twoway { value <-> $twowayValue }
+
+                // One-time binding
+                //span#otm2v { text <~ $otm2vText }
+                //span#otv2m { text ~> $otv2mText }
+
+                // One-way binding Model2View and View2Model with Connectors
+                span#m2vc { text <- uppercase <- $m2vText }
+                span#m2vcc { text <- uppercase <- trim <- $m2vText }
+                input#v2mc { value -> uppercase -> $v2mcValue }
+                input#v2mcc { value -> trim -> uppercase -> $v2mccValue }
+
+                // Two-way binding with Connectors
+                //input#twowayc { value <-> uppercase <-> $twowaycValue }
+                //input#twowaycc { value <-> reverse <-> uppercase <-> $twowayccValue }
+
+                // One-time binding with Connectors
+                //span#otm2vc { text <~ uppercase <~ $otm2vText }
+                //input#otv2mc { text ~> uppercase ~> $otv2mcText }
+
+                // Connector with different logic in each direction
+                //input#c { value <-> format <-> $cValue }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                "m2vText" : "",
+                "v2mValue" : "",
+                "twowayValue" : "",
+                "otm2vText" : "",
+                "otv2mText" : "",
+                "m2vText" : "",
+                "v2mcValue" : "",
+                "v2mccValue" : "",
+                "twowaycValue" : "",
+                "twowayccValue" : "",
+                "otv2mcText" : "",
+                "cValue" : ""
+            }
+            
+            $(function() {
+                BindingJS
+                    .create()
+                    .template("#template")
+                    .binding($("script[type='text/binding']"))
+                    .model(model)
+                    .mount("#template")
+                    .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <span id="m2v"></span>
+            <input id="v2m" type="text" />
+            <input id="twoway" type="text" />
+            <span id="otm2v"></span>
+            <span id="otv2m"></span>
+            <span id="m2vc"></span>
+            <span id="m2vcc"></span>
+            <input id="v2mc" type="text" />
+            <input id="v2mcc" type="text" />
+            <input id="twowayc" type="text" />
+            <input id="twowaycc" type="text" />
+            <span id="otm2vc"></span>
+            <input id="otv2mc" type="text" />
+            <input id="c" type="text" />
+        </div>
+    </body>
+</html>
