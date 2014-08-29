@@ -2,7 +2,7 @@
     <head>
         <script src="../jquery-1.11.1.min.js"></script>
         <script src="../../bld/stage3/src/core/binding.js"></script>
-        <!-- script type="text/binding">
+        <script type="text/binding">
             @binding view {
                 div.first {
                     div.second (@second: $data) {
@@ -13,14 +13,15 @@
                                 }
                                 input {
                                     value -> @fourth
+                                    value <- @fourth
                                 }
                             }
                         }
                     }
                 }
             }
-        </script -->
-        <script type="text/binding">
+        </script>
+        <!-- script type="text/binding">
             @binding view {
                 #label, #label2 {
                     text <- $name
@@ -35,12 +36,12 @@
                 }
                 div {
                     #label {
-                        attr:data-text <- $name
+                        //attr:data-text <- $name
                     }
                     li.first, li.second (@person: $persons) {
                         text <- @person
                     }
-                    attr:data-id <- $divText
+                    //attr:data-id <- $divText
                 }
                 div.genders {
                     div.gender (@gender: $genders) {
@@ -59,9 +60,9 @@
                     }
                 }
             }
-        </script>
+        </script -->
         <script type="text/javascript">
-            var model = {
+            /*var model = {
                 name: "Enter your name!",
                 divText: "This is a div",
                 genders: ["Male", "Female", "Unknown"],
@@ -70,10 +71,11 @@
                 persons: ["Tom", "Betty", "Martha"],
                 "false": false,
                 "true": true
-            }
-            /*var model = {
-                data: [[[0, 1, 2], [3, 4, 5], [6, 7, 8]],[[9, 10, 11], [12, 13, 14], [15, 16, 17]]]
             }*/
+            var model = {
+                data: [[[0, 1, 2], [3, 4, 5], [6, 7, 8]],[[9, 10, 11], [12, 13, 14], [15, 16, 17]]]
+                //data: [[[0]]]
+            }
             
             $(function() {
                 BindingJS
@@ -87,7 +89,7 @@
         </script>
     </head>
     <body>
-        <!-- div id="template">
+        <div id="template">
             <div class="first">
                 <div class="second">
                     <div class="third">
@@ -99,8 +101,8 @@
                     </div>
                 </div>
             </div>
-        </div -->
-        <div id="template">
+        </div>
+        <!-- div id="template">
             <input id="name" class="inputField" type="text" />
             <input class="inputField" type="text" />
             <div>
@@ -123,6 +125,6 @@
                     <span class="womanText">What a woman!</span>
                 </div>
             </div>
-        </div>
+        </div -->
     </body>
 </html>

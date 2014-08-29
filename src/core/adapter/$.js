@@ -23,10 +23,14 @@ _api.adapter.$ = class $Adapter {
         for (var i = 0; i < path.length - 1; i++) {
             elem = elem[path[i]]
         }
-        _api.util.WatchJS.watch(elem, path[path.length - 1], callback)
+        
+        let lastPath = path[path.length - 1]
+        _api.util.WatchJS.watch(elem,
+                                path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
+                                callback)
     }
     
-    unobserve (/* id */) {
+    unobserve (observerId) {
     }
     
     getValue (model, path) {

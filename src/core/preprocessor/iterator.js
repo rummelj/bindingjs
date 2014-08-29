@@ -145,7 +145,7 @@
         value: true,
         template: rootLink.get("template"),
         binding: rootLink.get("binding"),
-        bindingRenames: {},
+        bindingRenames: rootLink.get("bindingRenames"),
         placeholder: {
             template: rootLink.get("placeholder").template,
             binding: rootLink.get("placeholder").binding

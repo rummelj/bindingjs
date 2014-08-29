@@ -22,6 +22,22 @@ class Reference {
         this.model = model
     }
     
+    observe (callback) {
+        let observerId = 0
+        if (this.adapter.type() == "model") {
+            observerId = this.adapter.observe(this.model, this.path, callback)
+        } else if (this.adapter.type() == "view") {
+            observerId = this.adapter.observe(this.element, this.path, callback)
+        } else {
+            throw _api.util.exception("Unknown adapter type: " + this.adapter.type())
+        }
+        return observerId
+    }
+    
+    unobserve (observerId) {
+        this.adapter.unobserve(observerId)
+    }
+    
     getValue() {
         if (this.adapter.type() == "model") {
             return this.adapter.getValue(this.model, this.path)
@@ -30,6 +46,20 @@ class Reference {
         } else {
             throw _api.util.exception("Unknown adapter type: " + this.adapter.type())
         }
+    }
+    
+    set (value) {
+        if (this.adapter.type() == "model") {
+            this.adapter.set(this.model, this.path, value)
+        } else if (this.adapter.type() == "view") {
+            this.adapter.set(this.element, this.path, value)
+        } else {
+            throw _api.util.exception("Unknown adapter type: " + this.adapter.type())
+        }
+    }
+    
+    type () {
+        return this.adapter.type()
     }
 }
 

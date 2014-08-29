@@ -23,7 +23,7 @@
  _api.engine.iterator.initInternal = (binding, vars, node) => {
     // Only observes first level iterations, all others will be 
     // observed as soon as created through instances
-    vars.localScope.observe(node.get("sourceId"), () => {
+    vars.localScope.observe(node.get("links")[0].get("sourceId"), () => {
         _api.engine.iterator.changeListener(binding, vars, node.get("links")[0])
     })
     _api.engine.iterator.changeListener(binding, vars, node.get("links")[0])

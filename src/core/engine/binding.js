@@ -82,7 +82,38 @@
     
     // Write to sink
     if (sink.adapter == "binding") {
-        vars.localScope.set(sink.path[0], value)
+        var currentValue = vars.localScope.get(sink.path[0])
+        var overwrite = false
+        if (!currentValue ||
+            (!(currentValue instanceof _api.engine.binding.Reference) &&
+             !(value instanceof _api.engine.binding.Reference))) {
+            // No value there or not references involved, write it
+            vars.localScope.set(sink.path[0], value)
+        } else if (!(currentValue instanceof _api.engine.binding.Reference) &&
+            (value instanceof _api.engine.binding.Reference)) {
+                // current is not a reference, new is, write it
+                vars.localScope.set(sink.path[0], value)
+        } else if ((currentValue instanceof _api.engine.binding.Reference) &&
+            !(value instanceof _api.engine.binding.Reference)) {
+               // current is a reference, new is not
+               // write the new value into the point that is referenced
+               currentValue.set(value)
+               // Notify observers of the localScope that refers to currentValue
+               // which is sink.path[0]
+               vars.localScope.notify(sink.path[0])
+        } else {
+            // Both, old and new are references
+            if (currentValue.type() == value.type()) {
+                // Overwrite if of same type
+                vars.localScope.set(sink.path[0], value)
+            } else {
+                // Never overwrwite model reference with view reference
+                // and vice versa
+                currentValue.set(value.getValue())
+                // See above
+                vars.localScope.notify(sink.path[0])
+            }
+        }
     } else if (sink.adapter.type() == "view") {
         sink.adapter.set(parts.element, sink.path, value)
     } else if (sink.adapter.type() == "model") {

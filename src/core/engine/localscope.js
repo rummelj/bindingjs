@@ -10,6 +10,7 @@
 class LocalScope {
     constructor () {
         this.data = []
+        this.observerIds = []
         this.observer = []
         this.observerId = 0
     }
@@ -27,9 +28,23 @@ class LocalScope {
     }
     
     set(id, to) {
+        // If a reference was previously in localScope, unobserve it
+        if (this.data[id] instanceof _api.engine.binding.Reference) {
+            this.data[id].unobserve(this.observerIds[id])
+        }
+        
+        // Write new value
         if (this.data[id] !== to) {
             this.data[id] = to
             this.notify(id)
+        }
+        
+        // If a reference is written into localScope, observe it
+        if (this.data[id] instanceof _api.engine.binding.Reference) {
+            console.log("Observing: " + JSON.stringify(this.data[id]))
+            this.observerIds[id] = this.data[id].observe(() => {
+                this.notify(id)
+            })
         }
     }
     
