@@ -22,7 +22,7 @@
  _api.engine.activate = (binding) => {
     var vars = _api.engine.getVars(binding)  
     _api.engine.init(binding, vars)
-    _api.engine.showBinding(binding)
+    //_api.engine.showBinding(binding)
     
     // TODO: Remove
     /*for (var i = 0; i < 100; i++) {

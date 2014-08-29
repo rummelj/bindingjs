@@ -51,15 +51,18 @@
     } else {
         var changes = _api.engine.iterator.levensthein(oldCollection, newCollection)
         for (var i = 0; i < changes.length; i++) {
-            switch (changes[i].type) {
+            switch (changes[i].action) {
                 case "remove":
                     _api.engine.iterator.remove(binding, node, changes[i].index)
                     break
                 case "add":
-                    _api.engine.iterator.add(binding, vars, node, changes[i].index, changes[i].value)
+                    _api.engine.iterator.add(binding, vars, node, changes[i].index, changes[i].newProperty)
+                    break
+                case "replace":
+                    // TODO
                     break
                 default:
-                    throw new _api.util.exception("Internal Error: Unknown change type")
+                    throw new _api.util.exception("Internal Error: Unknown change action")
             }
         }
     }
@@ -74,9 +77,9 @@
     }
  }
  
- _api.engine.iterator.add = (binding, vars, node, index, value) => {
+ _api.engine.iterator.add = (binding, vars, node, index, property) => {
     let childs = node.get("origin").childs()
-    let newInstance = _api.engine.iterator.addInstance(binding, vars, node, index, value)
+    let newInstance = _api.engine.iterator.addInstance(binding, vars, node, index, property)
     
     // Initialize new children
     for (var j = 0; j < childs.length; j++) {
@@ -89,13 +92,9 @@
     _api.engine.binding.init(binding, vars, newInstance)
  }
 
- _api.engine.iterator.addInstance = (binding, vars, link, index, value) => {
-    console.log("Adding instance, index: " + index + ", value: " + JSON.stringify(value))
+ _api.engine.iterator.addInstance = (binding, vars, link, index, property) => {
+    $api.debug(8, "Adding instance, index: " + index + ", value: " + JSON.stringify(property.value))
     let instances = link.get("instances")
-    if (instances.length < index) {
-        throw _api.util.exception("Cannot add instance at index " + index + " because there are " +
-                                  "only " + instances.length + " instances present")
-    }
     
     // Template
     let oldTemplate = link.get("template")
@@ -139,7 +138,7 @@
         let newEntryId = "temp" + binding.vars.tempCounter.getNext()
         bindingRenames[entryId] = newEntryId
         // Set the entry in localScope
-        vars.localScope.set(newEntryId, value)
+        vars.localScope.set(newEntryId, property.value)
     }
     let keyId = link.get("keyId")
     if (keyId) {
@@ -156,7 +155,7 @@
         if (variable.get("ns") !== binding.bindingScopePrefix()) {
             continue 
         }
-        for (bindingRename in bindingRenames) {
+        for (var bindingRename in bindingRenames) {
             let oldId = bindingRename
             let newId = bindingRenames[oldId]
             if (variable.get("id") === oldId) {
@@ -166,7 +165,8 @@
     }
     
     let newInstance = {
-        value: value,
+        key: property.key,
+        value: property.value,
         template: newTemplate,
         binding: newBinding,
         bindingRenames: bindingRenames,
@@ -177,17 +177,22 @@
     }
     
     // Insert template
-    if (link.get("instances").length > 0) {
-        // TODO: This wont work for text based keys
-        console.log(index)
-        link.get("instances")[index - 1].template.after(newTemplate)
+    if (index /* might be undefined, means insert at front */
+        && link.get("instances").length > 0) {
+        // Search for instance with that key and insert after it
+        for (var i = 0; i < link.get("instances").length; i++) {
+            let instance = link.get("instances")[i]
+            if (instance.key == index) {
+                instance.template.after(newTemplate)
+            }
+        }
     } else {
         // link.get("instance") === link.getParent().get("instances")[link.getParent().get("instances").indexOf(link.get("instance")]
         link.get("instance").placeholder.template[link.get("placeholderIndex")].after(newTemplate)
     }
    
     // Add to instances
-    link.get("instances").splice(index, 0, newInstance)
+    link.get("instances").push(newInstance)
     
     return newInstance
  }
@@ -230,18 +235,85 @@
  }
  
  _api.engine.iterator.levensthein = (oldCollection, newCollection) => {
-    // TODO: Resolve references to true values
-    // TODO: Add Levensthein
-    var result = []
-    // TODO: Remove
-    if (oldCollection.length == newCollection.length) {
-        return result
+    // Both collections may contain references, to compare them,
+    // they must be first converted to values
+    let oldValues = []
+    for (var key in oldCollection) {
+        oldValues[key] = _api.engine.binding.convertToValues(oldCollection[key])
     }
-    for (key in oldCollection) {
-        result.push({type: "remove", index: key})
+    let newValues = []
+    for (var key in newCollection) {
+        newValues[key] = _api.engine.binding.convertToValues(newCollection[key])
     }
-    for (key in newCollection) {
-        result.push({type: "add", index: key, value: newCollection[key]})
+    
+    // We cannot use the original keys, because they might be arbitrary
+    let before = []
+    let beforeMap = {}
+    for (var key in oldValues) {
+        beforeMap[before.length] = key
+        before.push(oldValues[key])
     }
+    let after = []
+    let afterMap = {}
+    for (var key in newValues) {
+        afterMap[after.length] = key
+        after.push(newValues[key])
+    }
+     
+    // Levensthein
+    let matrix = [];
+     
+    // increment along the first column of each row
+    for (var i = 0; i <= after.length; i++) {
+        matrix[i] = [i];
+    }
+     
+    // increment each column in the first row
+    for (var j = 0; j <= before.length; j++) {
+        matrix[0][j] = j
+    }
+     
+    // Fill in the rest of the matrix
+    for (var i = 1; i <= after.length; i++) {
+        for (var j = 1; j <= before.length; j++) {
+            if (_api.util.objectEquals(after[i-1], before[j-1])) {
+                matrix[i][j] = matrix[i-1][j-1];
+            } else {
+                matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
+                                        Math.min(matrix[i][j-1] + 1, // insertion
+                                                 matrix[i-1][j] + 1)); // deletion
+            }
+        }
+    }
+    
+    // Reconstruct changes from matrix
+    let x = after.length
+    let y = before.length
+    let result = [];
+    while (x >= 0 && y >= 0) {
+        let current = matrix[x][y];
+        let diagonal = x - 1 >= 0 && y - 1 >= 0 ? matrix[x-1][y-1] : Number.MAX_VALUE
+        let vertical = x - 1 >= 0 ? matrix[x-1][y] : Number.MAX_VALUE
+        let horizontal = y - 1 >= 0 ? matrix[x][y-1] : Number.MAX_VALUE
+        if (diagonal <= Math.min(horizontal, vertical)) {
+            x--
+            y--
+            if (diagonal == current || diagonal + 1 == current) {
+                if (diagonal + 1 == current) {
+                    result.push({ action: "replace", newValue: newCollection[afterMap[x]], index: beforeMap[y] })
+                } 
+            }
+        } else if (horizontal <= vertical && horizontal == current || horizontal + 1 == current) {
+            y--
+            result.push({ action: "remove", index: beforeMap[y] })
+        } else {
+            x--;
+            result.push({ action: "add",
+                           newProperty: { key: afterMap[x], value: newCollection[afterMap[x]]  },
+                           index /* after */: beforeMap[y - 1] /* this might be undefined */
+                       })
+        }
+    }
+     
     return result
  }

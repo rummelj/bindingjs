@@ -177,12 +177,16 @@
         return value.getValue()
     } else {
         if (typeof value == "object") {
-            for (key in value) {
+            let newObj = {}
+            for (var key in value) {
                 let newValue = _api.engine.binding.convertToValues(value[key])
-                value[key] = newValue
+                newObj[key] = newValue
             }
+            return newObj
+        } else {
+            // TODO: If it causes trouble, string should be cloned here probably
+            return value
         }
-        return value
     }
  }
  

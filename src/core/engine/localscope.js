@@ -17,7 +17,7 @@ class LocalScope {
 
     getIds() {
         let result = []
-        for (id in this.data) {
+        for (var id in this.data) {
             result.push(id)
         }
         return result
@@ -41,7 +41,7 @@ class LocalScope {
         
         // If a reference is written into localScope, observe it
         if (this.data[id] instanceof _api.engine.binding.Reference) {
-            console.log("Observing: " + JSON.stringify(this.data[id]))
+            $api.debug(9, "Observing: " + JSON.stringify(this.data[id].path))
             this.observerIds[id] = this.data[id].observe(() => {
                 this.notify(id)
             })
@@ -59,8 +59,8 @@ class LocalScope {
     
     unobserve(id) {
         var found = false
-        for (id in observer) {
-            for (index in observer[id]) {
+        for (var id in observer) {
+            for (var index in observer[id]) {
                 if (observer[id][index].id === id) {
                     observer.splice(index, 1)
                     // Break outer

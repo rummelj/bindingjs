@@ -23,8 +23,7 @@ _api.adapter.$ = class $Adapter {
         for (var i = 0; i < path.length - 1; i++) {
             elem = elem[path[i]]
         }
-        
-        let lastPath = path[path.length - 1]
+
         _api.util.WatchJS.watch(elem,
                                 path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
                                 callback)
@@ -45,7 +44,7 @@ _api.adapter.$ = class $Adapter {
         let result = [path]
         let value = this.getValue(model, path)
         if (typeof value == "object") {
-            for (key in value) {
+            for (var key in value) {
                 let newPath = path.slice()
                 newPath.push(key)
                 let subPaths = this.getPaths(model, newPath)

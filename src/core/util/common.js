@@ -56,3 +56,32 @@ _api.util.getPath = (context, element) => {
     }
     return realpath;
 }
+
+_api.util.objectEquals = (a, b) => {
+    if (typeof a !== typeof b) {
+        return false
+    } else {
+        if (typeof a == "object") {
+            // Check if every key of a is in b and vice versa
+            for (var key in a) {
+                if (!key in b) {
+                    return false
+                }
+            }
+            for (var key in b) {
+                if (!key in a) {
+                    return false
+                }
+            }
+            // Both keysets are equal
+            for (var key in a) {
+                if (!_api.util.objectEquals(a[key], b[key])) {
+                    return false
+                }
+            }
+            return true
+        } else {
+            return a === b
+        }
+    }
+}

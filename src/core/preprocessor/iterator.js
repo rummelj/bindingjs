@@ -142,6 +142,7 @@
     
     // rootLink always exactly has one instance
     let rootInstance = {
+        key: 0,
         value: true,
         template: rootLink.get("template"),
         binding: rootLink.get("binding"),
@@ -272,7 +273,7 @@
     // Do the renaming
     for (var i = 0; i < variables.length; i++) {
         let variable = variables[i]
-        for (oldId in bindingRenames) {
+        for (var oldId in bindingRenames) {
             if (variable.get("ns") == bindingObj.bindingScopePrefix() &&
                 variable.get("id") == oldId) {
                     variable.set("id", bindingRenames[oldId]) 
