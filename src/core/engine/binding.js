@@ -17,10 +17,12 @@
         let scope = scopes[i]
         let element = scope.get("element")
         let bindings = scope.getAll("Binding", "Scope")
+        let allParts = []
         for (var j = 0; j < bindings.length; j++) {
             let binding = bindings[j]
             let parts = _api.engine.binding.getParts(bindingObj, binding)
             parts.element = element
+            allParts.push(parts)
             
             // TODO: Refactor
             
@@ -29,19 +31,36 @@
                 vars.localScope.observe(parts.source.path[0], () => {
                     _api.engine.binding.propagate(model, vars, parts)
                 })
-                _api.engine.binding.propagate(model, vars, parts)
             } else if (parts.source.adapter.type() == "view") {
                 parts.source.adapter.observe(element, parts.source.path, () => {
                     _api.engine.binding.propagate(model, vars, parts)
                 })
-                _api.engine.binding.propagate(model, vars, parts)
             } else if (parts.source.adapter.type() == "model") {
                 parts.source.adapter.observe(model, parts.source.path, () => {
                     _api.engine.binding.propagate(model, vars, parts)
                 })
-                _api.engine.binding.propagate(model, vars, parts)
             } else {
                 throw _api.util.exception("Unknown adapter type: " + parts.source.adapter.type())
+            }
+        }
+        
+        // Trigger bindings once in order: First model, then temp, then view
+        for (var j = 0; j < allParts.length; j++) {
+            let parts = allParts[j]
+            if (parts.source.adapter.type && parts.source.adapter.type() == "model") {
+                _api.engine.binding.propagate(model, vars, parts)
+            }
+        }
+        for (var j = 0; j < allParts.length; j++) {
+            let parts = allParts[j]
+            if (!parts.source.adapter.type && parts.source.adapter == "binding") {
+                _api.engine.binding.propagate(model, vars, parts)
+            }
+        }
+        for (var j = 0; j < allParts.length; j++) {
+            let parts = allParts[j]
+            if (parts.source.adapter.type && parts.source.adapter.type() == "view") {
+                _api.engine.binding.propagate(model, vars, parts)
             }
         }
     }
