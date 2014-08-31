@@ -11,6 +11,7 @@ include("../umd/umd-library-prolog.js", {
 	library : "bindingjs"
 })
 
+include("util/wrapper.js")
 include("api/wrapper.js")
 include("repository/wrapper.js")
 include("adapter/wrapper.js")
@@ -18,6 +19,5 @@ include("connector/wrapper.js")
 include("dsl/wrapper.js")
 include("engine/wrapper.js")
 include("preprocessor/wrapper.js")
-include("util/wrapper.js")
 
 include("../umd/umd-library-epilog.js")

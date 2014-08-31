@@ -289,3 +289,10 @@
     
     return result
  }
+ 
+ _api.preprocessor.iterator.shutdownExpandedIterationNode = (binding, newLink) => {
+    // Do the opposite of _api.preprocessor.iterator.initExpandedIterationNode in reverse order
+    
+    // Nothing to do yet
+    // Adapter if necessary
+ }

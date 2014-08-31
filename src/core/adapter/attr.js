@@ -8,19 +8,7 @@
 */
 
 
-_api.adapter.attr = class AttrAdapter {
-    init () {
-    }
-       
-    shutdown () {
-    }
-    
-    observe (/* cb */) {
-    }
-    
-    unobserve (/* id */) {
-    }
-    
+_api.adapter.attr = class AttrAdapter {   
     getPaths (element, path) {
         // We could list all attributes, but that does not make sense
         return [path]

@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://stackoverflow.com/" />
+<title>2-iteration-1</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">2-iteration-1</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>file:///C:/Users/rummelj/bindingjs_my/tst/selenium/2-iteration.html</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=div.fifth</td>
+	<td>0</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div/div[2]/div</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[2]/div/div</td>
+	<td>2</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[2]/div[2]/div</td>
+	<td>3</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div/div/div</td>
+	<td>4</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div/div[2]/div</td>
+	<td>5</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[2]/div/div</td>
+	<td>6</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[2]/div[2]/div</td>
+	<td>7</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>css=input[type=&quot;text&quot;]</td>
+	<td>0</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[2]</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[3]</td>
+	<td>2</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[4]</td>
+	<td>3</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[5]</td>
+	<td>4</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[6]</td>
+	<td>5</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[7]</td>
+	<td>6</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[8]</td>
+	<td>7</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=input[type=&quot;text&quot;]</td>
+	<td>val0</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[2]</td>
+	<td>val1</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[3]</td>
+	<td>val2</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[4]</td>
+	<td>val3</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[5]</td>
+	<td>val4</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[6]</td>
+	<td>val5</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[7]</td>
+	<td>val6</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[8]</td>
+	<td>val7</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=div.fifth</td>
+	<td>val0</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div/div[2]/div</td>
+	<td>val1</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[2]/div/div</td>
+	<td>val2</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[2]/div[2]/div</td>
+	<td>val3</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div/div/div</td>
+	<td>val4</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div/div[2]/div</td>
+	<td>val5</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[2]/div/div</td>
+	<td>val6</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[2]/div[2]/div</td>
+	<td>val7</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[0][0][0]</td>
+	<td>val0</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[0][0][1]</td>
+	<td>val1</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[0][1][0]</td>
+	<td>val2</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[0][1][1]</td>
+	<td>val3</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[1][0][0]</td>
+	<td>val4</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[1][0][1]</td>
+	<td>val5</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[1][1][0]</td>
+	<td>val6</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[1][1][1]</td>
+	<td>val7</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[0][0][0] = 0</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[0][0][1] = 1</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[0][1][0] = 2</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[0][1][1] = 3</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[1][0][0] = 4</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[1][0][1] = 5</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[1][1][0] = 6</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[1][1][1] = 7</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=div.fifth</td>
+	<td>0</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div/div[2]/div</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[2]/div/div</td>
+	<td>2</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[2]/div[2]/div</td>
+	<td>3</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div/div/div</td>
+	<td>4</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div/div[2]/div</td>
+	<td>5</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[2]/div/div</td>
+	<td>6</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[2]/div[2]/div</td>
+	<td>7</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>css=input[type=&quot;text&quot;]</td>
+	<td>0</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[2]</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[3]</td>
+	<td>2</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[4]</td>
+	<td>3</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[5]</td>
+	<td>4</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[6]</td>
+	<td>5</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[7]</td>
+	<td>6</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[8]</td>
+	<td>7</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

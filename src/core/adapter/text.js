@@ -8,19 +8,7 @@
 */
 
 
-_api.adapter.text = class TextAdapter {
-    init () {
-    }
-       
-    shutdown () {
-    }
-    
-    observe (/* cb */) {
-    }
-    
-    unobserve (/* id */) {
-    }
-    
+_api.adapter.text = class TextAdapter {     
     getPaths (element, path) {
         return [path]
     }

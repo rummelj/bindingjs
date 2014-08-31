@@ -88,60 +88,6 @@
  
  _api.engine.init = (binding, vars) => {
     _api.engine.iterator.init(binding, vars)
-    
-    /*
-    for (var i = 0; i < iterationTree.getChildren().length; i++) {
-        let child = iterationTree.getChildren()[i]
-        _api.engine.init(binding, vars, child)
-    }
-    
-    if (iterationTree.isIterated() && !iterationTree.getObserverId()) {
-        let id = iterationTree.getIterationSourceId()
-        let observerId = vars.localScope.observe(id, () => {
-            let newCollection = vars.localScope.get(id)
-            if (!newCollection || !newCollection.length) {
-                throw _api.util.exception("Did not find a collection in local scope for iteration, but instead " + newCollection)
-            }
-            
-            let newLen = vars.localScope.get(id).length
-            let oldLen = iterationTree.getIterationInstances()
-            
-            if (newLen > oldLen) {
-                let toAdd = newLen - oldLen
-                for (var i = 0; i < toAdd; i++) {
-                    let newChild = iterationTree.spawnChild(binding.bindingScopePrefix(), binding.vars.tempCounter)
-                }
-            } else {
-                let toRemove = oldLen - newLen
-                for (var i = 0; i < toRemove; i++) {
-                    let oldChild = iterationTree.destroyChild()
-                    _api.engine.destroy(oldChild)
-                }
-            }
-            
-            // If a child spawns a child inside an already iterated node, this node needs to completely update as well
-            let temp = iterationTree
-            while (temp.getParent()) {
-                temp = temp.getParent()
-                
-                if (temp.isIterated()) {
-                    let childCount = temp.getIterationInstances()
-                    for (var i = 0; i < childCount; i++) {
-                        temp.destroyChild()
-                    }
-                    for (var i = 0; i < childCount; i++) {
-                        temp.spawnChild(binding.bindingScopePrefix(), binding.vars.tempCounter)
-                    }
-                }
-            }
-            
-            for (var i = 0; i < temp.getChildren().length; i++) {
-                _api.engine.init(binding, vars, temp.getChildren()[i])
-            }
-        })
-        iterationTree.setObserverId(observerId)
-    }
-    */
  }
  
  _api.engine.destroy = (binding, iterationTree) => {

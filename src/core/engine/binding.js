@@ -13,6 +13,9 @@
     let spec = instance.binding
     let scopes = spec.getAll("Scope")
     
+    // We need to remember what was observed to be able to shut it down later
+    let bindingObserver = []
+    
     for (var i = 0; i < scopes.length; i++) {
         let scope = scopes[i]
         let element = scope.get("element")
@@ -28,17 +31,28 @@
             
             // Observe source
             if (parts.source.adapter == "binding") {
-                vars.localScope.observe(parts.source.path[0], () => {
+                let observerId = vars.localScope.observe(parts.source.path[0], () => {
                     _api.engine.binding.propagate(model, vars, parts)
                 })
+                bindingObserver.push({ adapter: "binding", observerId: observerId })
             } else if (parts.source.adapter.type() == "view") {
-                parts.source.adapter.observe(element, parts.source.path, () => {
+                if (!parts.source.adapter.observe) {
+                    throw _api.util.exception("Used the adapter " + parts.source.name + " as the source " +
+                        "of a binding, but it does not implement an observe method")
+                }
+                let observerId = parts.source.adapter.observe(element, parts.source.path, () => {
                     _api.engine.binding.propagate(model, vars, parts)
                 })
+                bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
             } else if (parts.source.adapter.type() == "model") {
-                parts.source.adapter.observe(model, parts.source.path, () => {
+                if (!parts.source.adapter.observe) {
+                    throw _api.util.exception("Used the adapter " + parts.source.name + " as the source " +
+                        "of a binding, but it does not implement an observe method")
+                }
+                let observerId = parts.source.adapter.observe(model, parts.source.path, () => {
                     _api.engine.binding.propagate(model, vars, parts)
                 })
+                bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
             } else {
                 throw _api.util.exception("Unknown adapter type: " + parts.source.adapter.type())
             }
@@ -62,6 +76,20 @@
             if (parts.source.adapter.type && parts.source.adapter.type() == "view") {
                 _api.engine.binding.propagate(model, vars, parts)
             }
+        }
+    }
+    
+    instance.bindingObserver = bindingObserver
+ }
+ 
+ _api.engine.binding.shutdown = (bindingObj, vars, instance) => {
+    let bindingObserver = instance.bindingObserver
+    for (var i = 0; i < observer.length; i++) {
+        let elem = bindingObserver[i]
+        if (elem.adapter == "binding") {
+            vars.localScope.unobserve(elem.observerId)
+        } else {
+            elem.adapter.unobserve(elem.observerId)
         }
     }
  }
@@ -212,11 +240,13 @@
  /*
  *  {
  *    + source: {
+*       + name: String
  *      + adapter: Adapter / "binding"
  *      + path: String[]
  *    }
  *    + connectors: Connector[]
  *    + sink: {
+ *      + name: String
  *      + adapter: Adapter / "binding"
  *      + path: String[]
  *    }
@@ -258,11 +288,13 @@
     
     return {
         source: {
+            name: sourceName,
             adapter: source,
             path: sourcePath
         },
         connectors: connectorChain,
         sink: {
+            name: sinkName,
             adapter: sink,
             path: sinkPath
         }

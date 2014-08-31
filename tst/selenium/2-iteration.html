@@ -1,0 +1,55 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script type="text/binding">
+            @binding view {
+                div.first {
+                    div.second (@second: $data) {
+                        div.third (@third: @second) {
+                            div.fourth (@fourth: @third) {
+                                div.fifth {
+                                    text <- @fourth
+                                }
+                                input {
+                                    value -> @fourth
+                                    value <- @fourth
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                data: [[[0, 1], [2, 3]],[[4, 5], [6, 7]]]
+            }
+            
+            $(function() {
+                BindingJS
+                    .create()
+                    .template("#template")
+                    .binding($("script[type='text/binding']"))
+                    .model(model)
+                    .mount("#template")
+                    .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <div class="first">
+                <div class="second">
+                    <div class="third">
+                        <div class="fourth">
+                            <div class="fifth">
+                            </div>
+                            <input type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
