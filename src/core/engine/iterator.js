@@ -43,23 +43,23 @@
     if (newCollectionType == "[object Boolean]") {
         if (oldCollection && !newCollection) {
             // Was there, now is not there anymore
-            _api.engine.iterator.remove(binding, node, 0)
+            _api.engine.iterator.remove(binding, vars, node, 0)
         } else if (!oldCollection && newCollection) {
             // Was not there, now should be there
-            _api.engine.iterator.add(binding, vars, node, 0, true)
+            _api.engine.iterator.add(binding, vars, node, { key: 0, value: true })
         }
     } else {
         var changes = _api.engine.iterator.levensthein(oldCollection, newCollection)
         for (var i = 0; i < changes.length; i++) {
             switch (changes[i].action) {
                 case "remove":
-                    _api.engine.iterator.remove(binding, vars, node, changes[i].index)
+                    _api.engine.iterator.remove(binding, vars, node, changes[i].key)
                     break
                 case "add":
-                    _api.engine.iterator.add(binding, vars, node, changes[i].index, changes[i].newProperty)
+                    _api.engine.iterator.add(binding, vars, node, changes[i].newProperty)
                     break
                 case "replace":
-                    // Nothing to do here, entry is already observed
+                    _api.engine.iterator.replace(binding, vars, node, changes[i].key, changes[i].newValue)
                     break
                 default:
                     throw new _api.util.exception("Internal Error: Unknown change action")
@@ -68,14 +68,14 @@
     }
  }
  
- _api.engine.iterator.add = (binding, vars, node, index, property) => {
+ _api.engine.iterator.add = (binding, vars, node, property) => {
     let childs = node.get("origin").childs()
-    let newInstance = _api.engine.iterator.addInstance(binding, vars, node, index, property)
+    let newInstance = _api.engine.iterator.addInstance(binding, vars, node, property)
     
     // Initialize new children
     for (var j = 0; j < childs.length; j++) {
         let child = childs[j]
-        let newChildLink = _api.engine.iterator.initChild(binding, vars, node, child, newInstance, index)
+        let newChildLink = _api.engine.iterator.initChild(binding, vars, node, child, newInstance, property.key)
         node.add(newChildLink)
     }
     
@@ -83,19 +83,19 @@
     _api.engine.binding.init(binding, vars, newInstance)
  }
  
- _api.engine.iterator.remove = (binding, vars, node, index) => {
+ _api.engine.iterator.remove = (binding, vars, node, key) => {
     // Find instance
     let oldInstance
     let instances = node.get("instances")
     for (var i = 0; i < instances.length; i++) {
         let instance = instances[i]
-        if (instance.key == index) {
+        if (instance.key == key) {
             oldInstance = instance
             break
         }
     }
     if (!oldInstance) {
-        throw _api.util.exception("Cannot remove index " + index + " because it does not exist")
+        throw _api.util.exception("Cannot remove key " + key + " because it does not exist")
     }
     
     // Do the opposite of _api.engine.iterator.add in reverse order
@@ -110,11 +110,20 @@
         }
     }
     
-    _api.engine.iterator.removeInstance(binding, vars, node, index, oldInstance)
+    _api.engine.iterator.removeInstance(binding, vars, node, key, oldInstance)
  }
  
- _api.engine.iterator.addInstance = (binding, vars, link, index, property) => {
-    $api.debug(8, "Adding instance, index: " + index)
+ _api.engine.iterator.replace = (binding, vars, node, key, newValue) => {
+    for (var i = 0; i < node.childs().length; i++) {
+        let child = node.childs()[i]
+        if (child.get("key") == key) {
+            vars.localScope.set(child.get("sourceId"), newValue)
+        }
+    }
+ }
+ 
+ _api.engine.iterator.addInstance = (binding, vars, link, property) => {
+    $api.debug(8, "Adding instance, property.key: " + property.key)
     let instances = link.get("instances")
     
     // Template
@@ -160,13 +169,15 @@
         bindingRenames[entryId] = newEntryId
         // Set the entry in localScope
         vars.localScope.set(newEntryId, property.value)
+        entryId = newEntryId
     }
     let keyId = link.get("keyId")
     if (keyId) {
         let newKeyId = "temp" + binding.vars.tempCounter.getNext()
         bindingRenames[keyId] = newKeyId
         // Set the key in localScope
-        vars.localScope.set(newKeyId, index)
+        vars.localScope.set(newKeyId, property.key)
+        keyId = newKeyId
     }
     
     // Do the renaming
@@ -187,7 +198,8 @@
     
     let newInstance = {
         key: property.key,
-        value: property.value,
+        keyId: keyId,
+        entryId: entryId, 
         template: newTemplate,
         binding: newBinding,
         bindingRenames: bindingRenames,
@@ -198,12 +210,11 @@
     }
     
     // Insert template
-    if (index /* might be undefined, means insert at front */
-        && link.get("instances").length > 0) {
+    if (property.afterKey && link.get("instances").length > 0) {
         // Search for instance with that key and insert after it
         for (var i = 0; i < link.get("instances").length; i++) {
             let instance = link.get("instances")[i]
-            if (instance.key == index) {
+            if (instance.key == property.afterKey) {
                 instance.template.after(newTemplate)
             }
         }
@@ -218,8 +229,8 @@
     return newInstance
  }
  
- _api.engine.iterator.removeInstance = (binding, vars, link, index, instance) => {
-    $api.debug(8, "Removing instance, index: " + index)
+ _api.engine.iterator.removeInstance = (binding, vars, link, key, instance) => {
+    $api.debug(8, "Removing instance, key: " + key)
     // Do the opposite of everything relevant from _api.engine.iterator.addInstance in reverse order
     
     // Remove from instances
@@ -227,9 +238,17 @@
     
     // Remove template
     instance.template.detach()
+    
+    // Kill the entries in localScope for entry and key (to destroy probable observers)
+    if (instance.entryId) {
+        vars.localScope.destroy(instance.entryId)
+    }
+    if (instance.keyId) {
+        vars.localScope.destroy(instance.keyId)
+    }
  }
  
- _api.engine.iterator.initChild = (binding, vars, parentLink, node, instance, index) => {
+ _api.engine.iterator.initChild = (binding, vars, parentLink, node, instance, key) => {
     let newLink = _api.preprocessor.iterator.initExpandedIterationNode(binding, node, parentLink)
     node.get("links").push(newLink)
     
@@ -248,8 +267,8 @@
     
     // Store observerId
     newLink.set("sourceObserverId", sourceObserverId)
-    // Store index
-    newLink.set("index", index)
+    // Store key
+    newLink.set("key", key)
     
     return newLink
  }
@@ -264,9 +283,9 @@
     // led to children being added, so act as if all those were removed
     let childs = newLink.childs()
     for (var i = 0; i < childs.length; i++) {
-        _api.engine.iterator.remove(binding, vars, childs[i], newLink.get("index"))
+        _api.engine.iterator.remove(binding, vars, childs[i], newLink.get("key"))
     }
-    _api.engine.iterator.remove(binding, vars, node, changes[i].index)
+    _api.engine.iterator.remove(binding, vars, node, changes[i].key)
     
     // Remove from links of origin
     let originLinks = newLink.get("origin").get("links")
@@ -341,17 +360,16 @@
             y--
             if (diagonal == current || diagonal + 1 == current) {
                 if (diagonal + 1 == current) {
-                    result.push({ action: "replace", newValue: newCollection[afterMap[x]], index: beforeMap[y] })
+                    result.push({ action: "replace", key: beforeMap[y], newValue: newCollection[afterMap[x]] })
                 } 
             }
         } else if (horizontal <= vertical && horizontal == current || horizontal + 1 == current) {
             y--
-            result.push({ action: "remove", index: beforeMap[y] })
+            result.push({ action: "remove", key: beforeMap[y] })
         } else {
             x--;
             result.push({ action: "add",
-                           newProperty: { key: afterMap[x], value: newCollection[afterMap[x]]  },
-                           index /* after */: beforeMap[y - 1] /* this might be undefined */
+                           newProperty: { afterKey: beforeMap[y - 1] ,key: afterMap[x], value: newCollection[afterMap[x]] }
                        })
         }
     }

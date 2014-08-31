@@ -61,21 +61,37 @@ _api.util.objectEquals = (a, b) => {
     if (typeof a !== typeof b) {
         return false
     } else {
-        if (typeof a == "object") {
+        if (a instanceof Array && !(b instanceof Array) ||
+            b instanceof Array && !(a instanceof Array)) {
+                return false
+        } else if (a instanceof Array && b instanceof Array) {
+            if (a.length != b.length) {
+                return false
+            } else {
+                for (var i = 0; i < a.length; i++) {
+                    if (!_api.util.objectEquals(a[i], b[i])) {
+                        return false
+                    }
+                }
+                return true
+            }
+        } else if (typeof a == "object") {
             // Check if every key of a is in b and vice versa
-            for (var key in a) {
-                if (!key in b) {
+            let aKeys = _api.util.getObjectKeys(a)
+            for (var i = 0; i < aKeys.length; i++) {
+                if (!(aKeys[i] in b)) {
                     return false
                 }
             }
-            for (var key in b) {
-                if (!key in a) {
+            let bKeys = _api.util.getObjectKeys(b)
+            for (var i = 0; i < bKeys.length; i++) {
+                if (!(bKeys[i] in a)) {
                     return false
                 }
             }
             // Both keysets are equal
-            for (var key in a) {
-                if (!_api.util.objectEquals(a[key], b[key])) {
+            for (var i = 0; i < aKeys.length; i++) {
+                if (!_api.util.objectEquals(a[aKeys[i]], b[bKeys[i]])) {
                     return false
                 }
             }
@@ -88,4 +104,12 @@ _api.util.objectEquals = (a, b) => {
 
 _api.util.isReference = (obj) => {
     return obj && obj instanceof _api.engine.binding.Reference
+}
+
+_api.util.getObjectKeys = (obj) => {
+    let result = []
+    for (key in obj) {
+        result.push(key)
+    }
+    return result
 }

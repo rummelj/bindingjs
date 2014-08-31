@@ -83,11 +83,12 @@
  }
  
  _api.engine.binding.shutdown = (bindingObj, vars, instance) => {
-    let bindingObserver = instance.bindingObserver
+    let observer = instance.bindingObserver
     for (var i = 0; i < observer.length; i++) {
-        let elem = bindingObserver[i]
+        let elem = observer[i]
         if (elem.adapter == "binding") {
             vars.localScope.unobserve(elem.observerId)
+            vars.localScope.destroy(elem.observerId)
         } else {
             elem.adapter.unobserve(elem.observerId)
         }

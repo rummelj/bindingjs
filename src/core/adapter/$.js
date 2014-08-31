@@ -34,6 +34,7 @@ _api.adapter.$ = class $Adapter {
     }
     
     observe (model, path, callback) {
+        $api.debug(7, "Observing model at " + JSON.stringify(path))
         if (path.length == 0) {
             throw _api.util.exception("$ Adapter cannot be used without path")
         }
@@ -73,18 +74,25 @@ _api.adapter.$ = class $Adapter {
     unobserve (observerId) {
         let modelIndex
         let observerIndex
+        let found = false
         for (var i = 0; i < this.observer.length; i++) {
             let modelObserver = this.observer[i]
             for (var j = 0; j < modelObserver.length; j++) {
-                if (modelObserver.observerId == observerId) {
+                if (modelObserver[j].observerId == observerId) {
                     modelIndex = i
                     observerIndex = j
+                    found = true
                     break
                 }
             }
-            if (modelIndex) {
+            if (found) {
                 break
             }
+        }
+        
+        if (!found) {
+            $api.debug(1, "Internal WARN: Tried to unobserve, but no such observer!")
+            return
         }
         
         // Check if it is the only observer observing this path
@@ -100,19 +108,23 @@ _api.adapter.$ = class $Adapter {
             }
         }
         
+        // TODO: This is probably buggy
+        // 1. Check if unwatch works as expected
         if (!otherPresent) {
             let elem = this.observedModels[modelIndex]
             let path = this.observer[modelIndex][observerIndex].path
-            let watchJsObserver = this.observer[modelIndex][observerIndex].watchJsObserver
+            let watchJsObserver = this.observer[modelIndex][observerIndex].watchJsCallback
             for (var i = 0; i < path.length - 1; i++) {
                 elem = elem[path[i]]
             }
             _api.util.WatchJS.unwatch(elem,
                                       path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
                                       watchJsObserver)
+            // Workaround for WatchJS which pushes the watcher to all descendants, manually remove these watchers
+            delete elem.watchers[path[path.length - 1]]
         }
         
-        this.observer[observerIndex].splice(observerIndex, 1)
+        this.observer[modelIndex].splice(observerIndex, 1)
     }
     
     getValue (model, path) {

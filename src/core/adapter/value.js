@@ -49,32 +49,36 @@ _api.adapter.value = class ValueAdapter {
     }
     
     unobserve (observerId) {
-        if (path.length > 0) {
-            throw _api.util.exception("value can not process paths")
-        }
-        
         let elementIndex
         let observerIndex
+        let found = false
         for (var i = 0; i < this.observer.length; i++) {
             let elementObserver = this.observer[i]
             for (var j = 0; j < elementObserver.length; j++) {
-                if (elementObserver.observerId == observerId) {
+                if (elementObserver[j].observerId == observerId) {
                     elementIndex = i
                     observerIndex = j
+                    found = true
                     break
                 }
             }
-            if (elementIndex) {
+            if (found) {
                 break
             }
+        }
+        
+        if (!found) {
+            $api.debug(1, "Internal WARN: Tried to unobserve, but no such observer!")
+            return
         }
         
         if (this.observer[observerIndex].length == 1) {
             this.observedElements[elementIndex].off("change")
             this.observedElements.splice(elementIndex, 1)
+            this.observer.splice(elementIndex, 1)
+        } else {
+            this.observer[observerIndex].splice(observerIndex, 1)
         }
-        
-        this.observer[observerIndex].splice(observerIndex, 1)
     }
     
     getPaths (element, path) {

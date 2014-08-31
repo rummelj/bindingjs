@@ -48,6 +48,16 @@ class LocalScope {
         }
     }
     
+    destroy(id) {
+        // If a reference was previously in localScope, unobserve it
+        if (this.data[id] instanceof _api.engine.binding.Reference) {
+            this.data[id].unobserve(this.observerIds[id])
+        }
+        
+        // Purge the id from data
+        delete this.data[id]
+    }
+    
     observe(id, callback) {
         $api.debug(3, "LocalScope observer for " + id + " registered")
         if(!this.observer[id]) {
@@ -59,10 +69,10 @@ class LocalScope {
     
     unobserve(id) {
         var found = false
-        for (var id in observer) {
-            for (var index in observer[id]) {
-                if (observer[id][index].id === id) {
-                    observer.splice(index, 1)
+        for (var id in this.observer) {
+            for (var index in this.observer[id]) {
+                if (this.observer[id][index].id === id) {
+                    this.observer.splice(index, 1)
                     // Break outer
                     found = true
                     // Break inner

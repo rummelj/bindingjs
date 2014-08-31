@@ -142,8 +142,6 @@
     
     // rootLink always exactly has one instance
     let rootInstance = {
-        key: 0,
-        value: true,
         template: rootLink.get("template"),
         binding: rootLink.get("binding"),
         bindingRenames: rootLink.get("bindingRenames"),
