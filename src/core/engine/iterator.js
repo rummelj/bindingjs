@@ -216,6 +216,7 @@
             let instance = link.get("instances")[i]
             if (instance.key == property.afterKey) {
                 instance.template.after(newTemplate)
+                break
             }
         }
     } else {

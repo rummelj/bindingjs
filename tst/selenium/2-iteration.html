@@ -19,12 +19,30 @@
                         }
                     }
                 }
+                div.keyFirst {
+                    div.keySecond (@second, @keySecond: $keyData) {
+                        attr:data-key <- @keySecond
+                        div.keyThird (@third, @keyThird: @second) {
+                            attr:data-key <- @keyThird
+                            div.keyFourth (@fourth, @keyFourth: @third) {
+                                attr:data-key <- @keyFourth
+                                text <- @fourth
+                            }
+                        }
+                    }
+                }
             }
         </script>
         <script type="text/javascript">
             var model = {
-                data: [[[0, 1], [2, 3]],[[4, 5], [6, 7]]]
+                data: [[[0, 1], [2, 3]],[[4, 5], [6, 7]]],
+                keyData: { a: {c: { g: "o", h: "p"}, d: { i: "q", j: "r"} }, b: {e: { k: "s", l: "t" }, f: { m: "u", n: "v" } } }
             }
+            // Selenium does funny stuff with expression passed into getEval
+            // like "model.data[0].push(["val1", "val2"])" does not work for some reason.
+            // Therefore we store the array to push here.
+            var array1 = ["val1", "val2"]
+            var array2 = ["val3", "val4"]
             
             $(function() {
                 BindingJS
@@ -46,6 +64,14 @@
                             <div class="fifth">
                             </div>
                             <input type="text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="keyFirst">
+                <div class="keySecond">
+                    <div class="keyThird">
+                        <div class="keyFourth">
                         </div>
                     </div>
                 </div>

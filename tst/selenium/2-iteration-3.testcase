@@ -18,8 +18,173 @@
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>window.model.data[0].push([&quot;val1&quot;, &quot;val2&quot;])</td>
+	<td>window.model.data[0].push(window.array1)</td>
 	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[1].push(window.array2)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[3]/div/div</td>
+	<td>val1</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[5]</td>
+	<td>val1</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[3]/div[2]/div</td>
+	<td>val2</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[6]</td>
+	<td>val2</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[3]/div/div</td>
+	<td>val3</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[11]</td>
+	<td>val3</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[3]/div[2]/div</td>
+	<td>val4</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[12]</td>
+	<td>val4</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[5]</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[6]</td>
+	<td>bar</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[11]</td>
+	<td>baz</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>xpath=(//input[@type='text'])[12]</td>
+	<td>quux</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[3]/div/div</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[3]/div[2]/div</td>
+	<td>bar</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[3]/div/div</td>
+	<td>baz</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[3]/div[2]/div</td>
+	<td>quux</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[0][2][0]</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[0][2][1]</td>
+	<td>bar</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[1][2][0]</td>
+	<td>baz</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.data[1][2][1]</td>
+	<td>quux</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[0][2][0] = &quot;val1&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[0][2][1] = &quot;val2&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[1][2][0] = &quot;val3&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[1][2][1] = &quot;val4&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[3]/div/div</td>
+	<td>val1</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[5]</td>
+	<td>val1</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div/div[3]/div[2]/div</td>
+	<td>val2</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[6]</td>
+	<td>val2</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[3]/div/div</td>
+	<td>val3</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[11]</td>
+	<td>val3</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[2]/div[3]/div[2]/div</td>
+	<td>val4</td>
+</tr>
+<tr>
+	<td>verifyValue</td>
+	<td>xpath=(//input[@type='text'])[12]</td>
+	<td>val4</td>
 </tr>
 
 </tbody></table>
