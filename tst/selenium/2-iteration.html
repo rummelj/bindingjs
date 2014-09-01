@@ -44,14 +44,15 @@
             var array1 = ["val1", "val2"]
             var array2 = ["val3", "val4"]
             
+            var binding
             $(function() {
-                BindingJS
-                    .create()
-                    .template("#template")
-                    .binding($("script[type='text/binding']"))
-                    .model(model)
-                    .mount("#template")
-                    .activate()
+                binding = BindingJS
+                            .create()
+                            .template("#template")
+                            .binding($("script[type='text/binding']"))
+                            .model(model)
+                            .mount("#template")
+                            .activate()
             })
         </script>
     </head>

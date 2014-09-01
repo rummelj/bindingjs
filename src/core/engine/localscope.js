@@ -13,8 +13,22 @@ class LocalScope {
         this.observerIds = []
         this.observer = []
         this.observerId = 0
+        this.paused = false
+        this.pauseQueue = []
     }
 
+    pause() {
+        this.paused = true
+    }
+    
+    resume() {
+        this.paused = false
+        for (var i = 0; i < this.pauseQueue.length; i++) {
+            this.notify(this.pauseQueue[i])
+        }
+        this.pauseQueue = []
+    }
+    
     getIds() {
         let result = []
         for (var id in this.data) {
@@ -43,7 +57,11 @@ class LocalScope {
         if (this.data[id] instanceof _api.engine.binding.Reference) {
             $api.debug(9, "Observing: " + JSON.stringify(this.data[id].path))
             this.observerIds[id] = this.data[id].observe(() => {
-                this.notify(id)
+                if (!this.paused) {
+                    this.notify(id)
+                } else if (this.pauseQueue.indexOf(id) == -1) {
+                    this.pauseQueue.push(id)
+                }
             })
         }
     }

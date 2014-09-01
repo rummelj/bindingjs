@@ -31,7 +31,14 @@
             // Observe source
             if (parts.source.adapter == "binding") {
                 let observerId = bindingObj.vars.localScope.observe(parts.source.path[0], () => {
-                    _api.engine.binding.propagate(bindingObj, parts)
+                    if (!bindingObj.vars.paused) {
+                        _api.engine.binding.propagate(bindingObj, parts)
+                    } else {
+                        // TODO: This does not prevent, that the same "parts" is pushed multiple times
+                        // The question is, if it is really faster to do an expensive object comparison
+                        // or to just execute the callback multiple times...
+                        bindingObj.vars.pauseQueue.push(parts)
+                    }
                 })
                 bindingObserver.push({ adapter: "binding", observerId: observerId })
             } else if (parts.source.adapter.type() == "view") {
@@ -40,7 +47,11 @@
                         "of a binding, but it does not implement an observe method")
                 }
                 let observerId = parts.source.adapter.observe(element, parts.source.path, () => {
-                    _api.engine.binding.propagate(bindingObj, parts)
+                    if (!bindingObj.vars.paused) {
+                        _api.engine.binding.propagate(bindingObj, parts)
+                    } else {
+                        bindingObj.vars.pauseQueue.push(parts)
+                    }
                 })
                 bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
             } else if (parts.source.adapter.type() == "model") {
@@ -49,7 +60,11 @@
                         "of a binding, but it does not implement an observe method")
                 }
                 let observerId = parts.source.adapter.observe(bindingObj.vars.model, parts.source.path, () => {
-                    _api.engine.binding.propagate(bindingObj, parts)
+                    if (!bindingObj.vars.paused) {
+                        _api.engine.binding.propagate(bindingObj, parts)
+                    } else {
+                        bindingObj.vars.pauseQueue.push(parts)
+                    }
                 })
                 bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
             } else {

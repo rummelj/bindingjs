@@ -150,6 +150,8 @@ class Binding {
         this.vars.slotInsertionObserver = {}
         this.vars.slotRemovalObserver = {}
         this.vars.localScope = new _api.engine.LocalScope()
+        this.vars.paused = false
+        this.vars.pauseQueue = []
         return this
     }
     
@@ -194,12 +196,26 @@ class Binding {
     }
     
     pause () {
-        // TODO
+        if (this.vars.paused) {
+            $api.debug(1, "Tried to pause binding, which was already paused")
+        } else {
+            this.vars.paused = true
+            this.vars.localScope.pause()
+        }
         return this
     }
     
     resume () {
-        // TODO
+        if (!this.vars.paused) {
+            $api.debug(1, "Tried to resume binding, which was not paused")
+        } else {
+            this.vars.localScope.resume()
+            this.vars.paused = false
+            for (var i = 0; i < this.vars.pauseQueue.length; i++) {
+                _api.engine.binding.propagate(this, this.vars.pauseQueue[i])
+            }
+            this.vars.pauseQueue = []
+        }
         return this
     }
     
