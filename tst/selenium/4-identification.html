@@ -1,0 +1,45 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script type="text/binding">
+            @binding foo {
+                .wrapper {
+                    @binding bar {
+                        .iterate (@item: $dataBar) {
+                            @item -> text
+                        }
+                    }
+                    @binding baz {
+                        .iterate (@item: $dataBaz) {
+                            text <- @item
+                        }
+                    }
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                dataBaz: [0, 1, 2],
+                dataBar: ["a", "b", "c"]
+            }
+            
+            $(function() {
+                BindingJS
+                    .create()
+                    .template("#template")
+                    .binding($("script[type='text/binding']"), "foo.baz")
+                    .model(model)
+                    .mount("#template")
+                    .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <div class="wrapper">
+                <div class="iterate"></div>
+            </div>
+        </div>
+    </body>
+</html>

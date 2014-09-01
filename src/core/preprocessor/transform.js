@@ -199,14 +199,12 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
             // Find parent Scope
             let parentScope = iteratedScope.getParent()
             while (parentScope && !parentScope.isA("Scope")) {
+                // Never move up over groups
+                if (parentScope.isA("Group")) {
+                    parentScope = null
+                    break
+                }
                 parentScope = parentScope.getParent()
-            }
-            if (!parentScope) {
-                // TODO:
-                // 1. Check if no View Mask Adpater are used
-                // 2. Create or use already existing virtual Scope, which must be in the same Group (@binding ...)
-                // 3. Set the templates root element as the element of that Scope to prevent later errros even element never used
-                throw _api.util.exception("It is not allowed that a Scope which has no parent is iterated!")
             }
             
             // Create binding
@@ -237,11 +235,50 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
                 throw _api.util.expression("Could not find foo element, please check parsing")
             }
             
+            
+            if (parentScope) {
+                // Add binding to parentScope
+                parentScope.add(newBinding)
+            } else {
+                // 1. Check if no View Mask Adpater are used in iterationExpression
+                let variables = iterationExpression.getAll("Variable")
+                for (var j = 0; j < variables.length; j++) {
+                    let variable = variables[j]
+                    let adapterName
+                    if (variable.get("ns") !== "") {
+                        adapterName = variable.get("ns")
+                    } else {
+                        adapterName = variable.get("id")
+                    }
+                    if (adapterName !== bindingScopePrefix) {
+                        if (_api.repository.adapter.get(adapterName).type() == "view") {
+                            throw _api.util.exception("It is not allowed to use view adapter in iteration " +
+                                "expression, if the iteration has no parent inside the same group as in " +
+                                iterationExpression.asBindingSpec())
+                        }
+                    }
+                }
+                
+                // 2. Create virtual Scope
+                let virtualScope = _api.dsl.parser.safeParser(".foo {}").getAll("Scope")[0]
+                if (!virtualScope.childs()[0].isA("SelectorList")) {
+                    throw _api.util.exception("Assumed that the first child of a Scope always is a SelectorList, but it was not")
+                }
+                // Repeat, what expandSelectors did
+                virtualScope.del(virtualScope.childs()[0])
+                
+                // 3. Set as the element of that Scope the parent of the element from the iterated scope to prevent later errros even element never used
+                virtualScope.set("element", iteratedScope.get("element").parentElement)
+                
+                // 4. Add binding to this scope
+                virtualScope.add(newBinding)
+                
+                // 5. Place virtual scope in front of iteratedScope
+                iteratedScope.getParent().addAt(iteratedScope.getParent().childs().indexOf(iteratedScope), virtualScope)
+            }
+            
             // Reset iteration expression
             iterationExpression.replace(_api.util.Tree("Variable").set({ ns: bindingScopePrefix, id: newTempId, text: newTempRef }))
-            
-            // Add binding to parentScope
-            parentScope.add(newBinding)
         }
     }
 }

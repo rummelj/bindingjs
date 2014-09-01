@@ -12,8 +12,8 @@ _api.binding.setBinding = (binding, arguments) => {
     if (binding.vars.ast) {
         throw _api.util.exception("Cannot set binding more than once")
     }
-    if (arguments.length !== 1) {
-        throw _api.util.exception("Expected 1 argument, but received " + arguments.length)
+    if (arguments.length < 1 || arguments.length > 2) {
+        throw _api.util.exception("Expected 1 or 2 argument(s), but received " + arguments.length)
     }
             
     let input = arguments[0]
@@ -24,8 +24,57 @@ _api.binding.setBinding = (binding, arguments) => {
         input = input.text()
     }
     
+    let ast = _api.dsl.parser.safeParser(input)
+    
+    // TODO: It is very inefficient, that the whole binding is parsed only to cut out the correct
+    // part referenced by arguments[1]. Solution: Create own grammar that only parses groups
+    // and only parse the correct group with the full parser
+    if (arguments[1]) {
+        let path = arguments[1].split("\.")
+        for (var i = 0; i < path.length; i++) {
+            let id = path[i]
+            let groups = ast.getAll("Group", "Group")
+            // groups might include ast which is unwanted
+            if (groups.indexOf(ast) !== -1) {
+                groups.splice(groups.indexOf(ast), 1)
+            }
+            
+            let target = null
+            for (var j = 0; j < groups.length; j++) {
+                let group = groups[j]
+                if (group.get("id") == id && target) {
+                    var msg = "When resolving path " + arguments[1] + " after " +
+                        "having already processed "
+                    for (var k = 0; k < i; k++) {
+                        msg += path[k]
+                        if (k < i - 1) {
+                            msg += "."
+                        }
+                    }
+                    msg += " there was more than one group with id "  + id
+                    throw _api.util.exception(msg)
+                } else if (group.get("id") == id /* && !target */) {
+                    target = group
+                }
+            }
+            if (!target) {
+                var msg = "When resolving path " + arguments[1] + " after " +
+                        "having already processed "
+                for (var k = 0; k < i; k++) {
+                    msg += path[k]
+                    if (k < i - 1) {
+                        msg += "."
+                    }
+                }
+                msg += " there was no group with id " + id
+                throw _api.util.exception(msg)
+            }
+            ast = target
+        }
+    }
+    
     // Set
-    binding.vars.ast = _api.dsl.parser.safeParser(input)
+    binding.vars.ast = ast
     
     _api.binding.initIfReady(binding)
 }

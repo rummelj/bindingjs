@@ -105,8 +105,10 @@ interface BindingJS_API_function {
 interface BindingJS_API_binding {
     bindingScopePrefix  (                                 ): string
     bindingScopePrefix  (   prefix: string                ): BindingJS_API_binding
-    binding             (   dsl: string                   ): BindingJS_API_binding
-    binding             (   element: HTMLElement          ): BindingJS_API_binding
+    binding             (   dsl: string,
+                            id: string                    ): BindingJS_API_binding
+    binding             (   element: HTMLElement,
+                            id: string                    ): BindingJS_API_binding
     template            (   selectorOrHTML: string        ): BindingJS_API_binding
     template            (   element: HTMLElement          ): BindingJS_API_binding
     template            (   fragment: DocumentFragment    ): BindingJS_API_binding
@@ -132,11 +134,11 @@ interface BindingJS_API_slot {
     instances           (                                 ): number
     instance            (   idx: number                   ): HTMLElement
     onInsert            (   cb: (
-                                index: number,
+                                keys: string[],
                                 element: HTMLElement
                             ) => void                     ): BindingJS_API_slot
     onRemove            (   cb: (
-                                index: number,
+                                keys: string[],
                                 element: HTMLElement
                             ) => void                     ): BindingJS_API_slot
 }
