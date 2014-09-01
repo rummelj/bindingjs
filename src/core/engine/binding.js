@@ -7,8 +7,7 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- _api.engine.binding.init = (bindingObj, vars, instance) => {
-    let model = bindingObj.vars.model
+ _api.engine.binding.init = (bindingObj, instance) => {
     let template = instance.template
     let spec = instance.binding
     let scopes = spec.getAll("Scope")
@@ -31,8 +30,8 @@
             
             // Observe source
             if (parts.source.adapter == "binding") {
-                let observerId = vars.localScope.observe(parts.source.path[0], () => {
-                    _api.engine.binding.propagate(model, vars, parts)
+                let observerId = bindingObj.vars.localScope.observe(parts.source.path[0], () => {
+                    _api.engine.binding.propagate(bindingObj, parts)
                 })
                 bindingObserver.push({ adapter: "binding", observerId: observerId })
             } else if (parts.source.adapter.type() == "view") {
@@ -41,7 +40,7 @@
                         "of a binding, but it does not implement an observe method")
                 }
                 let observerId = parts.source.adapter.observe(element, parts.source.path, () => {
-                    _api.engine.binding.propagate(model, vars, parts)
+                    _api.engine.binding.propagate(bindingObj, parts)
                 })
                 bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
             } else if (parts.source.adapter.type() == "model") {
@@ -49,8 +48,8 @@
                     throw _api.util.exception("Used the adapter " + parts.source.name + " as the source " +
                         "of a binding, but it does not implement an observe method")
                 }
-                let observerId = parts.source.adapter.observe(model, parts.source.path, () => {
-                    _api.engine.binding.propagate(model, vars, parts)
+                let observerId = parts.source.adapter.observe(bindingObj.vars.model, parts.source.path, () => {
+                    _api.engine.binding.propagate(bindingObj, parts)
                 })
                 bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
             } else {
@@ -62,19 +61,19 @@
         for (var j = 0; j < allParts.length; j++) {
             let parts = allParts[j]
             if (parts.source.adapter.type && parts.source.adapter.type() == "model") {
-                _api.engine.binding.propagate(model, vars, parts)
+                _api.engine.binding.propagate(bindingObj, parts)
             }
         }
         for (var j = 0; j < allParts.length; j++) {
             let parts = allParts[j]
             if (!parts.source.adapter.type && parts.source.adapter == "binding") {
-                _api.engine.binding.propagate(model, vars, parts)
+                _api.engine.binding.propagate(bindingObj, parts)
             }
         }
         for (var j = 0; j < allParts.length; j++) {
             let parts = allParts[j]
             if (parts.source.adapter.type && parts.source.adapter.type() == "view") {
-                _api.engine.binding.propagate(model, vars, parts)
+                _api.engine.binding.propagate(bindingObj, parts)
             }
         }
     }
@@ -82,29 +81,29 @@
     instance.bindingObserver = bindingObserver
  }
  
- _api.engine.binding.shutdown = (bindingObj, vars, instance) => {
+ _api.engine.binding.shutdown = (bindingObj, instance) => {
     let observer = instance.bindingObserver
     for (var i = 0; i < observer.length; i++) {
         let elem = observer[i]
         if (elem.adapter == "binding") {
-            vars.localScope.unobserve(elem.observerId)
-            vars.localScope.destroy(elem.observerId)
+            bindingObj.vars.localScope.unobserve(elem.observerId)
+            bindingObj.vars.localScope.destroy(elem.observerId)
         } else {
             elem.adapter.unobserve(elem.observerId)
         }
     }
  }
  
- _api.engine.binding.propagate = (model, vars, parts) => {
+ _api.engine.binding.propagate = (bindingObj, parts) => {
     // Read value from source
     let source = parts.source
     let value = ""
     if (source.adapter == "binding") {
-        value = vars.localScope.get(source.path[0])
+        value = bindingObj.vars.localScope.get(source.path[0])
     } else if (source.adapter.type() == "view") {
         value = source.adapter.getPaths(parts.element, source.path)
     } else if (source.adapter.type() == "model") {
-        value = source.adapter.getPaths(model, source.path)
+        value = source.adapter.getPaths(bindingObj.vars.model, source.path)
     } else {
         throw _api.util.exception("Unknown adapter type: " + source.adapter.type())
     }
@@ -112,7 +111,7 @@
     if (source.adapter !== "binding" &&
         (source.adapter.type() == "view"
          || source.adapter.type() == "model")) {
-        value = _api.engine.binding.convertToReferences(source.adapter, source.path, value, model, parts.element)
+        value = _api.engine.binding.convertToReferences(source.adapter, source.path, value, bindingObj.vars.model, parts.element)
     }
     
     // Propagate through connectors
@@ -130,17 +129,17 @@
     
     // Write to sink
     if (sink.adapter == "binding") {
-        var currentValue = vars.localScope.get(sink.path[0])
+        var currentValue = bindingObj.vars.localScope.get(sink.path[0])
         var overwrite = false
         if (!currentValue ||
             (!(currentValue instanceof _api.engine.binding.Reference) &&
              !(value instanceof _api.engine.binding.Reference))) {
             // No value there or not references involved, write it
-            vars.localScope.set(sink.path[0], value)
+            bindingObj.vars.localScope.set(sink.path[0], value)
         } else if (!(currentValue instanceof _api.engine.binding.Reference) &&
             (value instanceof _api.engine.binding.Reference)) {
                 // current is not a reference, new is, write it
-                vars.localScope.set(sink.path[0], value)
+                bindingObj.vars.localScope.set(sink.path[0], value)
         } else if ((currentValue instanceof _api.engine.binding.Reference) &&
             !(value instanceof _api.engine.binding.Reference)) {
                // current is a reference, new is not
@@ -148,24 +147,24 @@
                currentValue.set(value)
                // Notify observers of the localScope that refers to currentValue
                // which is sink.path[0]
-               vars.localScope.notify(sink.path[0])
+               bindingObj.vars.localScope.notify(sink.path[0])
         } else {
             // Both, old and new are references
             if (currentValue.type() == value.type()) {
                 // Overwrite if of same type
-                vars.localScope.set(sink.path[0], value)
+                bindingObj.vars.localScope.set(sink.path[0], value)
             } else {
                 // Never overwrwite model reference with view reference
                 // and vice versa
                 currentValue.set(value.getValue())
                 // See above
-                vars.localScope.notify(sink.path[0])
+                bindingObj.vars.localScope.notify(sink.path[0])
             }
         }
     } else if (sink.adapter.type() == "view") {
         sink.adapter.set(parts.element, sink.path, value)
     } else if (sink.adapter.type() == "model") {
-        sink.adapter.set(model, sink.path, value)
+        sink.adapter.set(bindingObj.vars.model, sink.path, value)
     } else {
         throw _api.util.exception("Unknown adapter type: " + sink.adapter.type())
     }

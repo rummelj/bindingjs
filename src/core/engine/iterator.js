@@ -93,26 +93,26 @@
     }
  }
  
- _api.engine.iterator.init = (binding, vars) => {
+ _api.engine.iterator.init = (binding) => {
     var root = binding.vars.iterationTree
     // Init binding of root instance
-    _api.engine.binding.init(binding, vars, root.get("links")[0].get("instances")[0])
+    _api.engine.binding.init(binding, root.get("links")[0].get("instances")[0])
     for (var i = 0; i < root.childs().length; i++) {
-        _api.engine.iterator.initInternal(binding, vars, root.childs()[i])
+        _api.engine.iterator.initInternal(binding, root.childs()[i])
     }
  }
  
- _api.engine.iterator.initInternal = (binding, vars, node) => {
+ _api.engine.iterator.initInternal = (binding, node) => {
     // Only observes first level iterations, all others will be 
     // observed as soon as created through instances
-    vars.localScope.observe(node.get("links")[0].get("sourceId"), () => {
-        _api.engine.iterator.changeListener(binding, vars, node.get("links")[0])
+    binding.vars.localScope.observe(node.get("links")[0].get("sourceId"), () => {
+        _api.engine.iterator.changeListener(binding, node.get("links")[0])
     })
-    _api.engine.iterator.changeListener(binding, vars, node.get("links")[0])
+    _api.engine.iterator.changeListener(binding, node.get("links")[0])
 }
  
- _api.engine.iterator.changeListener = (binding, vars, node) => {
-    var newCollection = vars.localScope.get(node.get("sourceId"))
+ _api.engine.iterator.changeListener = (binding, node) => {
+    var newCollection = binding.vars.localScope.get(node.get("sourceId"))
     // Special case for true and false
     if (newCollection instanceof _api.engine.binding.Reference) {
         newCollection = newCollection.getValue()
@@ -125,23 +125,23 @@
     if (newCollectionType == "[object Boolean]") {
         if (oldCollection && !newCollection) {
             // Was there, now is not there anymore
-            _api.engine.iterator.remove(binding, vars, node, 0)
+            _api.engine.iterator.remove(binding, node, 0)
         } else if (!oldCollection && newCollection) {
             // Was not there, now should be there
-            _api.engine.iterator.add(binding, vars, node, { key: 0, value: true })
+            _api.engine.iterator.add(binding, node, { key: 0, value: true })
         }
     } else {
         var changes = _api.engine.iterator.levensthein(oldCollection, newCollection)
         for (var i = 0; i < changes.length; i++) {
             switch (changes[i].action) {
                 case "remove":
-                    _api.engine.iterator.remove(binding, vars, node, changes[i].key)
+                    _api.engine.iterator.remove(binding, node, changes[i].key)
                     break
                 case "add":
-                    _api.engine.iterator.add(binding, vars, node, changes[i].newProperty)
+                    _api.engine.iterator.add(binding, node, changes[i].newProperty)
                     break
                 case "replace":
-                    _api.engine.iterator.replace(binding, vars, node, changes[i].key, changes[i].newValue)
+                    _api.engine.iterator.replace(binding, node, changes[i].key, changes[i].newValue)
                     break
                 default:
                     throw new _api.util.exception("Internal Error: Unknown change action")
@@ -150,22 +150,22 @@
     }
  }
  
- _api.engine.iterator.add = (binding, vars, node, property) => {
+ _api.engine.iterator.add = (binding, node, property) => {
     let childs = node.get("origin").childs()
-    let newInstance = _api.engine.iterator.addInstance(binding, vars, node, property)
+    let newInstance = _api.engine.iterator.addInstance(binding, node, property)
     
     // Initialize new children
     for (var j = 0; j < childs.length; j++) {
         let child = childs[j]
-        let newChildLink = _api.engine.iterator.initChild(binding, vars, node, child, newInstance, property.key)
+        let newChildLink = _api.engine.iterator.initChild(binding, node, child, newInstance, property.key)
         node.add(newChildLink)
     }
     
     // Initialize binding for newInstance
-    _api.engine.binding.init(binding, vars, newInstance)
+    _api.engine.binding.init(binding, newInstance)
  }
  
- _api.engine.iterator.remove = (binding, vars, node, key) => {
+ _api.engine.iterator.remove = (binding, node, key) => {
     // Find instance
     let oldInstance
     let instances = node.get("instances")
@@ -181,30 +181,30 @@
     }
     
     // Do the opposite of _api.engine.iterator.add in reverse order
-    _api.engine.binding.shutdown(binding, vars, oldInstance)
+    _api.engine.binding.shutdown(binding, oldInstance)
     
     let childs = node.childs()
     for (var i = 0; i < childs.length; i++) {
         let child = childs[i]
         if (child.get("instance") === oldInstance) {
             node.del(child)
-            _api.engine.iterator.destroyChild(binding, vars, child)
+            _api.engine.iterator.destroyChild(binding, child)
         }
     }
     
-    _api.engine.iterator.removeInstance(binding, vars, node, key, oldInstance)
+    _api.engine.iterator.removeInstance(binding, node, key, oldInstance)
  }
  
- _api.engine.iterator.replace = (binding, vars, node, key, newValue) => {
+ _api.engine.iterator.replace = (binding, node, key, newValue) => {
     for (var i = 0; i < node.childs().length; i++) {
         let child = node.childs()[i]
         if (child.get("key") == key) {
-            vars.localScope.set(child.get("sourceId"), newValue)
+            binding.vars.localScope.set(child.get("sourceId"), newValue)
         }
     }
  }
  
- _api.engine.iterator.addInstance = (binding, vars, link, property) => {
+ _api.engine.iterator.addInstance = (binding, link, property) => {
     $api.debug(8, "Adding instance, property.key: " + property.key)
     let instances = link.get("instances")
     
@@ -261,7 +261,7 @@
         let newEntryId = "temp" + binding.vars.tempCounter.getNext()
         bindingRenames[entryId] = newEntryId
         // Set the entry in localScope
-        vars.localScope.set(newEntryId, property.value)
+        binding.vars.localScope.set(newEntryId, property.value)
         entryId = newEntryId
     }
     let keyId = link.get("keyId")
@@ -269,7 +269,7 @@
         let newKeyId = "temp" + binding.vars.tempCounter.getNext()
         bindingRenames[keyId] = newKeyId
         // Set the key in localScope
-        vars.localScope.set(newKeyId, property.key)
+        binding.vars.localScope.set(newKeyId, property.key)
         keyId = newKeyId
     }
     
@@ -324,7 +324,7 @@
     return newInstance
  }
  
- _api.engine.iterator.removeInstance = (binding, vars, link, key, instance) => {
+ _api.engine.iterator.removeInstance = (binding, link, key, instance) => {
     $api.debug(8, "Removing instance, key: " + key)
     // Do the opposite of everything relevant from _api.engine.iterator.addInstance in reverse order
     
@@ -339,14 +339,14 @@
     
     // Kill the entries in localScope for entry and key (to destroy probable observers)
     if (instance.entryId) {
-        vars.localScope.destroy(instance.entryId)
+        binding.vars.localScope.destroy(instance.entryId)
     }
     if (instance.keyId) {
-        vars.localScope.destroy(instance.keyId)
+        binding.vars.localScope.destroy(instance.keyId)
     }
  }
  
- _api.engine.iterator.initChild = (binding, vars, parentLink, node, instance, key) => {
+ _api.engine.iterator.initChild = (binding, parentLink, node, instance, key) => {
     let newLink = _api.preprocessor.iterator.initExpandedIterationNode(binding, node, parentLink)
     node.get("links").push(newLink)
     
@@ -358,10 +358,10 @@
     }
     
     // Setup observer
-    let sourceObserverId = vars.localScope.observe(newLink.get("sourceId"), () => {
-        _api.engine.iterator.changeListener(binding, vars, newLink)
+    let sourceObserverId = binding.vars.localScope.observe(newLink.get("sourceId"), () => {
+        _api.engine.iterator.changeListener(binding, newLink)
     })
-    _api.engine.iterator.changeListener(binding, vars, newLink)
+    _api.engine.iterator.changeListener(binding, newLink)
     
     // Store observerId
     newLink.set("sourceObserverId", sourceObserverId)
@@ -371,19 +371,19 @@
     return newLink
  }
  
- _api.engine.iterator.destroyChild = (binding, vars, newLink) => {
+ _api.engine.iterator.destroyChild = (binding, newLink) => {
     // Do the opposite of _api.engine.iterator.initChild in reverse order
     
     // Unobserve
-    vars.localScope.unobserve(newLink.get("sourceObserverId"))
+    binding.vars.localScope.unobserve(newLink.get("sourceObserverId"))
     
-    // _api.engine.iterator.changeListener(binding, vars, newLink)
+    // _api.engine.iterator.changeListener(binding, newLink)
     // led to children being added, so act as if all those were removed
     let childs = newLink.childs()
     for (var i = 0; i < childs.length; i++) {
-        _api.engine.iterator.remove(binding, vars, childs[i], newLink.get("key"))
+        _api.engine.iterator.remove(binding, childs[i], newLink.get("key"))
     }
-    _api.engine.iterator.remove(binding, vars, node, changes[i].key)
+    _api.engine.iterator.remove(binding, node, changes[i].key)
     
     // Remove from links of origin
     let originLinks = newLink.get("origin").get("links")

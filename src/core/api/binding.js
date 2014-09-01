@@ -149,6 +149,7 @@ class Binding {
         this.vars.active = false
         this.vars.slotInsertionObserver = {}
         this.vars.slotRemovalObserver = {}
+        this.vars.localScope = new _api.engine.LocalScope()
         return this
     }
     
@@ -184,11 +185,10 @@ class Binding {
     
     deactivate () {
         if (this.vars.active) {
-            // TODO
             _api.engine.deactivate(this)
             this.vars.active = false
         } else {
-            $api.debug(1, "Tried to deactivate binding, which was already deactive")
+            $api.debug(1, "Tried to deactivate binding, which was already inactive")
         }
         return this
     }
