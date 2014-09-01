@@ -21,7 +21,6 @@
  }
  
  _api.engine.deactivate = (binding) => {
-    // TODO
     _api.engine.iterator.shutdown(binding)
  }
  

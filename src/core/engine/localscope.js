@@ -69,10 +69,10 @@ class LocalScope {
     
     unobserve(id) {
         var found = false
-        for (var id in this.observer) {
-            for (var index in this.observer[id]) {
-                if (this.observer[id][index].id === id) {
-                    this.observer.splice(index, 1)
+        for (var name in this.observer) {
+            for (var index in this.observer[name]) {
+                if (this.observer[name][index].id === id) {
+                    this.observer[name].splice(index, 1)
                     // Break outer
                     found = true
                     // Break inner

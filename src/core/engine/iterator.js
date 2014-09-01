@@ -97,20 +97,65 @@
     var root = binding.vars.iterationTree
     // Init binding of root instance
     _api.engine.binding.init(binding, root.get("links")[0].get("instances")[0])
+    binding.vars.firstLevelIterationObserverIds = []
     for (var i = 0; i < root.childs().length; i++) {
-        _api.engine.iterator.initInternal(binding, root.childs()[i])
+        let observerId = _api.engine.iterator.initInternal(binding, root.childs()[i])
+        binding.vars.firstLevelIterationObserverIds.push(observerId)
     }
+ }
+ 
+ _api.engine.iterator.shutdown = (binding) => {
+    // Opposite of _api.engine.iterator.init in reverse order
+    var root = binding.vars.iterationTree
+    
+    for (var i = 0; i < binding.vars.firstLevelIterationObserverIds.length; i++) {
+        let observerId = binding.vars.firstLevelIterationObserverIds[i]
+        binding.vars.localScope.unobserve(observerId)
+        // Destroy is not necessary, since in shutdownInternal the values (which might be references for when)
+        // will be overwritten and the unobserve is done in localScope
+    }
+    
+    for (var i = 0; i < root.childs().length; i++) {
+        _api.engine.iterator.shutdownInternal(binding, root.childs()[i])
+    }
+    _api.engine.binding.shutdown(binding, root.get("links")[0].get("instances")[0])
  }
  
  _api.engine.iterator.initInternal = (binding, node) => {
     // Only observes first level iterations, all others will be 
     // observed as soon as created through instances
-    binding.vars.localScope.observe(node.get("links")[0].get("sourceId"), () => {
+    let observerId = binding.vars.localScope.observe(node.get("links")[0].get("sourceId"), () => {
         _api.engine.iterator.changeListener(binding, node.get("links")[0])
     })
     _api.engine.iterator.changeListener(binding, node.get("links")[0])
+    return observerId
 }
- 
+
+_api.engine.iterator.shutdownInternal = (binding, node) => {
+    // Opposite of _api.engine.iterator.initInternal in reverse order
+    
+    // Reset first level nodes to empty collections or false
+    let sourceId = node.get("links")[0].get("sourceId")
+    let currentCollection = binding.vars.localScope.get(sourceId)
+    if (currentCollection instanceof _api.engine.binding.Reference) {
+        currentCollection = currentCollection.getValue()
+    }
+    currentCollection = currentCollection ? currentCollection : []
+    let currentCollectionType = Object.prototype.toString.call(currentCollection)
+    
+    let newCollection = null
+    if (currentCollectionType == "[object Boolean]") {
+        newCollection = false
+    } else {
+        newCollection = []
+    }
+    
+    binding.vars.localScope.set(sourceId, newCollection)
+    
+    // Observers are already down, so call the changeListener manually
+    _api.engine.iterator.changeListener(binding, node.get("links")[0])
+}
+
  _api.engine.iterator.changeListener = (binding, node) => {
     var newCollection = binding.vars.localScope.get(node.get("sourceId"))
     // Special case for true and false
@@ -377,13 +422,26 @@
     // Unobserve
     binding.vars.localScope.unobserve(newLink.get("sourceObserverId"))
     
-    // _api.engine.iterator.changeListener(binding, newLink)
-    // led to children being added, so act as if all those were removed
-    let childs = newLink.childs()
-    for (var i = 0; i < childs.length; i++) {
-        _api.engine.iterator.remove(binding, childs[i], newLink.get("key"))
+    // Reset collection to empty collections or false
+    let sourceId = newLink.get("sourceId")
+    let currentCollection = binding.vars.localScope.get(sourceId)
+    if (currentCollection instanceof _api.engine.binding.Reference) {
+        currentCollection = currentCollection.getValue()
     }
-    _api.engine.iterator.remove(binding, node, changes[i].key)
+    currentCollection = currentCollection ? currentCollection : []
+    let currentCollectionType = Object.prototype.toString.call(currentCollection)
+    
+    let newCollection = null
+    if (currentCollectionType == "[object Boolean]") {
+        newCollection = false
+    } else {
+        newCollection = []
+    }
+    
+    binding.vars.localScope.set(sourceId, newCollection)
+    
+    // Observers are already down, so call the changeListener manually
+    _api.engine.iterator.changeListener(binding, newLink)
     
     // Remove from links of origin
     let originLinks = newLink.get("origin").get("links")
