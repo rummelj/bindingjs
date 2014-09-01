@@ -7,9 +7,14 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.connector = {}
 
-include("addOne.js")
-include("uppercase.js")
-include("reverse.js")
-include("trim.js")
+_api.connector.addOne = class AddOne {
+    process (input) {
+        if (_api.util.isReference(input)) {
+            input = input.getValue()
+        }
+        return parseInt(input) + 1
+    }
+}
+
+_api.repository.connector.register("addOne", new _api.connector.addOne())

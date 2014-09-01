@@ -40,7 +40,7 @@ _api.adapter.value = class ValueAdapter {
             this.observedElements.push(element)
             this.observer.push([])
             let self = this
-            element.on("change", function () { self.notify(element) })
+            element.on("change input propertychange paste", function () { self.notify(element) })
         }
         
         let observerId = this.observerCounter.getNext()
@@ -73,7 +73,7 @@ _api.adapter.value = class ValueAdapter {
         }
         
         if (this.observer[observerIndex].length == 1) {
-            this.observedElements[elementIndex].off("change")
+            this.observedElements[elementIndex].off("change input propertychange paste")
             this.observedElements.splice(elementIndex, 1)
             this.observer.splice(elementIndex, 1)
         } else {
@@ -96,7 +96,11 @@ _api.adapter.value = class ValueAdapter {
         if (path.length > 0) {
             throw _api.util.exception("value can not process paths")
         }
+        let oldValue = element.val()
         element.val(value)
+        if (value !== oldValue) {
+            element.trigger("change")
+        }
     }
     
     type () {

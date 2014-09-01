@@ -1,0 +1,34 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script type="text/binding">
+            @binding view {
+                input {
+                    value <- addOne <- $value
+                    value -> $value
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                value: 0
+            }
+            
+            $(function() {
+                BindingJS
+                    .create()
+                    .template("#template")
+                    .binding($("script[type='text/binding']"))
+                    .model(model)
+                    .mount("#template")
+                    .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <input type="text" />
+        </div>
+    </body>
+</html>
