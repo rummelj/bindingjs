@@ -75,6 +75,21 @@ _api.binding.initIfReady = (binding) => {
     }
 }
 
+_api.binding.addSlotInsertionObserver = (binding, id, callback) => {
+    if (!binding.vars.slotInsertionObserver[id]) {
+        binding.vars.slotInsertionObserver[id] = []
+    }
+    binding.vars.slotInsertionObserver[id].push(callback)
+    //callback(indices, values, element)
+}
+
+_api.binding.addSlotRemovalObserver = (binding, id, callback) => {
+    if (!binding.vars.slotRemovalObserver[id]) {
+        binding.vars.slotRemovalObserver[id] = []
+    }
+    binding.vars.slotRemovalObserver[id].push(callback)
+}
+
 
 
 class Binding {
@@ -83,6 +98,8 @@ class Binding {
         this.vars = {}
         this.vars.tempCounter = new _api.util.Counter()
         this.vars.active = false
+        this.vars.slotInsertionObserver = {}
+        this.vars.slotRemovalObserver = {}
         return this
     }
     
@@ -137,8 +154,21 @@ class Binding {
         return this
     }
     
-    slot () {
-        // TODO: Find slot and return instance
+    slot (id) {
+        return {
+            instaces: () => {
+                // TODO
+            },
+            instance: (number) => {
+                // TODO
+            },
+            onInsert: (callback) => {
+                _api.binding.addSlotInsertionObserver(this, id, callback)
+            },
+            onRemove: (callback) => {
+                _api.binding.addSlotRemovalObserver(this, id, callback)
+            }
+        }
     }
     
     destroy() {

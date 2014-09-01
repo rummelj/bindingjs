@@ -1,0 +1,63 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script type="text/binding">
+            @binding view {
+                .plainSlot::plainSlot
+                .container {
+                    .iterationOuter (@list: $data) {
+                        .iterationInner (@elem : @list) {
+                            .iteratedSlot::iteratedSlot
+                        }
+                    }
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                data: [[0, 1], [2, 3]],
+            }
+            
+            $(function() {
+                var binding = BindingJS.create()
+                                       .template("#template")
+                                       .binding($("script[type='text/binding']"))
+                                       .model(model)
+                
+                binding.slot("plainSlot").onInsert(function (keys, element) {
+                    element.replaceWith("<span>PlainSlot</span>")
+                })
+                
+                binding.slot("iteratedSlot").onInsert(function (keys, element) {
+                    var keysString = ""
+                    for (var i = 0; i < keys.length; i++) {
+                        var key = keys[i]
+                        keysString += key
+                        if (i != keys.length - 1) {
+                            keysString += " - "
+                        }
+                    }
+                    element.replaceWith("<div class='iteratedSlotInstance'><span class='keys'>" + 
+                        keysString + "</span></div>")
+                })
+                
+                binding.mount("#template")
+                       .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <div class="plainSlot"></div>
+            <div class="container">
+                <div class="iterationOuter">
+                    <div class="iterationInner">
+                        <div class="iteratedSlot"></div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </body>
+</html>

@@ -7,8 +7,90 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- _api.engine.iterator.getTemplate = (binding) => {
-    return binding.vars.iterationTree.get("links")[0].get("instances")[0].template[0]
+ _api.engine.iterator.mount = (binding, mountPoint) => {
+    let template = binding.vars.iterationTree.get("links")[0].get("instances")[0].template[0]
+    // Check if template was mounted before and call destroy observer for slots
+    if (template.parentElement) {
+        _api.engine.iterator.callSlotRemovalObserver(binding, binding.vars.iterationTree.get("links")[0])
+    }
+    mountPoint.replaceWith(template)
+    _api.engine.iterator.callSlotInsertionObserver(binding, binding.vars.iterationTree.get("links")[0])
+ }
+ 
+ _api.engine.iterator.callSlotRemovalObserver = (binding, node) => {
+    for (var i = 0; i < node.get("instances").length; i++) {
+        let instance = node.get("instances")[i]
+        _api.engine.iterator.callSlotRemovalObserverInstance(binding, node, instance)
+    }
+    
+    for (var i = 0; i < node.childs().length; i++) {
+        _api.engine.iterator.callSlotRemovalObserver(binding, node.childs()[i])
+    }
+ }
+ 
+ _api.engine.iterator.callSlotInsertionObserver = (binding, node) => {
+    for (var i = 0; i < node.get("instances").length; i++) {
+        let instance = node.get("instances")[i]
+        _api.engine.iterator.callSlotInsertionObserverInstance(binding, node, instance)
+    }
+    
+    for (var i = 0; i < node.childs().length; i++) {
+        _api.engine.iterator.callSlotInsertionObserver(binding, node.childs()[i])
+    }
+ }
+ 
+ _api.engine.iterator.callSlotRemovalObserverInstance = (binding, node, instance) => {
+    if (instance.slots.length > 0) {
+        let keys = []
+        // Do not add key, if this is the root node
+        if (node.getParent()) {
+            keys.push(instance.key)
+        }
+        // If not node.getParent().getParent() means, that node.get("instance") refers to the instance of root
+        while (node.getParent() && node.getParent().getParent() && node.get("instance")) {
+            keys.push(node.get("instance").key)
+            node = node.getParent()
+        }
+        for (var i = 0; i < instance.slots.length; i++) {
+            let slot = instance.slots[i]
+            let id = slot.id
+            let element = slot.element
+            let callbacks = binding.vars.slotRemovalObserver[id]
+            if (callbacks) {
+                for (var j = 0; j < callbacks.length; j++) {
+                    let callback = callbacks[j]
+                    callback(keys, element)
+                }
+            }
+        }
+    }
+ }
+ 
+ _api.engine.iterator.callSlotInsertionObserverInstance = (binding, node, instance) => {
+    if (instance.slots.length > 0) {
+        let keys = []
+        // Do not add key, if this is the root node
+        if (node.getParent()) {
+            keys.push(instance.key)
+        }
+        // If not node.getParent().getParent() means, that node.get("instance") refers to the instance of root
+        while (node.getParent() && node.getParent().getParent() && node.get("instance")) {
+            keys.push(node.get("instance").key)
+            node = node.getParent()
+        }
+        for (var i = 0; i < instance.slots.length; i++) {
+            let slot = instance.slots[i]
+            let id = slot.id
+            let element = slot.element
+            let callbacks = binding.vars.slotInsertionObserver[id]
+            if (callbacks) {
+                for (var j = 0; j < callbacks.length; j++) {
+                    let callback = callbacks[j]
+                    callback(keys, element)
+                }
+            }
+        }
+    }
  }
  
  _api.engine.iterator.init = (binding, vars) => {
@@ -140,6 +222,17 @@
         newTemplatePlaceholder.push(newPlaceholder)
     }
     
+    // Update slots
+    let slots = link.get("slots")
+    let newSlots = []
+    for (var i = 0; i < slots.length; i++) {
+        let slot = slots[i]
+        let element = slot.element
+        let selector = _api.util.getPath(oldTemplate, element)
+        let newElement = selector == "" ? newTemplate : $api.$()(selector,  newTemplate)
+        newSlots.push({ element: newElement, id: slot.id })
+    }
+    
     // Binding
     let newBinding = link.get("binding").clone()
     let scopes = newBinding.getAll("Scope")
@@ -206,7 +299,8 @@
         placeholder: {
             template: newTemplatePlaceholder,
             binding: undefined /* TODO: Remove all of this */
-        }
+        },
+        slots: newSlots
     }
     
     // Insert template
@@ -227,12 +321,18 @@
     // Add to instances
     link.get("instances").push(newInstance)
     
+    // Call slots
+    _api.engine.iterator.callSlotInsertionObserverInstance(binding, link, newInstance)
+    
     return newInstance
  }
  
  _api.engine.iterator.removeInstance = (binding, vars, link, key, instance) => {
     $api.debug(8, "Removing instance, key: " + key)
     // Do the opposite of everything relevant from _api.engine.iterator.addInstance in reverse order
+    
+    // Call slots
+    _api.engine.iterator.callSlotRemovalObserverInstance(binding, link, instance)
     
     // Remove from instances
     link.get("instances").splice(link.get("instances").indexOf(instance), 1)

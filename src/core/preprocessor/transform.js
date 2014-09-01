@@ -334,3 +334,32 @@ _api.preprocessor.transform.nestIteratedBindings = (binding) => {
         }
     }
 }
+
+_api.preprocessor.transform.markSlots = (iterationTree) => {
+    iterationTree.set("slots", [])
+    
+    let binding = iterationTree.get("binding")
+    let labels = binding.getAll("Label")
+    for (var i = 0; i < labels.length; i++) {
+        let label = labels[i]
+        let scope = label.getParent()
+        if (!scope.isA("Scope")) {
+            throw _api.util.exception("Assumed, that the parent of a Label always " +
+                "is a Scope, but it was not")
+        }
+        let element = scope.get("element")
+        let labelId = label.get("id")
+        iterationTree.get("slots").push( {element: element, id: labelId} )
+    }
+    
+    for (var i = 0; i < iterationTree.childs().length; i++) {
+        _api.preprocessor.transform.markSlots(iterationTree.childs()[i])
+    }
+    
+    // Remove the scopes with the slots
+    for (var i = 0; i < labels.length; i++) {
+        let label = labels[i]
+        let scope = label.getParent()
+        scope.getParent().del(scope)
+    }
+}

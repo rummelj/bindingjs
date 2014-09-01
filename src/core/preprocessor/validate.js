@@ -95,3 +95,32 @@ _api.preprocessor.validate.preventMultiIteration = (binding) => {
         elements.push(element)
     }
 }
+
+_api.preprocessor.validate.checkSlots = (binding) => {
+    // Since we do this after expandSelectors, it is very simple to check
+    let elements = []
+    let scopes = binding.getAll("Scope")
+    for (var i = 0; i < scopes.length; i++) {
+        elements.push(scopes[i].get("element"))
+    }
+    
+    let labels = binding.getAll("Label")
+    for (var i = 0; i < labels.length; i++) {
+        let scope = labels[i].getParent()
+        if (!scope.isA("Scope")) {
+            throw _api.util.exception("Assumed, that the parent of a Label always is a Scope, but it was not")
+        }
+        let element = scope.get("element")
+        let count = 0
+        for (var j = 0; j < elements.length; j++) {
+            if ($api.$()(elements[j]).is(element)) {
+                count++
+            }
+        }
+        if (count > 1) {
+            throw _api.util.exception("The selector of Slot " + labels[i].get("id") +
+                " either does not match a single element or the element is matched  " +
+                "by the selectors of other scopes")
+        }
+    }
+}

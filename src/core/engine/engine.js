@@ -103,7 +103,7 @@
                 throw _api.util.exception("Selector " + arg + " did not match exactly one element, but " +
                                           mountPoint.length)
             }
-            mountPoint.replaceWith(_api.engine.iterator.getTemplate(binding))
+            _api.engine.iterator.mount(binding, mountPoint)
         } else {
             // TOOD
         }

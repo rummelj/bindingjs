@@ -14,7 +14,7 @@ describe("BindingJS DSL Parser", function () {
     describe("parse()", function () {
         it("allows the binding DSL to be parsed", () => {
             let dsl = fs.readFileSync(
-                path.join(__dirname, "../../../../smp/foo-view.bind"),
+                path.join(__dirname, "../../../../tst/res/parsertest.bind"),
                 { encoding: "utf8" })
             let ast = BindingJS.parse(dsl, "spec")
             if (ast.error !== null) {
@@ -31,15 +31,19 @@ describe("BindingJS DSL Parser", function () {
                 )
             }
             else {
+                // Remove comment for debugging
+                /*
                 console.log(ast.ast.dump()
                     .replace(/([A-Z][a-zA-Z0-9_$]+)( [(\[])/g,          (all, id, E) => chalk.blue(id)  + E)
                     .replace(/(:\s+)("(?:\\"|[^"])*"|\d+|true|false)/g, (all, P,  s) => P + chalk.yellow(s))
                     .replace(/(:\s+)(\/(?:\\\/|[^\/])*\/)/g,            (all, P,  s) => P + chalk.yellow(s))
                     .replace(/(\[\d+\/\d+\])/g,                         (all, P    ) => chalk.gray(P)      )
                 )
+                */
             }
             expect(ast).to.have.keys([ "ast", "error" ])
             expect(ast).to.be.a("object")
+            // TODO: Write more assertions
         })
     })
 })

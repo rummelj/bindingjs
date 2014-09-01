@@ -6,14 +6,6 @@
  **  License (MPL), version 2.0. If a copy of the MPL was not distributed
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-
- _api.preprocessor.iterator.setupIterations = (bindingObj) => {
-    let bindingSpec = bindingObj.vars.ast
-    let template = bindingObj.vars.template
-    let iterationTree = _api.preprocessor.iterator.setupIterationTree(bindingSpec, template)
-    _api.preprocessor.iterator.setupExpandedIterationTree(bindingObj, iterationTree)
-    return iterationTree
- }
  
  _api.preprocessor.iterator.setupIterationTree = (binding, template) => {
     let root = true
@@ -148,7 +140,8 @@
         placeholder: {
             template: rootLink.get("placeholder").template,
             binding: rootLink.get("placeholder").binding
-        }
+        },
+        slots: rootLink.get("slots")
     }
     rootLink.set("instances", [rootInstance])
     
@@ -189,8 +182,8 @@
     let templatePlList = node.get("placeholder").template
     for (var i = 0; i < templatePlList.length; i++) {
         let templatePl = templatePlList[i]
-        let selector = selector == "" ? templatePl : _api.util.getPath(oldTemplate, templatePl)
-        let newPlaceholder = $api.$()(selector, template)
+        let selector = _api.util.getPath(oldTemplate, templatePl)
+        let newPlaceholder = selector == "" ? template : $api.$()(selector, template)
         result.get("placeholder").template.push(newPlaceholder)
     }
     
@@ -203,6 +196,17 @@
             throw _api.util.exception("Internal error")
         }
         result.get("placeholder").binding.push(newPlaceholders[0])
+    }
+    
+    // Update slots
+    let slots = node.get("slots")
+    result.set("slots", [])
+    for (var i = 0; i < slots.length; i++) {
+        let slot = slots[i]
+        let element = slot.element
+        let selector = _api.util.getPath(oldTemplate, element)
+        let newElement = selector == "" ? template : $api.$()(selector,  template)
+        result.get("slots").push({ element: newElement, id: slot.id })
     }
     
     // The references inside binding still refer to the template before it was cloned
@@ -292,5 +296,5 @@
     // Do the opposite of _api.preprocessor.iterator.initExpandedIterationNode in reverse order
     
     // Nothing to do yet
-    // Adapter if necessary
+    // Adapt if necessary
  }
