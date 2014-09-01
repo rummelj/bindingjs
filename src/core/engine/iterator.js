@@ -213,7 +213,7 @@
     let newTemplate = oldTemplate.clone()
     
     // Template Placeholder
-    let oldTemplatePlaceholder = link.get("placeholder").template
+    let oldTemplatePlaceholder = link.get("placeholder")
     let newTemplatePlaceholder = []
     for (var i = 0; i < oldTemplatePlaceholder.length; i++) {
         let oldPlaceholder = oldTemplatePlaceholder[i]
@@ -296,10 +296,7 @@
         template: newTemplate,
         binding: newBinding,
         bindingRenames: bindingRenames,
-        placeholder: {
-            template: newTemplatePlaceholder,
-            binding: undefined /* TODO: Remove all of this */
-        },
+        placeholder: newTemplatePlaceholder,
         slots: newSlots
     }
     
@@ -315,7 +312,7 @@
         }
     } else {
         // link.get("instance") === link.getParent().get("instances")[link.getParent().get("instances").indexOf(link.get("instance")]
-        link.get("instance").placeholder.template[link.get("placeholderIndex")].after(newTemplate)
+        link.get("instance").placeholder[link.get("placeholderIndex")].after(newTemplate)
     }
    
     // Add to instances

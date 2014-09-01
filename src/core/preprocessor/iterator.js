@@ -10,7 +10,7 @@
  _api.preprocessor.iterator.setupIterationTree = (binding, template) => {
     let root = true
     let iteratedNode = new _api.util.Tree("PlainIteration")
-    iteratedNode.set("placeholder", {template: [], binding: []})
+    iteratedNode.set("placeholder", [])
     // Move the iteration information into interatedNode
     if (binding.isA("Scope") && binding.hasChild("Iterator")) {
         root = false
@@ -107,10 +107,9 @@
         // Recursion
         let child = _api.preprocessor.iterator.setupIterationTree(scope, scope.get("element"))
         
-        let virtualAst = new _api.util.Tree("Iteration-" + i)
-        scope.replace(virtualAst)
-        iteratedNode.get("placeholder").binding.push(virtualAst)
-        iteratedNode.get("placeholder").template.push(child.get("template"))
+        // Cut out childs binding
+        scope.getParent().del(scope)
+        iteratedNode.get("placeholder").push(child.get("template"))
         
         iteratedNode.add(child)
     }
@@ -137,10 +136,7 @@
         template: rootLink.get("template"),
         binding: rootLink.get("binding"),
         bindingRenames: rootLink.get("bindingRenames"),
-        placeholder: {
-            template: rootLink.get("placeholder").template,
-            binding: rootLink.get("placeholder").binding
-        },
+        placeholder: rootLink.get("placeholder"),
         slots: rootLink.get("slots")
     }
     rootLink.set("instances", [rootInstance])
@@ -177,25 +173,14 @@
     result.set("collection", [])
     
     // Update template placeholders
-    result.set("placeholder", {template: [], binding: []})
+    result.set("placeholder", [])
     
-    let templatePlList = node.get("placeholder").template
+    let templatePlList = node.get("placeholder")
     for (var i = 0; i < templatePlList.length; i++) {
         let templatePl = templatePlList[i]
         let selector = _api.util.getPath(oldTemplate, templatePl)
         let newPlaceholder = selector == "" ? template : $api.$()(selector, template)
-        result.get("placeholder").template.push(newPlaceholder)
-    }
-    
-    // Update binding placeholders
-    let bindingPlList = node.get("placeholder").binding
-    for (var i = 0; i < bindingPlList.length; i++) {
-        let bindingPl =  bindingPlList[i]
-        let newPlaceholders = binding.getAll("Iteration-" + i)
-        if (newPlaceholders.length != 1) {
-            throw _api.util.exception("Internal error")
-        }
-        result.get("placeholder").binding.push(newPlaceholders[0])
+        result.get("placeholder").push(newPlaceholder)
     }
     
     // Update slots
