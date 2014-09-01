@@ -31,6 +31,7 @@
         if (variableNodes.length === 1) {
             iteratedNode.set("entryId", variableNodes[0].get("id"))
         } else if (variableNodes.length === 2) /* Could also be 0 */ {
+            // TODO: Think about if (@key, @entry : @coll) feels more naturally (?)
             iteratedNode.set("entryId", variableNodes[0].get("id"))
             iteratedNode.set("keyId", variableNodes[1].get("id"))
         }
@@ -207,6 +208,30 @@
         scope.set("element", newElement)
     }
     
+    // ------------
+    // | RENAMING |
+    // ------------
+    
+    // Rename whatever parent has already renamed, including own sourceId
+    let variables = result.get("binding").getAll("Variable")
+    let parentRenames = parentLink ? parentLink.get("bindingRenames") : []
+    if (!$api.$().isEmptyObject(parentRenames)) {
+        // Do the renaming
+        for (var i = 0; i < variables.length; i++) {
+            let variable = variables[i]
+            for (var oldId in parentRenames) {
+                if (variable.get("ns") == bindingObj.bindingScopePrefix() &&
+                    variable.get("id") == oldId) {
+                        variable.set("id", parentRenames[oldId]) 
+                }
+            }
+        }   
+        // Including source
+        if (parentRenames[result.get("sourceId")]) {
+            result.set("sourceId", parentRenames[result.get("sourceId")])
+        }
+    }
+    
     // Find all tempVariables in node, which are in no ancestor
     let ancestorOwnVariables = []
     let parent = parentLink
@@ -218,60 +243,64 @@
     }
     
     let ownVariables = []
-    let variables = result.get("binding").getAll("Variable")
     for (var i = 0; i < variables.length; i++) {
         let variable = variables[i]
         if (variable.get("ns") == bindingObj.bindingScopePrefix() &&
-            ancestorOwnVariables.indexOf(variable.get("id") == -1)) {
+            ancestorOwnVariables.indexOf(variable.get("id")) == -1) {
             ownVariables.push(variable.get("id"))
         }
     }
-    
-    // Inherit renames from parent and add a new for each own variable
-    let bindingRenames = {}
-    if (parentLink) {
-        bindingRenames = $api.$().extend({}, parentLink.get("bindingRenames"))
+    // Entry and key are own variables too
+    if (node.get("entryId")) {
+        ownVariables.push(node.get("entryId"))
     }
-    for (var i = 0; i < ownVariables.length; i++) {
-        let ownVariable = ownVariables[i]
-        let newId = "temp" + bindingObj.vars.tempCounter.getNext()
-        bindingRenames[ownVariable] = newId
-        // ownVariable will be later renamed
-        ownVariables[i] = newId
+    if (node.get("keyId")) {
+        ownVariables.push(node.get("keyId"))
     }
     
     // Store ownVariables
     result.set("ownVariables", ownVariables)
     
-    // Rename entry and key
-    let oldEntryId = node.get("entryId")
-    if (oldEntryId) {
-        let newEntryId = "temp" + bindingObj.vars.tempCounter.getNext()
-        bindingRenames[oldEntryId] = newEntryId
-        result.set("entryId", newEntryId)
-    }
-    let oldKeyId = node.get("keyId")
-    if (oldKeyId) {
-        let newKeyId = "temp" + bindingObj.vars.tempCounter.getNext()
-        bindingRenames[oldKeyId] = newKeyId
-        result.set("keyId", newKeyId)
+    
+    // For each own variable add an own rename
+    let ownRenames = {}
+    for (var i = 0; i < ownVariables.length; i++) {
+        let ownVariable = ownVariables[i]
+        let newId = "temp" + bindingObj.vars.tempCounter.getNext()
+        ownRenames[ownVariable] = newId
+        // the own variable will be renamed and this is reflected already
+        ownVariables[i] = newId
     }
     
-    // Do the renaming
+    // Do the ownRenames renaming
     for (var i = 0; i < variables.length; i++) {
         let variable = variables[i]
-        for (var oldId in bindingRenames) {
+        for (var oldId in ownRenames) {
             if (variable.get("ns") == bindingObj.bindingScopePrefix() &&
                 variable.get("id") == oldId) {
-                    variable.set("id", bindingRenames[oldId]) 
+                    variable.set("id", ownRenames[oldId]) 
             }
         }
     }   
-    // Including source
-    if (bindingRenames[result.get("sourceId")]) {
-        result.set("sourceId", bindingRenames[result.get("sourceId")])
+    // The source id can never be an own variable, so it is not included
+    
+    // Since entry and key id are always ownVariables, they need to be renamed in the result
+    let oldEntryId = node.get("entryId")
+    if (oldEntryId) {
+        result.set("entryId", ownRenames[oldEntryId])
+    }
+    let oldKeyId = node.get("keyId")
+    if (oldKeyId) {
+        result.set("keyId", ownRenames[oldKeyId])
     }
     
+    // The final set of renames for this node is both, parentRenames and ownRenames
+    // Copy parentRenames
+    let bindingRenames = $api.$().extend({}, parentRenames)
+    // Add entries from ownRenames
+    for (var oldId in ownRenames) {
+        bindingRenames[oldId] = ownRenames[oldId]
+    }
     result.set("bindingRenames", bindingRenames)
     
     return result

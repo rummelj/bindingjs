@@ -1,0 +1,36 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script type="text/binding">
+            @binding view {
+                .iterate (@value, @key: $data) {
+                    .2bOrNot2b (@value) {
+                        text <- @key
+                    }
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                data: { a: true, b: false, c: true, d: false }
+            }
+            $(function() {
+                BindingJS
+                    .create()
+                    .template("#template")
+                    .binding($("script[type='text/binding']"))
+                    .model(model)
+                    .mount("#template")
+                    .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <div class="iterate">
+                <span class="2bOrNot2b"></span>
+            </div>
+        </div>
+    </body>
+</html>

@@ -168,6 +168,11 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     
     let newCollectionType = Object.prototype.toString.call(newCollection)
     if (newCollectionType == "[object Boolean]") {
+        // collection is always initialized with [], so if the boolean arrives for the first time
+        // this needs to be interpreted as false
+        if (oldCollection.hasOwnProperty("length") && oldCollection.length == 0) {
+            oldCollection = false
+        }
         if (oldCollection && !newCollection) {
             // Was there, now is not there anymore
             _api.engine.iterator.remove(binding, node, 0)
@@ -292,6 +297,10 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         scope.set("element", newElement)
     }
     
+    // ------------
+    // | RENAMING |
+    // ------------
+    
     let bindingRenames = {}
     // Rename all own variables
     let ownVariables = link.get("ownVariables")
@@ -316,6 +325,12 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         // Set the key in localScope
         binding.vars.localScope.set(newKeyId, property.key)
         keyId = newKeyId
+    }
+    
+    // Also rename anything that parent has renamed
+    let parentRenames = link.get("instance") ? link.get("instance").bindingRenames : {}
+    for (oldId in parentRenames) {
+        bindingRenames[oldId] = parentRenames[oldId]
     }
     
     // Do the renaming
