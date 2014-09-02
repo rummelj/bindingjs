@@ -19,16 +19,6 @@ interface BindingJS_API_external {
                             minor: number;
                             micro: number;
                             date:  number;                }
-    bootstrap           (                                 ): void
-    shutdown            (                                 ): void
-    plugin              (                                 ): string[]
-    plugin              (   name: string                  ): boolean
-    plugin              (   name: string,
-                            callback: (
-                                _api: BindingJS_API_internal,
-                                $api: BindingJS_API_external,
-                                GLOBAL: any
-                            ) => void                     ): void
     create              (                                 ): BindingJS_API_binding
     debug               (                                 ): number
     debug               (   level: number                 ): void
@@ -39,66 +29,47 @@ interface BindingJS_API_external {
 /*  internal library API (available to plugins only)  */
 interface BindingJS_API_internal {
     registerAdapter     (   name: string,
-                            spec: BindingJS_SPEC_adapter   ): void
+                            spec: BindingJS_SPEC_model_adapter   ): void
+    registerAdapter     (   name: string,
+                            spec: BindingJS_SPEC_view_adapter    ): void
     registerConnector   (   name: string,
-                            spec: BindingJS_SPEC_connector ): void
-    registerFunction    (   name: string,
-                            spec: BindingJS_SPEC_function  ): void
+                            spec: BindingJS_SPEC_connector       ): void
 }
 
 /*  internal adapter specification  */
-interface BindingJS_SPEC_adapter {
-    init?:              (                                 ) => void
-    shutdown?:          (                                 ) => void
-    observe?:           (                                 ) => number
+interface BindingJS_SPEC_model_adapter {
+    observe?:           (   model: any,
+                            path: string[],
+                            callback: function            ) => number
     unobserve?:         (   id: number                    ) => void
-    get?:               (   field: string                 ) => any
-    set?:               (   field: string,
-                            value: any                    ) => any
+    getValue            (   model: any,
+                            path: string[]                ) => any
+    getPaths            (   model: any,
+                            path: string[]                ) => string[][]
+    set?:               (   model: any,
+                            path: string,
+                            value: any                    ) => void
+    type                (                                 ) => "model"
 }
 
-/*  internal adapter API  */
-interface BindingJS_API_adapter {
-    scope:              BindingJS_API_scope
-    init                (                                 ): void
-    shutdown            (                                 ): void
-    observe             (                                 ): number
-    unobserve           (   id: number                    ): void
-    get                 (   field: string                 ): any
-    set                 (   field: string,
-                            value: any                    ): any
+interface BindingJS_SPEC_view_adapter {
+    observe?:           (   element: jQuery,
+                            path: string[],
+                            callback: function            ) => number
+    unobserve?:         (   id: number                    ) => void
+    getValue            (   element: jQuery,
+                            path: string[]                ) => any
+    getPaths            (   element: jQuery,
+                            path: string[]                ) => string[][]
+    set?:               (   element: jQuery,
+                            path: string,
+                            value: any                    ) => void
+    type                (                                 ) => "view"
 }
 
 /*  internal connector specification  */
 interface BindingJS_SPEC_connector {
-    init?:              (                                 ) => void
-    shutdown?:          (                                 ) => void
-    process?:           (   params: Object,
-                            values: any[]                 ) => any[]
-}
-
-/*  internal connector API  */
-interface BindingJS_API_connector {
-    scope:              BindingJS_API_scope
-    init                (                                 ): void
-    shutdown            (                                 ): void
-    process             (   params: Object,
-                            values: any[]                 ): any[]
-}
-
-/*  internal function specification  */
-interface BindingJS_SPEC_function {
-    init?:              (                                 ) => void
-    shutdown?:          (                                 ) => void
-    process?:           (   params: Object                ) => any
-}
-
-/*  internal function API  */
-interface BindingJS_API_function {
-    scope:              BindingJS_API_scope
-    init                (                                 ): void
-    shutdown            (                                 ): void
-    process             (   params: Object                ): any
+    process:           (   input: any                    ) => any
 }
 
 /*  external binding API  */
@@ -142,20 +113,3 @@ interface BindingJS_API_slot {
                                 element: HTMLElement
                             ) => void                     ): BindingJS_API_slot
 }
-
-/*  internal scope API  */
-interface BindingJS_API_scope {
-    parent                                                 : BindingJS_API_scope
-    children                                               : BindingJS_API_scope[]
-    template                                               : HTMLElement
-    variables                                              : { [key: string]: BindingJS_API_adapter }
-    binding                                                : BindingJS_API_chain[]
-}
-
-/*  internal binding chain API  */
-interface BindingJS_API_chain {
-    sourceAdapter                                          : any
-    connectors                                             : any[]
-    targetAdapter                                          : any
-}
-
