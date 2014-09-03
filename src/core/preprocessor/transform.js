@@ -7,6 +7,22 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+_api.preprocessor.transform.renameSlots = (binding) => {
+    let labels = binding.getAll("Label")
+    for (var i = 0; i < labels.length; i++) {
+        let label = labels[i]
+        let id = label.get("id")
+        let ref = label.getParent()
+        while (ref) {
+            if (ref.isA("Group")) {
+                id = ref.get("id") + "." + id
+            }
+            ref = ref.getParent()
+        }
+        label.set("id", id)
+    }
+}
+
 _api.preprocessor.transform.expandSelectors = (template, binding) => {
     _api.preprocessor.transform.expandSelectorsRec(template, binding, [[]])
     

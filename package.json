@@ -2,7 +2,7 @@
     "name":           "bindingjs",
     "description":    "View Data Binding for JavaScript",
     "keywords":       [ "view", "data", "binding" ],
-    "version":        "0.0.0",
+    "version":        "0.7.0",
     "contributors": [
         {
             "name":       "Johannes Rummel",
@@ -17,14 +17,14 @@
     ],
     "repository": {
         "type":       "git",
-        "url":        "https://github.com/rse/bindingjs.git"
+        "url":        "https://github.com/rummelj/bindingjs.git"
     },                
     "licenses": [{
         "type":       "MPL/2.0",
         "url":        "http://mozilla.org/MPL/2.0/"
     }],
-    "homepage":       "https://github.com/rse/bindingjs",
-    "bugs":           "https://github.com/rse/bindingjs/issues",
+    "homepage":       "https://github.com/rummelj/bindingjs",
+    "bugs":           "https://github.com/rummelj/bindingjs/issues",
     "readmeFilename": "README.md",
     "bin": {
     },

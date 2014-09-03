@@ -15,7 +15,7 @@ _api.preprocessor.preprocess = (binding) => {
     // A getter would be nicer, but it would be exposed in the public API
     var tempCounter = binding.vars.tempCounter
     
-    // Step 1: Check if iteration ids were used earlier
+    // Step 1: Check if iteration ids were used earlier and if they're all starting with bindingScopePrefix
     // This is a sanity check. Counter example:
     // ... {
     //      @entry <- $foo
@@ -23,7 +23,10 @@ _api.preprocessor.preprocess = (binding) => {
     // }
     _api.preprocessor.validate.checkIterationIds(bind, bindingScopePrefix)
     
-    // Step 2: Replace selectors with their elements in the template
+    // Step 2: Rename slots, so that they include their ancestor group names
+    _api.preprocessor.transform.renameSlots(bind)
+    
+    // Step 3: Replace selectors with their elements in the template
     // Scopes might be duplicated because of
     // - Multiple matches for one selector
     // - CombinationLists (e.g. '.foo, #bar')
@@ -38,11 +41,11 @@ _api.preprocessor.preprocess = (binding) => {
     //  is then replaced by four new scopes with these elements
     _api.preprocessor.transform.expandSelectors(template, bind)
     
-    // Step 3: Check that one slot always exactly matches only one element
+    // Step 4: Check that one slot always exactly matches only one element
     // from the template
     _api.preprocessor.validate.checkSlots(bind)
     
-    // Step 4: Make all references to the binding scope unique
+    // Step 5: Make all references to the binding scope unique
     // This way we do not have to deal with scoping later (except if new items
     // in iterations are added
     // Example (Brackets are scopes and elements inside the brackets are ids):
@@ -62,7 +65,7 @@ _api.preprocessor.preprocess = (binding) => {
     _api.preprocessor.transform.makeTempRefsUnique(bind, bindingScopePrefix, tempCounter)
     
     
-    // Step 5: Make every iteration read out of the temp scope.
+    // Step 6: Make every iteration read out of the temp scope.
     // This makes it easier to implement the iteration since it has
     // to only observe the temp scope
     // Example
@@ -81,21 +84,21 @@ _api.preprocessor.preprocess = (binding) => {
     // always happens through references and never through the binding
     _api.preprocessor.transform.extractIterationCollections(bind, bindingScopePrefix, tempCounter)
     
-    // Step 6: Prevent iterating over the same element more than once
+    // Step 7: Prevent iterating over the same element more than once
     // This would lead to confusion and the order in which the binding is written would affect the template
     // It is however always possible to define the same element multiple times in the template
     _api.preprocessor.validate.preventMultiIteration(bind)
     
-    // Step 7: Move Bindings that affect iterated elements into the iteration
+    // Step 8: Move Bindings that affect iterated elements into the iteration
     _api.preprocessor.transform.nestIteratedBindings(bind)
     
-    // Step 8: Setup iteration tree
+    // Step 9: Setup iteration tree
     let iterationTree = _api.preprocessor.iterator.setupIterationTree(bind, template)
     
-    // Step 9: Mark the slots in the iteration tree
+    // Step 10: Mark the slots in the iteration tree
     _api.preprocessor.transform.markSlots(iterationTree)
     
-    // Step 10: Setup expanded iteration tree
+    // Step 11: Setup expanded iteration tree
     _api.preprocessor.iterator.setupExpandedIterationTree(binding, iterationTree)
     
     binding.vars.iterationTree = iterationTree

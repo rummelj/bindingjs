@@ -8,6 +8,7 @@
  */
 
  _api.engine.binding.init = (bindingObj, instance) => {
+    // TODO: Implement aborter
     let template = instance.template
     let spec = instance.binding
     let scopes = spec.getAll("Scope")

@@ -25,11 +25,11 @@
                                        .binding($("script[type='text/binding']"))
                                        .model(model)
                 
-                binding.slot("plainSlot").onInsert(function (keys, element) {
+                binding.slot("view.plainSlot").onInsert(function (keys, element) {
                     element.replaceWith("<span>PlainSlot</span>")
                 })
                 
-                binding.slot("iteratedSlot").onInsert(function (keys, element) {
+                binding.slot("view.iteratedSlot").onInsert(function (keys, element) {
                     var keysString = ""
                     for (var i = 0; i < keys.length; i++) {
                         var key = keys[i]
