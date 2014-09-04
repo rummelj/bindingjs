@@ -66,13 +66,7 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
                 // Add all found selectors to the last list in selectorList
                 selectorList.push(selectorCombination.get("text"))
             }
-            
-            // Permutate the list of selectors
-            // e.g. [[a], [b, c], [d]] yields two permutations
-            // - [a, b, d]
-            // - [a, c, d]
-            //let permutations = _api.preprocessor.transform.getAllPermutations(selectorList)
-            
+
             // foreach permutation select all elements
             // foreach element put a new scope in the same place as the old scope
             // in every such scope the part with SelectorList is replace by the element
@@ -130,39 +124,6 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
             let child = binding.childs()[i]
             _api.preprocessor.transform.expandSelectorsRec(template, child)
         }
-    }
-}
-
-_api.preprocessor.transform.getAllPermutations = (listOfLists) => {
-    var accumulator = [[]]
-    listOfListsClone = $api.$().extend(true, [], listOfLists)
-    _api.preprocessor.transform.getAllPermutationsRec(listOfListsClone, accumulator)
-    return accumulator
-}
-
-_api.preprocessor.transform.getAllPermutationsRec = (listOfLists, accumulator) => {
-    if (listOfLists.length > 0) {
-        var firstList = listOfLists[0]
-        
-        // Repeat accumulator firstList.length - 1 times
-        var accumulatorLength = accumulator.length
-        for (var i = 0; i < firstList.length - 1; i++) {
-            for (var j = 0; j < accumulatorLength; j++) {
-                // Must push copy
-                accumulator.push($api.$().extend(true, [], accumulator[j]))
-            }
-        }
-        
-        // Push elements of firstList onto elements in accumulator
-        for (var i = 0; i < firstList.length; i++) {
-            for (var j = i * accumulatorLength; j < (i+1) * accumulatorLength; j++) {
-                accumulator[j].push(firstList[i])
-            }
-        }
-        
-        // Continue recursively with listOfLists without the first element
-        listOfLists.shift()
-        _api.preprocessor.transform.getAllPermutationsRec(listOfLists, accumulator)
     }
 }
 

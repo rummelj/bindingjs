@@ -171,6 +171,7 @@ class Binding {
     }
     
     mount () {
+        // TODO: Implement version with callback and fragment (see spec.d.ts)
         _api.engine.mount(this, arguments)
         return this
     }

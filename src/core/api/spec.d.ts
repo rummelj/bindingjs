@@ -21,9 +21,9 @@ interface BindingJS_API_external {
                             date:  number;                }
     create              (                                 ): BindingJS_API_binding
     debug               (                                 ): number
-    debug               (   level: number                 ): void
+    debug               (   level: number                 ): BindingJS_API_external
     debug               (   level: number,
-                            msg:   string                 ): void
+                            msg:   string                 ): BindingJS_API_external
 }
 
 /*  internal library API (available to plugins only)  */
@@ -77,9 +77,8 @@ interface BindingJS_API_binding {
     bindingScopePrefix  (                                 ): string
     bindingScopePrefix  (   prefix: string                ): BindingJS_API_binding
     binding             (   dsl: string,
-                            id: string                    ): BindingJS_API_binding
-    binding             (   element: HTMLElement,
-                            id: string                    ): BindingJS_API_binding
+                            id: string?                   ): BindingJS_API_binding
+    binding             (   element: HTMLElement          ): BindingJS_API_binding
     template            (   selectorOrHTML: string        ): BindingJS_API_binding
     template            (   element: HTMLElement          ): BindingJS_API_binding
     template            (   fragment: DocumentFragment    ): BindingJS_API_binding
@@ -96,6 +95,7 @@ interface BindingJS_API_binding {
     deactivate          (                                 ): BindingJS_API_binding
     pause               (                                 ): BindingJS_API_binding
     resume              (                                 ): BindingJS_API_binding
+    // TODO: Rename to socket to be consistent with ontology
     slot                (   name: string                  ): BindingJS_API_slot
     destroy             (                                 ): void
 }
