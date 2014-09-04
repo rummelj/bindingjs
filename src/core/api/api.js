@@ -42,13 +42,14 @@ $api.$ = function() {
 $api.debug = (function () {
     let debug_level = 9
     return (level, msg) => {
-        if (arguments.length === 0)
+        if (arguments.length === 0) {
             /*  return old debug level  */
             return debug_level
-        else if (arguments.length === 1)
+        } else if (arguments.length === 1) {
             /*  configure new debug level  */
             debug_level = level
-        else {
+            return $api
+        } else {
             /*  perform runtime logging  */
             if (level <= debug_level) {
                 /*  determine indentation based on debug level  */
@@ -59,6 +60,7 @@ $api.debug = (function () {
                 /*  display debug message  */
                 _api.util.log("DEBUG[" + level + "]: " + indent + msg)
             }
+            return $api
         }
     }
 })()
