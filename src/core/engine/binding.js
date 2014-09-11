@@ -103,6 +103,7 @@
         let elem = observer[i]
         if (elem.adapter == "binding") {
             bindingObj.vars.localScope.unobserve(elem.observerId)
+            // TODO: Does not work like this, destroy expects qualifier
             bindingObj.vars.localScope.destroy(elem.observerId)
         } else {
             elem.adapter.unobserve(elem.observerId)

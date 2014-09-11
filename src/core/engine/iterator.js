@@ -269,7 +269,9 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         let oldPlaceholder = oldTemplatePlaceholder[i]
         let selector = _api.util.getPath(oldTemplate, oldPlaceholder)
         let newPlaceholder = selector == "" ? newTemplate : $api.$()(selector, newTemplate)
-        newTemplatePlaceholder.push(newPlaceholder)
+        let comment = $api.$()("<!-- -->")
+        newPlaceholder.replaceWith(comment)
+        newTemplatePlaceholder.push(comment)
     }
     
     // Update slots
@@ -370,7 +372,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
                 break
             }
         }
-    } else {
+    } else if (link.get("instance") /* only false if initializing root instance */){
         // link.get("instance") === link.getParent().get("instances")[link.getParent().get("instances").indexOf(link.get("instance")]
         link.get("instance").placeholder[link.get("placeholderIndex")].after(newTemplate)
     }

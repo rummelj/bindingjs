@@ -66,10 +66,8 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
                 // Add all found selectors to the last list in selectorList
                 selectorList.push(selectorCombination.get("text"))
             }
-
-            // foreach permutation select all elements
-            // foreach element put a new scope in the same place as the old scope
-            // in every such scope the part with SelectorList is replace by the element
+            
+            // Generate new scopes
             let newScopes = []
             
             // Prepare old scope by removing its first child to prevent
@@ -105,9 +103,6 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
                 // So a placeholder is added, which is later removed
                 binding.replace(new _api.util.Tree("Placeholder"))
             }
-            
-            // Push a new empty list onto the selector list for the next recursion
-            selectorList.push([])
             
             // Recursion over every newly generated scope
             for (var i = 0; i < newScopes.length; i++) {

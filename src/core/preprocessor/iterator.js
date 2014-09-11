@@ -90,8 +90,8 @@
     // Set template
     if (!root) {
         let $template = $api.$()(template)
-        // TODO: Add check that this tag is never used inside the template
-        let virtual = $api.$()("<BindingJsMagicTag />")
+        // Tag names starting with numbers are invalid, so always prepend BindingJS-
+        let virtual = $api.$()("<BindingJS-" + _api.util.getGuid() + " />")
         $template.after(virtual)
         $template.detach()
         iteratedNode.set("iterationTemplate", $template)
@@ -130,9 +130,16 @@
  }
  
  _api.preprocessor.iterator.setupExpandedIterationTree = (bindingObj, root) => {
-    var rootLink = _api.preprocessor.iterator.initExpandedIterationNode(bindingObj, root)
+    let rootLink = _api.preprocessor.iterator.initExpandedIterationNode(bindingObj, root)
     
-    // rootLink always exactly has one instance
+    // rootLink always exactly has one instance, the placeholder in rootLink
+    // will never have to be located again, so they can be safely replaced
+    let placeholder = rootLink.get("placeholder")
+    for (var i = 0; i < placeholder.length; i++) {
+        let comment = $api.$()("<!-- -->")
+        placeholder[i].replaceWith(comment)
+        placeholder[i] = comment
+    }
     let rootInstance = {
         template: rootLink.get("template"),
         binding: rootLink.get("binding"),
