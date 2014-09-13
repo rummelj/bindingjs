@@ -93,6 +93,7 @@ _api.binding.setTemplate = (binding, arguments) => {
     if (typeof input === "object") {
         // TODO: Handle DocumentFragment and HTMLElement
     } else if (typeof input === "string") {
+        // TODO: Decide if Selector or HTMLString, do not clone if latter
         binding.vars.template = $api.$()(input).clone()
     } else {
         throw _api.util.exception("Unexpected type " + (typeof input) + " as input")

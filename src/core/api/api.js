@@ -35,8 +35,8 @@ $api.$ = function() {
     } else /* if (arguments.length == 1) */ {
         // Set jQuery
         _api.$ = arguments[0]
+        return $api
     }
-    return $api
 }
 
 $api.debug = (function () {
