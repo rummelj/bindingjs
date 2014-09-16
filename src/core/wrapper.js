@@ -11,6 +11,8 @@ include("../umd/umd-library-prolog.js", {
 	library : "bindingjs"
 })
 
+_api.binding = {}
+
 include("util/wrapper.js")
 include("api/wrapper.js")
 include("repository/wrapper.js")

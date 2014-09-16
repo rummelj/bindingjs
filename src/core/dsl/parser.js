@@ -83,13 +83,11 @@ _api.dsl.parser.safeParser = (txt, rule) => {
         for (let i = 0; i < prefix1.length + e.location.prolog.length; i++){
             prefix2 += "-"
         }
-        console.error(prefix1 + e.location.prolog + e.location.token + e.location.epilog)
-        console.error(prefix2 + "^")
-        console.error(e.message)
+        $api.debug(1, prefix1 + e.location.prolog + e.location.token + e.location.epilog)
+        $api.debug(1, prefix2 + "^")
+        $api.debug(1, e.message)
         throw _api.util.exception("Parsing failed")
     } else {
         return astWrapper.ast
     }
 }
-
-

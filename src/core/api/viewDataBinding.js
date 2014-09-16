@@ -29,7 +29,7 @@ class ViewDataBinding {
         }
         
         // If bindingSpec is HTMLElement
-        if (typeof bindingSpec === "object") {
+        if (typeof bindingSpec === "DOMElement" || typeof bindingSpec.text === "function") {
             // TODO: Declarative Case
             bindingSpec = bindingSpec.text()
         }
@@ -139,12 +139,18 @@ class ViewDataBinding {
                 // TODO
             },
             onInsert: (callback) => {
+                if (typeof callback !== "function") {
+                    throw _api.util.exception("Callback must be a function!")
+                }
                 if (!this.vars.slotInsertionObserver[id]) {
                     this.vars.slotInsertionObserver[id] = []
                 }
                 this.vars.slotInsertionObserver[id].push(callback)
             },
             onRemove: (callback) => {
+                if (typeof callback !== "function") {
+                    throw _api.util.exception("Callback must be a function!")
+                }
                  if (!this.vars.slotRemovalObserver[id]) {
                     this.vars.slotRemovalObserver[id] = []
                 }

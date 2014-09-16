@@ -57,6 +57,7 @@ _api.util.getPath = (context, element) => {
     return realpath;
 }
 
+// Does not check inheritance
 _api.util.objectEquals = (a, b) => {
     if (typeof a !== typeof b) {
         return false
@@ -109,7 +110,9 @@ _api.util.isReference = (obj) => {
 _api.util.getObjectKeys = (obj) => {
     let result = []
     for (key in obj) {
-        result.push(key)
+        if (obj.hasOwnProperty(key)) {
+            result.push(key)
+        }
     }
     return result
 }

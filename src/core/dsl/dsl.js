@@ -7,9 +7,7 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-// Parses
-// - Returns AST wrapper
-$api.parse = (txt, rule) => {
-    let ast = _api.dsl.parser.parser(txt, rule)
-    return ast
+// Parses binding Specification starting at given rule, default is bindingSpec
+$api.parse = (bindingSpec, rule) => {
+    return _api.dsl.parser.parser(bindingSpec, rule)
 }
