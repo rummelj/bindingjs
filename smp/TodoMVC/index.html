@@ -11,25 +11,39 @@
         #new-todo {
             value <- $newItemText
             value -> $newItemText
+            // Use @newItemText instead of $newItemText
+            // on:keydown("enter") +> $items -> push({ completed: false, title: $newItemText }) -> $items
         }
         #todo-list>li (@item, @index: $items) {
           #socket::itemSocket
           .view>input {
             @itemCompleted <- addCompletedToPath <- @item
             attr:checked <- @itemCompleted
-            // attr:checked -> @itemCompleted
+            // on:click +> attr:checked <-> @item.completed
           }
           .view>button {
             // Destroy
-            // on:click +> @index -> $destroyItem
+            // on:click +> $items -> destroy(@index) -> $items
           }
           @itemTitle <- addTitleToPath <- @item
           .view>label {
             text <- @itemTitle
           }
+          // @tempTitle <~ ""
           .edit {
             value <- @itemTitle
             value -> @itemTitle
+            // Instead:
+            // value <-> @tempTitle
+          }
+          // @editing <~ false
+          // attr:editing <- @editing
+          label {
+            // on:dblclick +> true -> @editing
+          }
+          .edit {
+            // on:blur, on:keydown("esc") +> false -> @editing
+            // on:blur +> @tempTitle -> @itemTitle
           }
         }
         
@@ -50,6 +64,24 @@
             }
           }
         }
+        
+        /*
+            Filters:
+            @filterText <~ "all"
+            @itemsShown <- filter(@filterText == "all" ? {} : {completed: @filterText == "completed"}) <- $items
+            a.all {
+                on:click +> "all" -> @filterText
+                class:bold <- @filterText == "all"
+            }
+            a.active {
+                on:click +> "active" -> @filterText
+                class:bold <- @filterText == "active"
+            }
+            a.completed {
+                on:click +> "completed" -> @filterText
+                class:bold <- @filterText == "completed"
+            }
+        */
       }
     </script>
     <script type="text/javascript">
@@ -80,9 +112,10 @@
               .model(model)
           
           binding.slot("TodoMVC.itemSocket").onInsert(function (keys, element) {
+              var li = element.parent()
               var index = keys[0]
               var value = model.items[index]
-              element.parent().find(".destroy").on("click", function() {
+              li.find(".destroy").on("click", function() {
                   for (var i = 0; i < model.items.length; i++) {
                     if (model.items[i] === value) {
                         model.items.splice(i, 1)
@@ -90,6 +123,21 @@
                     }
                   }
               })
+              var label = li.find("label")
+              var edit = li.find(".edit")
+              label.on("dblclick", function() {
+                  li.addClass('editing')
+                  edit.focus()
+              })
+              edit.on("blur", function() {
+                  li.removeClass('editing')
+              })
+              var toggle = li.find(".toggle")
+              toggle.change(function() {
+                  value.completed = toggle.prop("checked")
+                  model.items.notify
+              })
+              
               element.detach()
           })
           
@@ -128,7 +176,7 @@
         </ul>
       </section>
       <footer id="footer">
-        <span id="todo-count"><strong></strong> <span></span> left</span>
+        <!-- span id="todo-count"><strong></strong> <span></span> left</span>
           <ul id="filters">
             <li>
               <a class="selected" href="#/">All</a>
@@ -140,7 +188,7 @@
               <a href="#/completed">Completed</a>
             </li>
           </ul>
-          <button id="clear-completed">Clear completed (<span></span>)</button>
+          <button id="clear-completed">Clear completed (<span></span>)</button -->
       </footer>
     </section>
     <footer id="info">

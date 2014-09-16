@@ -28,9 +28,9 @@ _api.adapter.attr = class AttrAdapter {
         let name = path[0]
         if (name == "checked") {
             if (value) {
-                element.attr(name, "checked")
+                element.prop(name, true)
             } else {
-                element.removeAttr(name)
+                element.prop(name, false)
             }
         } else {
             element.attr(name, value)
