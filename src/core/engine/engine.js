@@ -24,7 +24,7 @@
     _api.engine.iterator.shutdown(binding)
  }
  
- _api.engine.mount = (binding, arguments) => {
+ _api.engine.mount = (viewDataBinding, arguments) => {
     if (arguments.length == 1) {
         let arg = arguments[0]
         if (typeof arg === "string") {
@@ -33,7 +33,7 @@
                 throw _api.util.exception("Selector " + arg + " did not match exactly one element, but " +
                                           mountPoint.length)
             }
-            _api.engine.iterator.mount(binding, mountPoint)
+            _api.engine.iterator.mount(viewDataBinding, mountPoint)
         } else {
             // TOOD
         }

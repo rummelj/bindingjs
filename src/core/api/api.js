@@ -8,11 +8,19 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-$api.create = function () {
-    return new _api.Binding()
+/*
+** Returns a new View Data Binding instanceof
+*/
+$api.create = () => {
+    return new _api.ViewDataBinding()
 }
 
-$api.$ = function() {
+/*
+** Allows to set or retrieve a reference to jQuery
+** - Without a parameter, the current reference to jQuery is returned
+** - With a parameter, the current reference is overwritten
+*/
+$api.$ = () => {
     if (arguments.length > 1) {
         throw _api.util.exception("Expected no or one argument but received " + arguments.length)
     }
@@ -39,7 +47,13 @@ $api.$ = function() {
     }
 }
 
-$api.debug = (function () {
+/*
+** Allows logging debug messages or setting the debug level
+** - debug()            Returns current debug level
+** - debug(level)       Sets new debug level
+** - debug(level, msg)  Logs message at given debug level
+*/
+$api.debug = (() => {
     let debug_level = 9
     return (level, msg) => {
         if (arguments.length === 0) {

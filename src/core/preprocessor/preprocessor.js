@@ -7,13 +7,13 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.preprocessor.preprocess = (binding) => {
-    var model = binding.vars.model
-    var template = binding.vars.template
-    var bind = binding.vars.ast
-    var bindingScopePrefix = binding.bindingScopePrefix()
+_api.preprocessor.preprocess = (viewDataBinding) => {
+    var model = viewDataBinding.vars.model
+    var template = viewDataBinding.vars.template
+    var bind = viewDataBinding.vars.ast
+    var bindingScopePrefix = viewDataBinding.bindingScopePrefix()
     // A getter would be nicer, but it would be exposed in the public API
-    var tempCounter = binding.vars.tempCounter
+    var tempCounter = viewDataBinding.vars.tempCounter
     
     // Step 1: Check if iteration ids were used earlier and if they're all starting with bindingScopePrefix
     // This is a sanity check. Counter example:
@@ -99,9 +99,8 @@ _api.preprocessor.preprocess = (binding) => {
     _api.preprocessor.transform.markSlots(iterationTree)
     
     // Step 11: Setup expanded iteration tree
-    _api.preprocessor.iterator.setupExpandedIterationTree(binding, iterationTree)
+    _api.preprocessor.iterator.setupExpandedIterationTree(viewDataBinding, iterationTree)
     
-    binding.vars.iterationTree = iterationTree
-    binding.vars.binding = bind
-    delete binding.vars.ast
+    viewDataBinding.vars.iterationTree = iterationTree
+    viewDataBinding.vars.binding = bind
 }

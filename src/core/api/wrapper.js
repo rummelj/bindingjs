@@ -10,5 +10,5 @@
  _api.binding = {}
  
 include("api.js")
-include("binding.js")
+include("viewDataBinding.js")
 include("version.js")
