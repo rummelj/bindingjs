@@ -357,7 +357,6 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     let newKey = (typeof property.afterKey === "undefined" ||
                   property.afterKey % 1 !== 0) ?
                   property.key : parseInt(property.afterKey) + 1
-    console.log(newKey)
     let newInstance = {
         key: newKey,
         keyId: keyId,
