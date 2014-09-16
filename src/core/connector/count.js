@@ -7,14 +7,11 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.connector = {}
 
-include("addCompletedToPath.js")
-include("addOne.js")
-include("addTitleToPath.js")
-include("count.js")
-include("countCompleted.js")
-include("uppercase.js")
-include("gtZero.js")
-include("reverse.js")
-include("trim.js")
+_api.connector.count = class Count {
+    process (input) {
+        return input.length
+    }
+}
+
+_api.repository.connector.register("count", new _api.connector.count())

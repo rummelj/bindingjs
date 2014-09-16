@@ -14,12 +14,28 @@ class Reference {
         this.path = path
     }
     
+    getElement () {
+        return this.element
+    }
+    
     setElement (element) {
         this.element = element
     }
     
+    getModel () {
+        return this.model
+    }
+    
     setModel (model) {
         this.model = model
+    }
+    
+    getAdapter () {
+        return this.adapter
+    }
+    
+    getPath () {
+        return this.path
     }
     
     observe (callback) {

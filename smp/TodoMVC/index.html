@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en" data-framework="bindingjs">
+  <head>
+    <meta charset="utf-8">
+    <title>BindingJS - TodoMVC</title>
+    <link rel="stylesheet" href="common/base.css">
+    <script src="../../tst/res/jquery-2.1.1.min.js"></script>
+    <script src="../../bld/stage3/src/core/binding.js"></script>
+    <script type="text/binding">
+      @binding TodoMVC {
+        #new-todo {
+            value <- $newItemText
+            value -> $newItemText
+        }
+        #todo-list>li (@item, @index: $items) {
+          #socket::itemSocket
+          .view>input {
+            @itemCompleted <- addCompletedToPath <- @item
+            attr:checked <- @itemCompleted
+            // attr:checked -> @itemCompleted
+          }
+          .view>button {
+            // Destroy
+            // on:click +> @index -> $destroyItem
+          }
+          @itemTitle <- addTitleToPath <- @item
+          .view>label {
+            text <- @itemTitle
+          }
+          .edit {
+            value <- @itemTitle
+            value -> @itemTitle
+          }
+        }
+        
+        #footer {
+          @completed <- countCompleted <- $items
+          #todo-count {
+            strong {
+              text <- $getRemaining
+            }
+            span {
+              text <- $getItemString
+            }
+          }
+          @completedsPresent <- gtZero <- @completed
+          #clear-completed (@completedsPresent) {
+            span {
+              text <- @completed
+            }
+          }
+        }
+      }
+    </script>
+    <script type="text/javascript">
+      var model = {
+        // completed: boolean, title: string
+        items: [],
+        newItemText : "",
+        getItemString : function() {
+          return model.items.length == 1 ? "item" : "items"
+        },
+        getRemaining : function() {
+          var count = 0
+          for (var i = 0; i < model.items.length; i++) {
+            var item = model.items[i]
+            if (item.completed) {
+              count++
+            }
+          }
+          return count
+        }
+      }
+      
+      $(function() {
+          var binding = BindingJS
+              .create()
+              .template("#todoapp")
+              .binding($("script[type='text/binding']"))
+              .model(model)
+          
+          binding.slot("TodoMVC.itemSocket").onInsert(function (keys, element) {
+              var index = keys[0]
+              var value = model.items[index]
+              element.parent().find(".destroy").on("click", function() {
+                  for (var i = 0; i < model.items.length; i++) {
+                    if (model.items[i] === value) {
+                        model.items.splice(i, 1)
+                        break
+                    }
+                  }
+              })
+              element.detach()
+          })
+          
+          binding
+              .mount("#todoapp")
+              .activate()
+              
+          $("#new-todo").keyup(function(e) {
+              if (e.keyCode == 13) {
+                  model.items.push({ completed: false, title: model.newItemText })
+                  model.newItemText = ""
+              }
+          })
+      })
+    </script>
+  </head>
+  <body>
+    <section id="todoapp">
+      <header id="header">
+        <h1>todos</h1>
+        <input id="new-todo" placeholder="What needs to be done?" autofocus>
+      </header>
+      <section id="main">
+        <input id="toggle-all" type="checkbox">
+        <label for="toggle-all">Mark all as complete</label>
+        <ul id="todo-list">
+          <li>
+            <div id="socket"></div>
+            <div class="view">
+              <input class="toggle" type="checkbox">
+              <label></label>
+              <button class="destroy"></button>
+            </div>
+            <input class="edit">
+          </li>
+        </ul>
+      </section>
+      <footer id="footer">
+        <span id="todo-count"><strong></strong> <span></span> left</span>
+          <ul id="filters">
+            <li>
+              <a class="selected" href="#/">All</a>
+            </li>
+            <li>
+              <a href="#/active">Active</a>
+            </li>
+            <li>
+              <a href="#/completed">Completed</a>
+            </li>
+          </ul>
+          <button id="clear-completed">Clear completed (<span></span>)</button>
+      </footer>
+    </section>
+    <footer id="info">
+      <p>Double-click to edit a todo</p>
+      <p>Written by <a href="https://github.com/rummelj">Johannes Rummel</a></p>
+      <!-- p>Part of <a href="http://todomvc.com">TodoMVC</a></p -->
+    </footer>
+  </body>
+</html>

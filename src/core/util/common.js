@@ -126,3 +126,12 @@ _api.util.getGuid = (() => {
              s4() + '-' + s4() + s4() + s4();
     }
 })()
+
+_api.util.isPrimitive = (value) => {
+    let type = typeof value
+    return type  === "boolean" ||
+           type  === "number"  ||
+           type  === "string"  ||
+           value === "undefined" ||
+           value === null
+}

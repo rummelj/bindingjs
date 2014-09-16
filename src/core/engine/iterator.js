@@ -158,13 +158,13 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
 
  _api.engine.iterator.changeListener = (binding, node) => {
     var newCollection = binding.vars.localScope.get(node.get("sourceId"))
-    // Special case for true and false
+    // Special case for true and false or empty collection
     if (newCollection instanceof _api.engine.binding.Reference) {
         newCollection = newCollection.getValue()
     }
-    newCollection = newCollection ? newCollection : []
+    newCollection = (typeof newCollection === "undefined") ? [] : newCollection
     var oldCollection = node.get("collection")
-    node.set("collection", newCollection)
+    node.set("collection", _api.engine.binding.convertToValues(newCollection))
     
     let newCollectionType = Object.prototype.toString.call(newCollection)
     if (newCollectionType == "[object Boolean]") {
@@ -213,6 +213,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     
     // Initialize binding for newInstance
     _api.engine.binding.init(binding, newInstance)
+    _api.engine.iterator.refreshKeysAdded(binding, node, newInstance, property.afterKey)
  }
  
  _api.engine.iterator.remove = (binding, node, key) => {
@@ -243,12 +244,13 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     }
     
     _api.engine.iterator.removeInstance(binding, node, key, oldInstance)
+    _api.engine.iterator.refreshKeysRemoved(binding, node, key)
  }
  
  _api.engine.iterator.replace = (binding, node, key, newValue) => {
     for (var i = 0; i < node.childs().length; i++) {
         let child = node.childs()[i]
-        if (child.get("key") == key) {
+        if (child.get("instance").key == key) {
             binding.vars.localScope.set(child.get("sourceId"), newValue)
         }
     }
@@ -351,8 +353,13 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         }
     }
     
+    // If afterKey is numeric
+    let newKey = (typeof property.afterKey === "undefined" ||
+                  property.afterKey % 1 !== 0) ?
+                  property.key : parseInt(property.afterKey) + 1
+    console.log(newKey)
     let newInstance = {
-        key: property.key,
+        key: newKey,
         keyId: keyId,
         entryId: entryId, 
         template: newTemplate,
@@ -363,7 +370,8 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     }
     
     // Insert template
-    if (property.afterKey && link.get("instances").length > 0) {
+    // afterKey === -1 means "insert at front"
+    if (property.afterKey && property.afterKey !== -1 && link.get("instances").length > 0) {
         // Search for instance with that key and insert after it
         for (var i = 0; i < link.get("instances").length; i++) {
             let instance = link.get("instances")[i]
@@ -384,6 +392,21 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     _api.engine.iterator.callSlotInsertionObserverInstance(binding, link, newInstance)
     
     return newInstance
+ }
+ 
+ _api.engine.iterator.refreshKeysAdded = (binding, node, newInstance, keyAdded) => {
+    // Check if collection is array
+    if (node.get("collection") instanceof Array) {
+        // Increase key of all instances greater than keyAdded by one
+        let instances = node.get("instances")
+        for (var i = 0; i < instances.length; i++) {
+            let instance = instances[i]
+            if (instance !== newInstance && instance.key > keyAdded) {
+                instance.key = parseInt(instance.key) + 1
+                binding.vars.localScope.set(instance.keyId, instance.key)
+            }
+        }
+    }
  }
  
  _api.engine.iterator.removeInstance = (binding, link, key, instance) => {
@@ -408,6 +431,21 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     }
  }
  
+ _api.engine.iterator.refreshKeysRemoved = (binding, node, keyRemoved) => {
+    // Check if collection is array
+    if (node.get("collection") instanceof Array) {
+        // Reduce key of all instances greater than keyRemoved by one
+        let instances = node.get("instances")
+        for (var i = 0; i < instances.length; i++) {
+            let instance = instances[i]
+            if (instance.key > keyRemoved) {
+                instance.key = parseInt(instance.key) - 1
+                binding.vars.localScope.set(instance.keyId, instance.key)
+            }
+        }
+    }
+ }
+ 
  _api.engine.iterator.initChild = (binding, parentLink, node, instance, key) => {
     let newLink = _api.preprocessor.iterator.initExpandedIterationNode(binding, node, parentLink)
     node.get("links").push(newLink)
@@ -427,8 +465,6 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     
     // Store observerId
     newLink.set("sourceObserverId", sourceObserverId)
-    // Store key
-    newLink.set("key", key)
     
     return newLink
  }
@@ -468,12 +504,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
  }
  
  _api.engine.iterator.levensthein = (oldCollection, newCollection) => {
-    // Both collections may contain references, to compare them,
-    // they must be first converted to values
-    let oldValues = []
-    for (var key in oldCollection) {
-        oldValues[key] = _api.engine.binding.convertToValues(oldCollection[key])
-    }
+    // New Collection might contain references
     let newValues = []
     for (var key in newCollection) {
         newValues[key] = _api.engine.binding.convertToValues(newCollection[key])
@@ -482,9 +513,9 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     // We cannot use the original keys, because they might be arbitrary
     let before = []
     let beforeMap = {}
-    for (var key in oldValues) {
+    for (var key in oldCollection) {
         beforeMap[before.length] = key
-        before.push(oldValues[key])
+        before.push(oldCollection[key])
     }
     let after = []
     let afterMap = {}
@@ -542,7 +573,8 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         } else {
             x--;
             result.push({ action: "add",
-                           newProperty: { afterKey: beforeMap[y - 1] ,key: afterMap[x], value: newCollection[afterMap[x]] }
+                           newProperty: { afterKey: (oldCollection instanceof Array && typeof beforeMap[y - 1] == undefined) ?
+                                                    -1 : beforeMap[y - 1], key: afterMap[x], value: newCollection[afterMap[x]] }
                        })
         }
     }

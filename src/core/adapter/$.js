@@ -132,7 +132,13 @@ _api.adapter.$ = class $Adapter {
         for (var i = 0; i < path.length; i++) {
             elem = elem[path[i]]
         }
-        return elem
+        if (elem instanceof Function) {
+            return elem()
+        } else if (typeof elem == "object") {
+            return $api.$().extend(true, {}, elem)
+        } else {
+            return elem
+        }
     }
     
     getPaths (model, path) {
@@ -159,7 +165,12 @@ _api.adapter.$ = class $Adapter {
         for (var i = 0; i < path.length - 1; i++) {
             elem = elem[path[i]]
         }
-        elem[path[path.length - 1]] = value
+        let target = elem[path[path.length - 1]]
+        if (target instanceof Function) {
+            target(value)
+        } else {
+            elem[path[path.length - 1]] = value
+        }
     }
     
     type () {

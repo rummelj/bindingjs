@@ -158,14 +158,15 @@
                 // current is not a reference, new is, write it
                 bindingObj.vars.localScope.set(sink.path[0], value)
         } else if ((currentValue instanceof _api.engine.binding.Reference) &&
-            !(value instanceof _api.engine.binding.Reference)) {
-               // current is a reference, new is not
+            _api.util.isPrimitive(value)) {
+               // current is a reference, new is a primitive
                // write the new value into the point that is referenced
                currentValue.set(value)
                // Notify observers of the localScope that refers to currentValue
                // which is sink.path[0]
                bindingObj.vars.localScope.notify(sink.path[0])
-        } else {
+        } else if ((currentValue instanceof _api.engine.binding.Reference) &&
+            (value instanceof _api.engine.binding.Reference)) {
             // Both, old and new are references
             if (currentValue.type() == value.type()) {
                 // Overwrite if of same type
@@ -177,6 +178,18 @@
                 // See above
                 bindingObj.vars.localScope.notify(sink.path[0])
             }
+        } else {
+            // All we know is that currentValue is a reference and value is neither
+            // primitive nor a (plain) reference
+            // There is one special case allowed where the reference is replaced
+            // By structured json containing only references of the same type
+            if (_api.engine.binding.containsOnlyReferencesOfSameType(currentValue, value)) {
+                // Overwrite
+                bindingObj.vars.localScope.set(sink.path[0], value)
+            } else {
+                // TODO: Provide better information
+                throw _api.util.exception("Erroneous Propagation")
+            }
         }
     } else if (sink.adapter.type() == "view") {
         sink.adapter.set(parts.element, sink.path, value)
@@ -184,6 +197,22 @@
         sink.adapter.set(bindingObj.vars.model, sink.path, value)
     } else {
         throw _api.util.exception("Unknown adapter type: " + sink.adapter.type())
+    }
+ }
+ 
+ _api.engine.binding.containsOnlyReferencesOfSameType = (reference, value) => {
+    if (_api.util.isPrimitive(value)) {
+        return false
+    } else if (value instanceof _api.engine.binding.Reference) {
+        return reference.type() === value.type()
+    }
+    if (typeof value === "object") {
+        for (var key in value) {
+            if(!_api.engine.binding.containsOnlyReferencesOfSameType(reference, value[key])) {
+                return false
+            }
+        }
+        return true
     }
  }
  
@@ -233,14 +262,54 @@
             }
         }
     }
+    result = _api.engine.binding.recognizeArrays(result)
     return result
+ }
+ 
+ _api.engine.binding.recognizeArrays = (result) => {
+    if (typeof result == "object") {
+        let onlyNumbers = true
+        let maxNumber = -1
+        let minNumber = 9007199254740992
+        for (var key in result) {
+            if (key % 1 !== 0 || key < 0) {
+                onlyNumbers = false
+                break
+            } else {
+                key = parseInt(key, 10)
+                if (maxNumber < key) {
+                    maxNumber = key
+                }
+                if (minNumber > key) {
+                    minNumber = key
+                }
+            }
+        }
+        if (onlyNumbers && minNumber == 0 && Object.keys(result).length == maxNumber + 1) {
+            let newResult = []
+            for (var i = 0; i < maxNumber + 1; i++) {
+                newResult[i] = _api.engine.binding.recognizeArrays(result[i])
+            }
+            return newResult
+        } else {
+            return result
+        }
+    } else {
+        return result
+    }
  }
  
  _api.engine.binding.convertToValues = (value) => {
     if (value instanceof _api.engine.binding.Reference) {
         return value.getValue()
     } else {
-        if (typeof value == "object") {
+        if (value instanceof Array) {
+            let newArr = []
+            for (var i = 0; i < value.length; i++) {
+                newArr.push(_api.engine.binding.convertToValues(value[i]))
+            }
+            return newArr
+        } else if (typeof value == "object") {
             let newObj = {}
             for (var key in value) {
                 let newValue = _api.engine.binding.convertToValues(value[key])

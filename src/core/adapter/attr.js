@@ -25,7 +25,16 @@ _api.adapter.attr = class AttrAdapter {
         if (path.length != 1) {
             throw _api.util.exception("attr needs a path of length 1")
         }
-        element.attr(path[0], value)
+        let name = path[0]
+        if (name == "checked") {
+            if (value) {
+                element.attr(name, "checked")
+            } else {
+                element.removeAttr(name)
+            }
+        } else {
+            element.attr(name, value)
+        }
     }
     
     type () {
