@@ -18,6 +18,7 @@ class ViewDataBinding {
         this.vars.localScope = new _api.engine.LocalScope()
         this.vars.paused = false
         this.vars.pauseQueue = []
+        this.vars.initialized = false
         return this
     }
     
@@ -131,6 +132,7 @@ class ViewDataBinding {
     }
     
     slot (id) {
+        methods.checkIfSlotExists(this, id)
         return {
             instaces: () => {
                 // TODO
@@ -241,8 +243,48 @@ var methods = {
         let ready = viewDataBinding.vars.template && viewDataBinding.vars.ast && viewDataBinding.vars.model
         if (ready) {
             _api.preprocessor.preprocess(viewDataBinding)
-            delete viewDataBinding.vars.ast
+            viewDataBinding.vars.initialized = true
         }
+    },
+    
+    checkIfSlotExists: (viewDataBinding, id) => {
+        if (!viewDataBinding.vars.initialized) {
+            throw _api.util.exception("You must provide template, binding and model " +
+                " before using the slot api")
+        }
+        let allLabels = methods.getAllSocketIds(viewDataBinding.vars.iterationTree)
+        let found = false
+        for (var i = 0; i < allLabels.length; i++) {
+            if (allLabels[i] === id) {
+                found = true
+                break
+            }
+        }
+        if (!found) {
+            let available = ""
+            for (var i = 0; i < allLabels.length; i++) {
+                available += allLabels[i] + "\n"
+            }
+            throw _api.util.exception("Tried to use the slot api with id " + 
+                id + ". This id does not exist. Only the following ids are " +
+                "available: \n" + available)
+        }
+    },
+    
+    getAllSocketIds: (iterationTree) => {
+        let result = []
+        let sockets = iterationTree.get("slots")
+        for (var i = 0; i < sockets.length; i++) {
+            let socket = sockets[i]
+            result.push(socket.id)
+        }
+        for (var i = 0; i < iterationTree.childs().length; i++) {
+            let subResult = methods.getAllSocketIds(iterationTree.childs()[i])
+            for (var j = 0; j < subResult.length; j++) {
+                result.push(subResult[j])
+            }
+        }
+        return result
     }
 }
 

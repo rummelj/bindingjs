@@ -103,4 +103,5 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     
     viewDataBinding.vars.iterationTree = iterationTree
     viewDataBinding.vars.binding = bind
+    delete viewDataBinding.vars.ast
 }
