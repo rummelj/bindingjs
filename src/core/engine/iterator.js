@@ -146,8 +146,10 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     let newCollection = null
     if (currentCollectionType == "[object Boolean]") {
         newCollection = false
-    } else {
+    } else if (currentCollection instanceof Array) {
         newCollection = []
+    } else {
+        newCollection = {}
     }
     
     binding.vars.localScope.set(sourceId, newCollection)
@@ -408,16 +410,16 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
                 binding.vars.localScope.set(instance.keyId, instance.key)
                 // Update references in entry
                 let entry = binding.vars.localScope.get(instance.entryId)
-                let newEntry = _api.engine.iterator.refreshKeysAddedEntry(entry, [], entry, keyAdded)
+                let newEntry = _api.engine.iterator.refreshKeysAddedEntry(entry, [], keyAdded)
                 binding.vars.localScope.set(instance.entryId, newEntry)
             }
         }
     }
  }
  
- _api.engine.iterator.refreshKeysAddedEntry = (entry, path, ref, keyAdded) => {
-    if (ref instanceof _api.engine.binding.Reference) {
-        let newRef = ref.clone()
+ _api.engine.iterator.refreshKeysAddedEntry = (entry, path, keyAdded) => {
+    if (entry instanceof _api.engine.binding.Reference) {
+        let newRef = entry.clone()
         let refPath = newRef.getPath()
         // Check if paths fit together
         for (var i = 0; i < path.length; i++) {
@@ -440,14 +442,14 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         if (entry instanceof Array) {
             let newArr = []
             for (var i = 0; i < entry.length; i++) {
-                let subResult = _api.engine.iterator.refreshKeysAddedEntry(entry, [].concat.apply([], [path, i]), entry[i], keyAdded)
+                let subResult = _api.engine.iterator.refreshKeysAddedEntry(entry[i], [].concat.apply([], [path, i]), keyAdded)
                 newArr.push(subResult)
             }
             return newArr
         } else if (typeof entry == "object") {
             let newObj = {}
             for (var key in entry) {
-                let subResult = _api.engine.iterator.refreshKeysAddedEntry(entry, [].concat.apply([], [path, key]), entry[key], keyAdded)
+                let subResult = _api.engine.iterator.refreshKeysAddedEntry(entry[key], [].concat.apply([], [path, key]), keyAdded)
                 newObj[key] = subResult
             }
             return newObj
@@ -492,16 +494,16 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
                 binding.vars.localScope.set(instance.keyId, instance.key)
                 // Update references in entry
                 let entry = binding.vars.localScope.get(instance.entryId)
-                let newEntry = _api.engine.iterator.refreshKeysRemovedEntry(entry, [], entry, keyRemoved)
+                let newEntry = _api.engine.iterator.refreshKeysRemovedEntry(entry, [], keyRemoved)
                 binding.vars.localScope.set(instance.entryId, newEntry)
             }
         }
     }
  }
  
- _api.engine.iterator.refreshKeysRemovedEntry = (entry, path, ref, keyRemoved) => {
-    if (ref instanceof _api.engine.binding.Reference) {
-        let newRef = ref.clone()
+ _api.engine.iterator.refreshKeysRemovedEntry = (entry, path, keyRemoved) => {
+    if (entry instanceof _api.engine.binding.Reference) {
+        let newRef = entry.clone()
         let refPath = newRef.getPath()
         // Check if paths fit together
         for (var i = 0; i < path.length; i++) {
@@ -524,14 +526,14 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         if (entry instanceof Array) {
             let newArr = []
             for (var i = 0; i < entry.length; i++) {
-                let subResult = _api.engine.iterator.refreshKeysRemovedEntry(entry, [].concat.apply([], [path, i]), entry[i], keyRemoved)
+                let subResult = _api.engine.iterator.refreshKeysRemovedEntry(entry[i], [].concat.apply([], [path, i]), keyRemoved)
                 newArr.push(subResult)
             }
             return newArr
         } else if (typeof entry == "object") {
             let newObj = {}
             for (var key in entry) {
-                let subResult = _api.engine.iterator.refreshKeysRemovedEntry(entry, [].concat.apply([], [path, key]), entry[key], keyRemoved)
+                let subResult = _api.engine.iterator.refreshKeysRemovedEntry(entry[key], [].concat.apply([], [path, key]), keyRemoved)
                 newObj[key] = subResult
             }
             return newObj
@@ -582,8 +584,10 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     let newCollection = null
     if (currentCollectionType == "[object Boolean]") {
         newCollection = false
-    } else {
+    } else if (currentCollection instanceof Array) {
         newCollection = []
+    } else {
+        newCollection = {}
     }
     
     binding.vars.localScope.set(sourceId, newCollection)
@@ -664,6 +668,38 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
                            })
             }
         }
+        
+        result.reverse()
+        for (var i = 0; i < result.length; i++) {
+            let change = result[i]
+            if (change.action === "add") {
+                for (var j = i + 1; j < result.length; j++) {
+                    let laterChange = result[j]
+                    if (laterChange.action === "replace" || laterChange.action === "remove") {
+                        if (laterChange.key >= change.newProperty.afterKey) {
+                            laterChange.key++
+                        }
+                    } else /* is add */ {
+                        if (laterChange.newProperty.key >= change.newProperty.afterKey) {
+                            laterChange.newProperty.afterKey++
+                        }
+                    }
+                }
+            } else if (change.action === "remove") {
+                for (var j = i + 1; j < result.length; j++) {
+                    let laterChange = result[j]
+                    if (laterChange.action === "replace" || laterChange.action === "remove") {
+                        if (laterChange.key >= change.key) {
+                            laterChange.key--
+                        }
+                    } else /* is add */ {
+                        if (laterChange.newProperty.key >= change.key) {
+                            laterChange.newProperty.afterKey--
+                        }
+                    }
+                }
+            }
+        }
     } else {
         // Use a simple diff for objects
         for (key in oldCollection) {
@@ -674,9 +710,11 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
                 result.push({ action: "replace", key: key, newValue: newCollection[key] })
             }
         }
+        let last
         for (key in newCollection) {
             if (newCollection.hasOwnProperty(key) && !oldCollection.hasOwnProperty(key)) {
-                result.push( {action: "add", newProperty: { key: key, value: newCollection[key] } } )
+                result.push( {action: "add", newProperty: { afterKey: last, key: key, value: newCollection[key] } } )
+                last = key
             }
         }
     }
