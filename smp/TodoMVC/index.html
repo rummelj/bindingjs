@@ -14,19 +14,19 @@
             // Use @newTodoText instead of $newTodoText
             // on:keydown("enter") +> $todos -> push({ completed: false, title: $newTodoText }) -> $todos
         }
-        #todo-list>li (@todo, @index: $todos) {
+        #todo-list li (@todo, @index: $todos) {
           #socket::todoSocket
           .view>input {
             @todoCompleted <- addCompletedToPath <- @todo
             attr:checked <- @todoCompleted
             // on:click +> attr:checked <-> @todo.completed
           }
-          .view>button {
+          .view button {
             // Destroy
             // on:click +> $todos -> destroy(@index) -> $todos
           }
           @todoTitle <- addTitleToPath <- @todo
-          .view>label {
+          .view label {
             text <- @todoTitle
           }
           // @tempTitle <~ ""

@@ -93,8 +93,8 @@ selectors
         }
 
 selector
-    =   f:selectorSingle l:(_ selectorCombinator _ selectorSingle)* {
-            return AST("SelectorCombination").add(unroll(f, l, [ 1, 3 ]))
+    =   f:selectorSingle l:(selectorCombinator _ selectorSingle)* {
+            return AST("SelectorCombination").add(unroll(f, l, [ 0, 2 ]))
                                              .set("text", text())
         }
 
@@ -105,9 +105,9 @@ selectorSingle
 
 selectorCombinator "selector combinator"
     =   ws   { return AST("Combinator").set({ type: "descendant" })        }
-    /   ">"  { return AST("Combinator").set({ type: "child" })             }
-    /   "+"  { return AST("Combinator").set({ type: "next-sibling" })      }
-    /   "~"  { return AST("Combinator").set({ type: "following-sibling" }) }
+    /   _ ">"  { return AST("Combinator").set({ type: "child" })             }
+    /   _ "+"  { return AST("Combinator").set({ type: "next-sibling" })      }
+    /   _ "~"  { return AST("Combinator").set({ type: "following-sibling" }) }
 
 selectorComponents
     =   f:selectorComponentElement l:selectorComponentRepeatable* {
