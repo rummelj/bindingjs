@@ -78,3 +78,18 @@ $api.debug = (() => {
         }
     }
 })()
+
+// TODO: Add docu
+$api.plugin = (name, component) => {
+    // TODO: Check type of component and if correct methods present
+    if (typeof component.type === "function") {
+        // Adapter
+        _api.repository.adapter.register(name, component)
+    } else {
+        // Connector
+        _api.repository.connector.register(name, component)
+    }
+}
+
+// TODO: Add docu
+$api.abortSymbol = {}

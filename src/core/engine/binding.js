@@ -135,6 +135,9 @@
     let connectorChain = parts.connectors
     for (var i = 0; i < connectorChain.length; i++) {
         value = connectorChain[i].process(value)
+        if (value === $api.abortSymbol) {
+            return
+        }
     }
     
     let sink = parts.sink
