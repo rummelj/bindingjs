@@ -213,7 +213,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     
     // Initialize binding for newInstance
     _api.engine.binding.init(binding, newInstance)
-    _api.engine.iterator.refreshKeysAdded(binding, node, newInstance, property.afterKey)
+    _api.engine.iterator.refreshKeysAdded(binding, node, newInstance, property.key)
  }
  
  _api.engine.iterator.remove = (binding, node, key) => {
@@ -370,7 +370,9 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     
     // Insert template
     // afterKey === -1 means "insert at front"
-    if (property.afterKey && property.afterKey !== -1 && link.get("instances").length > 0) {
+    if (typeof property.afterKey !== "undefined" &&
+          property.afterKey !== -1 &&
+          link.get("instances").length > 0) {
         // Search for instance with that key and insert after it
         for (var i = 0; i < link.get("instances").length; i++) {
             let instance = link.get("instances")[i]
@@ -400,10 +402,57 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         let instances = node.get("instances")
         for (var i = 0; i < instances.length; i++) {
             let instance = instances[i]
-            if (instance !== newInstance && instance.key > keyAdded) {
+            if (instance !== newInstance && instance.key >= keyAdded) {
+                // Update key
                 instance.key = parseInt(instance.key) + 1
                 binding.vars.localScope.set(instance.keyId, instance.key)
+                // Update references in entry
+                let entry = binding.vars.localScope.get(instance.entryId)
+                let newEntry = _api.engine.iterator.refreshKeysAddedEntry(entry, [], entry, keyAdded)
+                binding.vars.localScope.set(instance.entryId, newEntry)
             }
+        }
+    }
+ }
+ 
+ _api.engine.iterator.refreshKeysAddedEntry = (entry, path, ref, keyAdded) => {
+    if (ref instanceof _api.engine.binding.Reference) {
+        let newRef = ref.clone()
+        let refPath = newRef.getPath()
+        // Check if paths fit together
+        for (var i = 0; i < path.length; i++) {
+            if (refPath[refPath.length - path.length + i] != path[i]) {
+                throw _api.util.exception("Internal error")
+            }
+        }
+        // Check if numeric
+        if (refPath[refPath.length - path.length - 1] % 1 !== 0) {
+            throw _api.util.exception("Internal error")
+        }
+        // Increase if necessary
+        if (parseInt(refPath[refPath.length - path.length - 1]) >= keyAdded) {
+            refPath[refPath.length - path.length - 1] = parseInt(refPath[refPath.length - path.length - 1]) + 1
+        }
+        newRef.setPath(refPath)
+        return newRef
+    } else {
+        // Recursion
+        if (entry instanceof Array) {
+            let newArr = []
+            for (var i = 0; i < entry.length; i++) {
+                let subResult = _api.engine.iterator.refreshKeysAddedEntry(entry, [].concat.apply([], [path, i]), entry[i], keyAdded)
+                newArr.push(subResult)
+            }
+            return newArr
+        } else if (typeof entry == "object") {
+            let newObj = {}
+            for (var key in entry) {
+                let subResult = _api.engine.iterator.refreshKeysAddedEntry(entry, [].concat.apply([], [path, key]), entry[key], keyAdded)
+                newObj[key] = subResult
+            }
+            return newObj
+        } else {
+            return entry
         }
     }
  }
@@ -438,9 +487,56 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         for (var i = 0; i < instances.length; i++) {
             let instance = instances[i]
             if (instance.key > keyRemoved) {
+                // Update key
                 instance.key = parseInt(instance.key) - 1
                 binding.vars.localScope.set(instance.keyId, instance.key)
+                // Update references in entry
+                let entry = binding.vars.localScope.get(instance.entryId)
+                let newEntry = _api.engine.iterator.refreshKeysRemovedEntry(entry, [], entry, keyRemoved)
+                binding.vars.localScope.set(instance.entryId, newEntry)
             }
+        }
+    }
+ }
+ 
+ _api.engine.iterator.refreshKeysRemovedEntry = (entry, path, ref, keyRemoved) => {
+    if (ref instanceof _api.engine.binding.Reference) {
+        let newRef = ref.clone()
+        let refPath = newRef.getPath()
+        // Check if paths fit together
+        for (var i = 0; i < path.length; i++) {
+            if (refPath[refPath.length - path.length + i] != path[i]) {
+                throw _api.util.exception("Internal error")
+            }
+        }
+        // Check if numeric
+        if (refPath[refPath.length - path.length - 1] % 1 !== 0) {
+            throw _api.util.exception("Internal error")
+        }
+        // Decrease if necessary
+        if (parseInt(refPath[refPath.length - path.length - 1]) > keyRemoved) {
+            refPath[refPath.length - path.length - 1] = parseInt(refPath[refPath.length - path.length - 1]) - 1
+        }
+        newRef.setPath(refPath)
+        return newRef
+    } else {
+        // Recursion
+        if (entry instanceof Array) {
+            let newArr = []
+            for (var i = 0; i < entry.length; i++) {
+                let subResult = _api.engine.iterator.refreshKeysRemovedEntry(entry, [].concat.apply([], [path, i]), entry[i], keyRemoved)
+                newArr.push(subResult)
+            }
+            return newArr
+        } else if (typeof entry == "object") {
+            let newObj = {}
+            for (var key in entry) {
+                let subResult = _api.engine.iterator.refreshKeysRemovedEntry(entry, [].concat.apply([], [path, key]), entry[key], keyRemoved)
+                newObj[key] = subResult
+            }
+            return newObj
+        } else {
+            return entry
         }
     }
  }
@@ -503,78 +599,85 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
  }
  
  _api.engine.iterator.levensthein = (oldCollection, newCollection) => {
+    
     // New Collection might contain references
     let newValues = []
     for (var key in newCollection) {
         newValues[key] = _api.engine.binding.convertToValues(newCollection[key])
     }
     
-    // We cannot use the original keys, because they might be arbitrary
-    let before = []
-    let beforeMap = {}
-    for (var key in oldCollection) {
-        beforeMap[before.length] = key
-        before.push(oldCollection[key])
-    }
-    let after = []
-    let afterMap = {}
-    for (var key in newValues) {
-        afterMap[after.length] = key
-        after.push(newValues[key])
-    }
-     
-    // Levensthein
-    let matrix = [];
-     
-    // increment along the first column of each row
-    for (var i = 0; i <= after.length; i++) {
-        matrix[i] = [i];
-    }
-     
-    // increment each column in the first row
-    for (var j = 0; j <= before.length; j++) {
-        matrix[0][j] = j
-    }
-     
-    // Fill in the rest of the matrix
-    for (var i = 1; i <= after.length; i++) {
-        for (var j = 1; j <= before.length; j++) {
-            if (_api.util.objectEquals(after[i-1], before[j-1])) {
-                matrix[i][j] = matrix[i-1][j-1];
-            } else {
-                matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
-                                        Math.min(matrix[i][j-1] + 1, // insertion
-                                                 matrix[i-1][j] + 1)); // deletion
+    let result = [];
+    // Use levensthein to compare arrays
+    if (oldCollection instanceof Array && newCollection instanceof Array) {
+        // Levensthein
+        let matrix = [];
+         
+        // increment along the first column of each row
+        for (var i = 0; i <= newCollection.length; i++) {
+            matrix[i] = [i];
+        }
+         
+        // increment each column in the first row
+        for (var j = 0; j <= oldCollection.length; j++) {
+            matrix[0][j] = j
+        }
+         
+        // Fill in the rest of the matrix
+        for (var i = 1; i <= newCollection.length; i++) {
+            for (var j = 1; j <= oldCollection.length; j++) {
+                if (_api.util.objectEquals(newValues[i-1], oldCollection[j-1])) {
+                    matrix[i][j] = matrix[i-1][j-1];
+                } else {
+                    matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
+                                            Math.min(matrix[i][j-1] + 1, // insertion
+                                                     matrix[i-1][j] + 1)); // deletion
+                }
             }
         }
-    }
-    
-    // Reconstruct changes from matrix
-    let x = after.length
-    let y = before.length
-    let result = [];
-    while (x >= 0 && y >= 0) {
-        let current = matrix[x][y];
-        let diagonal = x - 1 >= 0 && y - 1 >= 0 ? matrix[x-1][y-1] : Number.MAX_VALUE
-        let vertical = x - 1 >= 0 ? matrix[x-1][y] : Number.MAX_VALUE
-        let horizontal = y - 1 >= 0 ? matrix[x][y-1] : Number.MAX_VALUE
-        if (diagonal <= Math.min(horizontal, vertical)) {
-            x--
-            y--
-            if (diagonal == current || diagonal + 1 == current) {
-                if (diagonal + 1 == current) {
-                    result.push({ action: "replace", key: beforeMap[y], newValue: newCollection[afterMap[x]] })
-                } 
+        
+        // Reconstruct changes from matrix
+        let x = newCollection.length
+        let y = oldCollection.length
+        
+        while (x >= 0 && y >= 0) {
+            let current = matrix[x][y];
+            let diagonal = x - 1 >= 0 && y - 1 >= 0 ? matrix[x-1][y-1] : Number.MAX_VALUE
+            let vertical = x - 1 >= 0 ? matrix[x-1][y] : Number.MAX_VALUE
+            let horizontal = y - 1 >= 0 ? matrix[x][y-1] : Number.MAX_VALUE
+            if (diagonal <= Math.min(horizontal, vertical)) {
+                x--
+                y--
+                if (diagonal == current || diagonal + 1 == current) {
+                    if (diagonal + 1 == current) {
+                        result.push({ action: "replace", key: y, newValue: newCollection[x] })
+                    } 
+                }
+            } else if (horizontal <= vertical && horizontal == current || horizontal + 1 == current) {
+                y--
+                result.push({ action: "remove", key: y })
+            } else {
+                x--;
+                result.push({ action: "add",
+                               newProperty: { afterKey: y-1,
+                                              key: x,
+                                              value: newCollection[x] }
+                           })
             }
-        } else if (horizontal <= vertical && horizontal == current || horizontal + 1 == current) {
-            y--
-            result.push({ action: "remove", key: beforeMap[y] })
-        } else {
-            x--;
-            result.push({ action: "add",
-                           newProperty: { afterKey: (oldCollection instanceof Array && typeof beforeMap[y - 1] == undefined) ?
-                                                    -1 : beforeMap[y - 1], key: afterMap[x], value: newCollection[afterMap[x]] }
-                       })
+        }
+    } else {
+        // Use a simple diff for objects
+        for (key in oldCollection) {
+            if (oldCollection.hasOwnProperty(key) && !newCollection.hasOwnProperty(key)) {
+                result.push({ action: "remove", key: key })
+            } else if (oldCollection.hasOwnProperty(key) && newCollection.hasOwnProperty(key) &&
+                       !_api.util.objectEquals(oldCollection[key], newCollection[key])) {
+                result.push({ action: "replace", key: key, newValue: newCollection[key] })
+            }
+        }
+        for (key in newCollection) {
+            if (newCollection.hasOwnProperty(key) && !oldCollection.hasOwnProperty(key)) {
+                result.push( {action: "add", newProperty: { key: key, value: newCollection[key] } } )
+            }
         }
     }
      

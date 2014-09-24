@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://stackoverflow.com/" />
+<title>smp-TodoMVC</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">smp-TodoMVC</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>file:///C:/Users/rummelj/bindingjs_my/smp/TodoMVC/index.html</td>
+	<td></td>
+</tr>
+<tr>
+	<td>sendKeys</td>
+	<td>css=#new-todo</td>
+	<td>foo${KEY_ENTER}</td>
+</tr>
+<tr>
+	<td>sendKeys</td>
+	<td>css=#new-todo</td>
+	<td>bar${KEY_ENTER}</td>
+</tr>
+<tr>
+	<td>sendKeys</td>
+	<td>css=#new-todo</td>
+	<td>baz${KEY_ENTER}</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[0].completed</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[1].completed</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[2].completed</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[0].title</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[1].title</td>
+	<td>bar</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[2].title</td>
+	<td>baz</td>
+</tr>
+<!--Finish second ToDo-->
+<tr>
+	<td>click</td>
+	<td>xpath=(//input[@type='checkbox'])[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[1].completed</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>xpath=(//input[@type='checkbox'])[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[1].completed</td>
+	<td>false</td>
+</tr>
+<!--Finish third ToDo-->
+<tr>
+	<td>getEval</td>
+	<td>window.model.todos[2].completed = true</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertChecked</td>
+	<td>xpath=(//input[@type='checkbox'])[4]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.todos[2].completed = false</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertNotChecked</td>
+	<td>xpath=(//input[@type='checkbox'])[4]</td>
+	<td></td>
+</tr>
+<!--Delete second ToDo-->
+<tr>
+	<td>click</td>
+	<td>//ul[@id='todo-list']/li[2]/div/button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[0].completed</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[1].completed</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[0].title</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[1].title</td>
+	<td>baz</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos.length</td>
+	<td>2</td>
+</tr>
+<!--Add new third todo quux-->
+<tr>
+	<td>sendKeys</td>
+	<td>css=#new-todo</td>
+	<td>quux${KEY_ENTER}</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos.length</td>
+	<td>3</td>
+</tr>
+<!--Delete second (baz) from model-->
+<tr>
+	<td>getEval</td>
+	<td>window.model.todos.splice(1, 1)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//ul[@id='todo-list']/li[1]/div/label</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//ul[@id='todo-list']/li[2]/div/label</td>
+	<td>quux</td>
+</tr>
+<!--Push new ToDo to model-->
+<tr>
+	<td>getEval</td>
+	<td>window.pushQux()</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>//ul[@id='todo-list']/li[3]/div/label</td>
+	<td>qux</td>
+</tr>
+<!--Edit second and third todo-->
+<tr>
+	<td>doubleClick</td>
+	<td>//ul[@id='todo-list']/li[2]/div/label</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=li.editing&gt;input.edit</td>
+	<td>bar</td>
+</tr>
+<tr>
+	<td>fireEvent</td>
+	<td>css=li.editing&gt;input.edit</td>
+	<td>blur</td>
+</tr>
+<tr>
+	<td>doubleClick</td>
+	<td>//ul[@id='todo-list']/li[3]/div/label</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=li.editing&gt;input.edit</td>
+	<td>baz</td>
+</tr>
+<tr>
+	<td>fireEvent</td>
+	<td>css=li.editing&gt;input.edit</td>
+	<td>blur</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[0].completed</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[1].completed</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[2].completed</td>
+	<td>false</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[0].title</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[1].title</td>
+	<td>bar</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos[2].title</td>
+	<td>baz</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.todos.length</td>
+	<td>3</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

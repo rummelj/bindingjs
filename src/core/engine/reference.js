@@ -38,6 +38,10 @@ class Reference {
         return this.path
     }
     
+    setPath (path) {
+        this.path = path
+    }
+    
     observe (callback) {
         let observerId = 0
         if (this.adapter.type() == "model") {
@@ -76,6 +80,13 @@ class Reference {
     
     type () {
         return this.adapter.type()
+    }
+    
+    clone () {
+        let result = new Reference(this.adapter, this.path.slice(0))
+        result.setModel(this.model)
+        result.setElement(this.element)
+        return result
     }
 }
 

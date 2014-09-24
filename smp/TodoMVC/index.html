@@ -9,30 +9,30 @@
     <script type="text/binding">
       @binding TodoMVC {
         #new-todo {
-            value <- $newItemText
-            value -> $newItemText
-            // Use @newItemText instead of $newItemText
-            // on:keydown("enter") +> $items -> push({ completed: false, title: $newItemText }) -> $items
+            value <- $newTodoText
+            value -> $newTodoText
+            // Use @newTodoText instead of $newTodoText
+            // on:keydown("enter") +> $todos -> push({ completed: false, title: $newTodoText }) -> $todos
         }
-        #todo-list>li (@item, @index: $items) {
-          #socket::itemSocket
+        #todo-list>li (@todo, @index: $todos) {
+          #socket::todoSocket
           .view>input {
-            @itemCompleted <- addCompletedToPath <- @item
-            attr:checked <- @itemCompleted
-            // on:click +> attr:checked <-> @item.completed
+            @todoCompleted <- addCompletedToPath <- @todo
+            attr:checked <- @todoCompleted
+            // on:click +> attr:checked <-> @todo.completed
           }
           .view>button {
             // Destroy
-            // on:click +> $items -> destroy(@index) -> $items
+            // on:click +> $todos -> destroy(@index) -> $todos
           }
-          @itemTitle <- addTitleToPath <- @item
+          @todoTitle <- addTitleToPath <- @todo
           .view>label {
-            text <- @itemTitle
+            text <- @todoTitle
           }
           // @tempTitle <~ ""
           .edit {
-            value <- @itemTitle
-            value -> @itemTitle
+            value <- @todoTitle
+            value -> @todoTitle
             // Instead:
             // value <-> @tempTitle
           }
@@ -43,18 +43,18 @@
           }
           .edit {
             // on:blur, on:keydown("esc") +> false -> @editing
-            // on:blur +> @tempTitle -> @itemTitle
+            // on:blur +> @tempTitle -> @todoTitle
           }
         }
         
         #footer {
-          @completed <- countCompleted <- $items
+          @completed <- countCompleted <- $todos
           #todo-count {
             strong {
               text <- $getRemaining
             }
             span {
-              text <- $getItemString
+              text <- $getTodoString
             }
           }
           @completedsPresent <- gtZero <- @completed
@@ -68,7 +68,7 @@
         /*
             Filters:
             @filterText <~ "all"
-            @itemsShown <- filter(@filterText == "all" ? {} : {completed: @filterText == "completed"}) <- $items
+            @todosShown <- filter(@filterText == "all" ? {} : {completed: @filterText == "completed"}) <- $todos
             a.all {
                 on:click +> "all" -> @filterText
                 class:bold <- @filterText == "all"
@@ -87,16 +87,16 @@
     <script type="text/javascript">
       var model = {
         // completed: boolean, title: string
-        items: [],
-        newItemText : "",
-        getItemString : function() {
-          return model.items.length == 1 ? "item" : "items"
+        todos: [],
+        newTodoText : "",
+        getTodoString : function() {
+          return model.todos.length == 1 ? "item" : "items"
         },
         getRemaining : function() {
           var count = 0
-          for (var i = 0; i < model.items.length; i++) {
-            var item = model.items[i]
-            if (item.completed) {
+          for (var i = 0; i < model.todos.length; i++) {
+            var todo = model.todos[i]
+            if (todo.completed) {
               count++
             }
           }
@@ -111,14 +111,14 @@
               .binding($("script[type='text/binding']"))
               .model(model)
           
-          binding.slot("TodoMVC.itemSocket").onInsert(function (keys, element) {
+          binding.slot("TodoMVC.todoSocket").onInsert(function (keys, element) {
               var li = element.parent()
               var index = keys[0]
-              var value = model.items[index]
+              var value = model.todos[index]
               li.find(".destroy").on("click", function() {
-                  for (var i = 0; i < model.items.length; i++) {
-                    if (model.items[i] === value) {
-                        model.items.splice(i, 1)
+                  for (var i = 0; i < model.todos.length; i++) {
+                    if (model.todos[i] === value) {
+                        model.todos.splice(i, 1)
                         break
                     }
                   }
@@ -135,7 +135,7 @@
               var toggle = li.find(".toggle")
               toggle.change(function() {
                   value.completed = toggle.prop("checked")
-                  model.items.notify
+                  model.todos.notify
               })
               
               element.detach()
@@ -147,11 +147,16 @@
               
           $("#new-todo").keyup(function(e) {
               if (e.keyCode == 13) {
-                  model.items.push({ completed: false, title: model.newItemText })
-                  model.newItemText = ""
+                  model.todos.push({ completed: false, title: model.newTodoText })
+                  model.newTodoText = ""
               }
           })
       })
+      
+      // Required for Selenium Test only
+      function pushQux() {
+        model.todos.push({ completed: false, title: "qux" })
+      }
     </script>
   </head>
   <body>

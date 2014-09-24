@@ -63,6 +63,7 @@ _api.adapter.$ = class $Adapter {
         modelObserver.push({ observerId: observerId, path: path, callback: callback, watchJsCallback: watchJsCallback })
         
         if (!pathObserved) {
+            $api.debug(9, "Watching " + JSON.stringify(path))
             _api.util.WatchJS.watch(elem,
                                     path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
                                     watchJsCallback)
@@ -117,11 +118,12 @@ _api.adapter.$ = class $Adapter {
             for (var i = 0; i < path.length - 1; i++) {
                 elem = elem[path[i]]
             }
+            $api.debug(9, "Unwatching " + JSON.stringify(path))
             _api.util.WatchJS.unwatch(elem,
                                       path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
                                       watchJsObserver)
             // Workaround for WatchJS which pushes the watcher to all descendants, manually remove these watchers
-            delete elem.watchers[path[path.length - 1]]
+            // delete elem.watchers[path[path.length - 1]]
         }
         
         this.observer[modelIndex].splice(observerIndex, 1)
@@ -134,6 +136,8 @@ _api.adapter.$ = class $Adapter {
         }
         if (elem instanceof Function) {
             return elem()
+        } else if (elem instanceof Array) {
+            return elem.slice(0)
         } else if (typeof elem == "object") {
             return $api.$().extend(true, {}, elem)
         } else {

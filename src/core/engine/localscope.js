@@ -42,27 +42,51 @@ class LocalScope {
     }
     
     set(id, to) {
-        // If a reference was previously in localScope, unobserve it
-        if (this.data[id] instanceof _api.engine.binding.Reference) {
-            this.data[id].unobserve(this.observerIds[id])
-        }
-        
-        // Write new value
         if (this.data[id] !== to) {
+            this.unobserveReferences(id)
             this.data[id] = to
             this.notify(id)
+            this.observeReferences(id, to)
         }
-        
-        // If a reference is written into localScope, observe it
-        if (this.data[id] instanceof _api.engine.binding.Reference) {
-            $api.debug(9, "Observing: " + JSON.stringify(this.data[id].path))
-            this.observerIds[id] = this.data[id].observe(() => {
+    }
+    
+    observeReferences(id, value) {
+        if (value instanceof _api.engine.binding.Reference) {
+            $api.debug(9, "Observing: " + JSON.stringify(value.path))
+            if (!this.observerIds[id]) {
+                this.observerIds[id] = []
+            }
+            this.observerIds[id].push(value)
+            this.observerIds[id].push(value.observe(() => {
                 if (!this.paused) {
                     this.notify(id)
                 } else if (this.pauseQueue.indexOf(id) == -1) {
                     this.pauseQueue.push(id)
                 }
-            })
+            }))
+        } else {
+            // Recursion
+            if (value instanceof Array) {
+                for (var i = 0; i < value.length; i++) {
+                    this.observeReferences(id, value[i])
+                }
+            } else if (typeof value == "object") {
+                for (var key in value) {
+                    this.observeReferences(id, value[key])
+                }
+            }
+        }
+    }
+    
+    unobserveReferences(id) {
+        if (this.observerIds[id]) {
+            for (var i = 0; i < this.observerIds[id].length; i += 2) {
+                let reference = this.observerIds[id][i]
+                let observerId = this.observerIds[id][i + 1]
+                $api.debug(9, "Unobserving: " + JSON.stringify(reference.path))
+                reference.unobserve(observerId)
+            }
+            this.observerIds[id] = []
         }
     }
     

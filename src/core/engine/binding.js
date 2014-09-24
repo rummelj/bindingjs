@@ -187,7 +187,8 @@
                 // Overwrite
                 bindingObj.vars.localScope.set(sink.path[0], value)
             } else {
-                // TODO: Provide better information
+                // TODO: See if this ever appears, if it appears in senseful case
+                // Adapt to thesis, where no error is thrown and value always overwritten
                 throw _api.util.exception("Erroneous Propagation")
             }
         }
