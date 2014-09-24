@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>file:///C:/Users/rummelj/bindingjs_my/tst/selenium/8-when.html</td>
+	<td>${baseUrl}/tst/selenium/8-when.html</td>
 	<td></td>
 </tr>
 <tr>
@@ -31,7 +31,6 @@
 	<td>span</td>
 	<td>2</td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>file:///C:/Users/rummelj/bindingjs_my/tst/selenium/2-iteration.html</td>
+	<td>${baseUrl}/tst/selenium/2-iteration.html</td>
 	<td></td>
 </tr>
 <tr>
@@ -336,7 +336,6 @@
 	<td>xpath=(//input[@type='text'])[8]</td>
 	<td>7</td>
 </tr>
-
 </tbody></table>
 </body>
 </html>

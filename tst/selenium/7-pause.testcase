@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>file:///C:/Users/rummelj/bindingjs_my/tst/selenium/2-iteration.html</td>
+	<td>${baseUrl}/tst/selenium/2-iteration.html</td>
 	<td></td>
 </tr>
 <tr>
@@ -157,7 +157,6 @@
 	<td>val3</td>
 </tr>
 <!--The last part of 2-iteration-2 is left out intentionally, because it does not work from Selenium for some reason. It, however works in both Firefox and Chrome-->
-
 </tbody></table>
 </body>
 </html>

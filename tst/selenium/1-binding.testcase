@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>file:///C:/Users/rummelj/bindingjs_my/tst/selenium/1-binding.html</td>
+	<td>${baseUrl}/tst/selenium/1-binding.html</td>
 	<td></td>
 </tr>
 <tr>
