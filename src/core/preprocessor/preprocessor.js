@@ -8,12 +8,11 @@
 */
 
 _api.preprocessor.preprocess = (viewDataBinding) => {
-    var model = viewDataBinding.vars.model
-    var template = viewDataBinding.vars.template
-    var bind = viewDataBinding.vars.ast
-    var bindingScopePrefix = viewDataBinding.bindingScopePrefix()
+    let template = viewDataBinding.vars.template
+    let bind = viewDataBinding.vars.ast
+    let bindingScopePrefix = viewDataBinding.bindingScopePrefix()
     // A getter would be nicer, but it would be exposed in the public API
-    var tempCounter = viewDataBinding.vars.tempCounter
+    let tempCounter = viewDataBinding.vars.tempCounter
     
     // Step 1: Check if iteration ids were used earlier and if they're all starting with bindingScopePrefix
     // This is a sanity check. Counter example:

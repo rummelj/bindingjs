@@ -15,7 +15,7 @@ _api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, 
     if (binding.isA("Scope")) {
         // Check if the scope has an 'Iterator' child
         let iterator = null
-        for (var i = 0; i < binding.childs().length; i++) {
+        for (let i = 0; i < binding.childs().length; i++) {
             if (binding.childs()[i].isA("Iterator")) {
                 iterator = binding.childs()[i]
                 break;
@@ -35,7 +35,7 @@ _api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, 
             
             let variables = variablesNode.getAll("Variable", "Scope")
             // TODO: Check if all start with @
-            for (var i = 0; i < variables.length; i++) {
+            for (let i = 0; i < variables.length; i++) {
                 // Check if all start with correct prefix
                 if (variables[i].get("ns") !== bindingScopePrefix) {
                     throw _api.util.exception("You can only use the binding scope adapter as the " +
@@ -54,7 +54,7 @@ _api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, 
         
         let variables = binding.getAll("Variable", "Scope")
         let variableIdsToAdd = []
-        for (var i = 0; i < variables.length; i++) {
+        for (let i = 0; i < variables.length; i++) {
             let variable = variables[i]
             // Only add those ids that are refs to the binding scope and that are neither
             // - in the ids already found (happens if same name used on multiple levels)
@@ -70,7 +70,7 @@ _api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, 
     }
     
     // Recursion
-    for (var i = 0; i < binding.childs().length; i++) {
+    for (let i = 0; i < binding.childs().length; i++) {
         _api.preprocessor.validate.checkIterationIdsRec(binding.childs()[i], bindingScopePrefix, ids)
     }
 }
@@ -78,7 +78,7 @@ _api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, 
 _api.preprocessor.validate.preventMultiIteration = (binding) => {
     let iterators = binding.getAll("Iterator")
     let elements = []
-    for (var i = 0; i < iterators.length; i++) {
+    for (let i = 0; i < iterators.length; i++) {
         let iterator = iterators[i]
         let scope = iterator.getParent()
         if (!scope.isA("Scope")) {
@@ -100,19 +100,19 @@ _api.preprocessor.validate.checkSlots = (binding) => {
     // Since we do this after expandSelectors, it is very simple to check
     let elements = []
     let scopes = binding.getAll("Scope")
-    for (var i = 0; i < scopes.length; i++) {
+    for (let i = 0; i < scopes.length; i++) {
         elements.push(scopes[i].get("element"))
     }
     
     let labels = binding.getAll("Label")
-    for (var i = 0; i < labels.length; i++) {
+    for (let i = 0; i < labels.length; i++) {
         let scope = labels[i].getParent()
         if (!scope.isA("Scope")) {
             throw _api.util.exception("Assumed, that the parent of a Label always is a Scope, but it was not")
         }
         let element = scope.get("element")
         let count = 0
-        for (var j = 0; j < elements.length; j++) {
+        for (let j = 0; j < elements.length; j++) {
             if ($api.$()(elements[j]).is(element)) {
                 count++
             }

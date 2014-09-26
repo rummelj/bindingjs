@@ -7,6 +7,108 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+let methods = {  
+    parseAndExtract: (bindingSpec, groupString) => {
+        let ast = _api.dsl.parser.safeParser(bindingSpec)
+        
+        // TODO: It is very inefficient, that the whole binding is parsed only to cut out the correct
+        // part referenced by arguments[1]. Solution: Create own grammar that only parses groups
+        // and only parse the correct group with the full parser
+        if (groupString) {
+            let path = groupString.split(".")
+            for (let i = 0; i < path.length; i++) {
+                let id = path[i]
+                let groups = ast.getAll("Group", "Group")
+                // groups might include ast which is unwanted
+                if (groups.indexOf(ast) !== -1) {
+                    groups.splice(groups.indexOf(ast), 1)
+                }
+                
+                let target = null
+                for (let j = 0; j < groups.length; j++) {
+                    let group = groups[j]
+                    if (group.get("id") === id && target) {
+                        let msg = "When resolving path " + arguments[1] + " after " +
+                            "having already processed "
+                        for (let k = 0; k < i; k++) {
+                            msg += path[k]
+                            if (k < i - 1) {
+                                msg += "."
+                            }
+                        }
+                        msg += " there was more than one group with id "  + id
+                        throw _api.util.exception(msg)
+                    } else if (group.get("id") === id /* && !target */) {
+                        target = group
+                    }
+                }
+                if (!target) {
+                    let msg = "When resolving path " + arguments[1] + " after " +
+                            "having already processed "
+                    for (let k = 0; k < i; k++) {
+                        msg += path[k]
+                        if (k < i - 1) {
+                            msg += "."
+                        }
+                    }
+                    msg += " there was no group with id " + id
+                    throw _api.util.exception(msg)
+                }
+                ast = target
+            }
+        }
+        return ast
+    },
+    
+    initIfReady: (viewDataBinding) => {
+        let ready = viewDataBinding.vars.template && viewDataBinding.vars.ast && viewDataBinding.vars.model
+        if (ready) {
+            _api.preprocessor.preprocess(viewDataBinding)
+            viewDataBinding.vars.initialized = true
+        }
+    },
+    
+    checkIfSlotExists: (viewDataBinding, id) => {
+        if (!viewDataBinding.vars.initialized) {
+            throw _api.util.exception("You must provide template, binding and model " +
+                " before using the slot api")
+        }
+        let allLabels = methods.getAllSocketIds(viewDataBinding.vars.iterationTree)
+        let found = false
+        for (let i = 0; i < allLabels.length; i++) {
+            if (allLabels[i] === id) {
+                found = true
+                break
+            }
+        }
+        if (!found) {
+            let available = ""
+            for (let i = 0; i < allLabels.length; i++) {
+                available += allLabels[i] + "\n"
+            }
+            throw _api.util.exception("Tried to use the slot api with id " + 
+                id + ". This id does not exist. Only the following ids are " +
+                "available: \n" + available)
+        }
+    },
+    
+    getAllSocketIds: (iterationTree) => {
+        let result = []
+        let sockets = iterationTree.get("slots")
+        for (let i = 0; i < sockets.length; i++) {
+            let socket = sockets[i]
+            result.push(socket.id)
+        }
+        for (let i = 0; i < iterationTree.childs().length; i++) {
+            let subResult = methods.getAllSocketIds(iterationTree.childs()[i])
+            for (let j = 0; j < subResult.length; j++) {
+                result.push(subResult[j])
+            }
+        }
+        return result
+    }
+}
+
 class ViewDataBinding {
     
     constructor () {
@@ -30,7 +132,7 @@ class ViewDataBinding {
         }
         
         // If bindingSpec is HTMLElement
-        if (typeof bindingSpec === "DOMElement" || typeof bindingSpec.text === "function") {
+        if (typeof bindingSpec.text === "function") {
             // TODO: Declarative Case
             bindingSpec = bindingSpec.text()
         }
@@ -51,14 +153,14 @@ class ViewDataBinding {
             throw _api.util.exception("Expected 1 argument, but received " + arguments.length)
         }
                 
-        let template = arguments[0]
-        if (typeof template === "object") {
+        let templateDomFragment = arguments[0]
+        if (typeof templateDomFragment === "object") {
             // TODO: Handle DocumentFragment and HTMLElement
-        } else if (typeof template === "string") {
+        } else if (typeof templateDomFragment === "string") {
             // TODO: Decide if Selector or HTMLString, do not clone if latter
-            this.vars.template = $api.$()(template).clone()
+            this.vars.template = $api.$()(templateDomFragment).clone()
         } else {
-            throw _api.util.exception("Unexpected type " + (typeof template) + " as template")
+            throw _api.util.exception("Unexpected type " + (typeof templateDomFragment) + " as template")
         }
         
         methods.initIfReady(this)
@@ -123,7 +225,7 @@ class ViewDataBinding {
         } else {
             this.vars.localScope.resume()
             this.vars.paused = false
-            for (var i = 0; i < this.vars.pauseQueue.length; i++) {
+            for (let i = 0; i < this.vars.pauseQueue.length; i++) {
                 _api.engine.binding.propagate(this, this.vars.pauseQueue[i])
             }
             this.vars.pauseQueue = []
@@ -136,9 +238,11 @@ class ViewDataBinding {
         return {
             instaces: () => {
                 // TODO
+                throw _api.util.exception("Not implemented yet")
             },
             instance: (number) => {
                 // TODO
+                throw _api.util.exception("Not implemented yet " + number)
             },
             onInsert: (callback) => {
                 if (typeof callback !== "function") {
@@ -170,7 +274,7 @@ class ViewDataBinding {
             throw _api.util.exception("Expected no or one argument but received " + arguments.length)
         }
         
-        if (arguments.length == 0) {
+        if (arguments.length === 0) {
             // Return
             if (this.vars.bindingScopePrefix) {
                 return this.vars.bindingScopePrefix
@@ -182,109 +286,6 @@ class ViewDataBinding {
             this.vars.bindingScopePrefix = arguments[0]
             return this
         }
-    }
-}
-
-
-var methods = {  
-    parseAndExtract: (bindingSpec, groupString) => {
-        let ast = _api.dsl.parser.safeParser(bindingSpec)
-        
-        // TODO: It is very inefficient, that the whole binding is parsed only to cut out the correct
-        // part referenced by arguments[1]. Solution: Create own grammar that only parses groups
-        // and only parse the correct group with the full parser
-        if (groupString) {
-            let path = groupString.split("\.")
-            for (var i = 0; i < path.length; i++) {
-                let id = path[i]
-                let groups = ast.getAll("Group", "Group")
-                // groups might include ast which is unwanted
-                if (groups.indexOf(ast) !== -1) {
-                    groups.splice(groups.indexOf(ast), 1)
-                }
-                
-                let target = null
-                for (var j = 0; j < groups.length; j++) {
-                    let group = groups[j]
-                    if (group.get("id") == id && target) {
-                        var msg = "When resolving path " + arguments[1] + " after " +
-                            "having already processed "
-                        for (var k = 0; k < i; k++) {
-                            msg += path[k]
-                            if (k < i - 1) {
-                                msg += "."
-                            }
-                        }
-                        msg += " there was more than one group with id "  + id
-                        throw _api.util.exception(msg)
-                    } else if (group.get("id") == id /* && !target */) {
-                        target = group
-                    }
-                }
-                if (!target) {
-                    var msg = "When resolving path " + arguments[1] + " after " +
-                            "having already processed "
-                    for (var k = 0; k < i; k++) {
-                        msg += path[k]
-                        if (k < i - 1) {
-                            msg += "."
-                        }
-                    }
-                    msg += " there was no group with id " + id
-                    throw _api.util.exception(msg)
-                }
-                ast = target
-            }
-        }
-        return ast
-    },
-    
-    initIfReady: (viewDataBinding) => {
-        let ready = viewDataBinding.vars.template && viewDataBinding.vars.ast && viewDataBinding.vars.model
-        if (ready) {
-            _api.preprocessor.preprocess(viewDataBinding)
-            viewDataBinding.vars.initialized = true
-        }
-    },
-    
-    checkIfSlotExists: (viewDataBinding, id) => {
-        if (!viewDataBinding.vars.initialized) {
-            throw _api.util.exception("You must provide template, binding and model " +
-                " before using the slot api")
-        }
-        let allLabels = methods.getAllSocketIds(viewDataBinding.vars.iterationTree)
-        let found = false
-        for (var i = 0; i < allLabels.length; i++) {
-            if (allLabels[i] === id) {
-                found = true
-                break
-            }
-        }
-        if (!found) {
-            let available = ""
-            for (var i = 0; i < allLabels.length; i++) {
-                available += allLabels[i] + "\n"
-            }
-            throw _api.util.exception("Tried to use the slot api with id " + 
-                id + ". This id does not exist. Only the following ids are " +
-                "available: \n" + available)
-        }
-    },
-    
-    getAllSocketIds: (iterationTree) => {
-        let result = []
-        let sockets = iterationTree.get("slots")
-        for (var i = 0; i < sockets.length; i++) {
-            let socket = sockets[i]
-            result.push(socket.id)
-        }
-        for (var i = 0; i < iterationTree.childs().length; i++) {
-            let subResult = methods.getAllSocketIds(iterationTree.childs()[i])
-            for (var j = 0; j < subResult.length; j++) {
-                result.push(subResult[j])
-            }
-        }
-        return result
     }
 }
 

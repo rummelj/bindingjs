@@ -13,7 +13,7 @@ module.exports = function (grunt) {
     grunt.config.merge({
         newer: {
             "stage1-src": {
-                src: [ "src/core/*.js", "src/plugin/*.js" ],
+                src: [ "src/core/**/*.js", "src/plugin/**/*.js" ],
                 dest: "bld/stage1/done-jshint-src",
                 options: { tasks: [ "jshint:stage1-src", "touch:stage1-src" ] }
             },
@@ -25,10 +25,11 @@ module.exports = function (grunt) {
         },
         jshint: {
             "stage1-src": [
-                "src/core/*.js",
-                "!src/core/binding-2-util-2-promise.js",
-                "!src/core/binding-2-util-3-ducky.js",
-                "src/plugin/*.js"
+                "src/core/**/*.js",
+                "!src/core/util/ducky.js",
+                // TODO: Remove this line together with Watch.JS
+                "!src/core/util/watch.js",
+                "src/plugin/**/*.js"
             ],
             "stage1-tst": [
                 "tst/**/*.js",

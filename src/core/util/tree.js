@@ -20,7 +20,7 @@ _api.util.tree.getAllRec = (tree, type, stopAtType, firstCall, accumulator) => {
         accumulator.push(tree)
     }
     if (firstCall || !stopAtType || !tree.isA(stopAtType)) {
-        for (var i = 0; i < tree.childs().length; i++) {
+        for (let i = 0; i < tree.childs().length; i++) {
             _api.util.tree.getAllRec(tree.childs()[i], type, stopAtType, false, accumulator)
         }
     }
@@ -50,14 +50,14 @@ class Tree {
     }
     
     clone () {
-        let clone = Tree(this.T)
-        clone.A = $api.$().extend({}, this.A)
-        clone.P = $api.$().extend({}, this.P)
-        for (var i = 0; i < this.C.length; i++) {
-            clone.add(this.C[i].clone())
+        let result = Tree(this.T)
+        result.A = $api.$().extend({}, this.A)
+        result.P = $api.$().extend({}, this.P)
+        for (let i = 0; i < this.C.length; i++) {
+            result.add(this.C[i].clone())
         }
         // Intentionally not setting parent
-        return clone
+        return result
     }
 
     /*  check the type of an Tree node  */
@@ -98,7 +98,7 @@ class Tree {
     }
     
     hasChild (type) {
-        for (var i = 0; i < this.childs().length; i++) {
+        for (let i = 0; i < this.childs().length; i++) {
             if (this.childs()[i].isA(type)) {
                 return true
             }
@@ -144,7 +144,7 @@ class Tree {
         if (arguments.length < 2)
             throw new Error("addAt: invalid argument")
         let self = this
-        let _add = (C, node, index) => {
+        let _add = (C, node, ind) => {
             if (!(   (typeof node   === "object")
                   && (typeof node.T === "string")
                   && (typeof node.P === "object")
@@ -152,12 +152,12 @@ class Tree {
                   && (typeof node.C === "object" && node.C instanceof Array)))
                 throw new Error("add: invalid Tree node: " + node)
             node.parent = self
-            C.splice(index, 0, node)
-        };
+            C.splice(ind, 0, node)
+        }
         
         // Iterate backwards and do not add first argument which is the index
         let index = arguments[0]
-        for (var i = arguments.length - 1; i >= 1; i--) {
+        for (let i = arguments.length - 1; i >= 1; i--) {
             let arg = arguments[i]
             if (typeof arg === "object" && arg instanceof Array)
                 arg.forEach((child) => _add(this.C, child, index))
@@ -174,7 +174,7 @@ class Tree {
         }
         
         // Determine own index
-        var index = this.parent.childs().indexOf(this)
+        let index = this.parent.childs().indexOf(this)
         // Transform arguments to real array
         let args = Array.prototype.slice.call(arguments)
         // Push index in front
@@ -274,7 +274,7 @@ class Tree {
         if (this.isA("Variable")) {
             result += this.get("ns") + (this.get("ns").length > 1 ? ":" : "") + this.get("id")
         } else if (this.isA("Scope")) {
-            for (var i = 0; i < level; i++) {
+            for (let i = 0; i < level; i++) {
                 result += "    "
             }
             let element = this.get("element")
@@ -289,20 +289,20 @@ class Tree {
         } else if (this.isA("BindingOperator")) {
             result += " " + this.get("value") + " "
         } else if (this.isA("Binding")) {
-            for (var i = 0; i < level + 1; i++) {
+            for (let i = 0; i < level + 1; i++) {
                 result += "    "
             }
         }
         
         // Recursion
-        for (var i = 0; i < this.childs().length; i++) {
+        for (let i = 0; i < this.childs().length; i++) {
             result += this.childs()[i].asBindingSpec(level)
         }
         
         // Post
         if (this.isA("Scope")) {
             level--
-            for (var i = 0; i < level; i++) {
+            for (let i = 0; i < level; i++) {
                 result += "    "
             }
             result += "}\r\n"

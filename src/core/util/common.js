@@ -34,7 +34,7 @@ _api.util.definedOrElse = (value, fallback) => {
 _api.util.getPath = (context, element) => {
     let $current = $api.$()(element)
     let $context = $api.$()(context)
-    let path = new Array();
+    let path = []
     let realpath = "";
     // Since this code is taken from the web, we limit the number of iterations to
     // avoid hard to track errors
@@ -51,7 +51,7 @@ _api.util.getPath = (context, element) => {
             throw _api.util.exception("Internal error: GetPath called with element, that is NOT a descendant of context")
         }
     }
-    while (path.length != 0) {
+    while (path.length !== 0) {
         realpath += path.pop();
     }
     return realpath;
@@ -66,32 +66,32 @@ _api.util.objectEquals = (a, b) => {
             b instanceof Array && !(a instanceof Array)) {
                 return false
         } else if (a instanceof Array && b instanceof Array) {
-            if (a.length != b.length) {
+            if (a.length !== b.length) {
                 return false
             } else {
-                for (var i = 0; i < a.length; i++) {
+                for (let i = 0; i < a.length; i++) {
                     if (!_api.util.objectEquals(a[i], b[i])) {
                         return false
                     }
                 }
                 return true
             }
-        } else if (typeof a == "object") {
+        } else if (typeof a === "object") {
             // Check if every key of a is in b and vice versa
             let aKeys = _api.util.getObjectKeys(a)
-            for (var i = 0; i < aKeys.length; i++) {
+            for (let i = 0; i < aKeys.length; i++) {
                 if (!(aKeys[i] in b)) {
                     return false
                 }
             }
             let bKeys = _api.util.getObjectKeys(b)
-            for (var i = 0; i < bKeys.length; i++) {
+            for (let i = 0; i < bKeys.length; i++) {
                 if (!(bKeys[i] in a)) {
                     return false
                 }
             }
             // Both keysets are equal
-            for (var i = 0; i < aKeys.length; i++) {
+            for (let i = 0; i < aKeys.length; i++) {
                 if (!_api.util.objectEquals(a[aKeys[i]], b[bKeys[i]])) {
                     return false
                 }
@@ -109,7 +109,7 @@ _api.util.isReference = (obj) => {
 
 _api.util.getObjectKeys = (obj) => {
     let result = []
-    for (key in obj) {
+    for (let key in obj) {
         if (obj.hasOwnProperty(key)) {
             result.push(key)
         }
@@ -125,8 +125,8 @@ _api.util.getGuid = (() => {
                .substring(1);
     }
     return () => {
-      return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-             s4() + '-' + s4() + s4() + s4();
+      return s4() + s4() + "-" + s4() + "-" + s4() + "-" +
+             s4() + "-" + s4() + s4() + s4();
     }
 })()
 

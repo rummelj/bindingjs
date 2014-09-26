@@ -8,12 +8,10 @@
  */
  
  _api.preprocessor.iterator.setupIterationTree = (binding, template) => {
-    let root = true
     let iteratedNode = new _api.util.Tree("PlainIteration")
-    iteratedNode.set("placeholder", [])
+
     // Move the iteration information into interatedNode
     if (binding.isA("Scope") && binding.hasChild("Iterator")) {
-        root = false
         // Create iterated node
         let iterator = binding.childs()[0]
         if (!iterator.isA("Iterator")) {
@@ -42,7 +40,7 @@
             throw _api.util.exception("Expected Iterator to always have exactly one " +
                                       "child with type Expr")
         }
-        if (!exprs[0].childs().length === 1) {
+        if (exprs[0].childs().length !== 1) {
             throw _api.util.exception("Expected the Expr in Iteration to always have " +
                                      "exactly one child")
         }
@@ -55,11 +53,25 @@
         
         // Delete the iterator
         binding.del(iterator)
+        
+        let $template = $api.$()(template)
+        // Tag names starting with numbers are invalid, so always prepend BindingJS-
+        let virtual = $api.$()("<BindingJS-" + _api.util.getGuid() + " />")
+        $template.after(virtual)
+        $template.detach()
+        iteratedNode.set("iterationTemplate", $template)
+        iteratedNode.set("template", virtual)
+        iteratedNode.set("collection", [])
+    } else {
+        iteratedNode.set("template", template)
+        iteratedNode.set("collection", true)
     }
+    iteratedNode.set("links", [])
+    iteratedNode.set("placeholder", [])
     
-    var iterators = binding.getAll("Iterator")
+    let iterators = binding.getAll("Iterator")
     // Filter out all, that are nested in other iterators
-    for (var i = 0; i < iterators.length; i++) {
+    for (let i = 0; i < iterators.length; i++) {
         let iterator = iterators[i]
         let scope = iterator.getParent()
         if (!scope.isA("Scope")) {
@@ -87,21 +99,8 @@
         }
     }
     
-    // Set template
-    if (!root) {
-        let $template = $api.$()(template)
-        // Tag names starting with numbers are invalid, so always prepend BindingJS-
-        let virtual = $api.$()("<BindingJS-" + _api.util.getGuid() + " />")
-        $template.after(virtual)
-        $template.detach()
-        iteratedNode.set("iterationTemplate", $template)
-        iteratedNode.set("template", virtual)
-    } else {
-        iteratedNode.set("template", template)
-    }
-    
     // Recursion
-    for (var i = 0; i < iterators.length; i++) {
+    for (let i = 0; i < iterators.length; i++) {
         let iterator = iterators[i]
         let scope = iterator.getParent()
         
@@ -115,16 +114,6 @@
         iteratedNode.add(child)
     }
     iteratedNode.set("binding", binding.clone())
-    
-    // Set collection
-    if (!root) {
-        iteratedNode.set("collection", [])
-    } else {
-        iteratedNode.set("collection", true)
-    }
-    
-    // Set links
-    iteratedNode.set("links", [])
 
     return iteratedNode
  }
@@ -135,7 +124,7 @@
     // rootLink always exactly has one instance, the placeholder in rootLink
     // will never have to be located again, so they can be safely replaced
     let placeholder = rootLink.get("placeholder")
-    for (var i = 0; i < placeholder.length; i++) {
+    for (let i = 0; i < placeholder.length; i++) {
         let comment = $api.$()("<!-- -->")
         placeholder[i].replaceWith(comment)
         placeholder[i] = comment
@@ -153,7 +142,7 @@
     root.set("links", [rootLink])
     
     // Each child iteration of root is initially present without instances
-    for (var i = 0; i < root.childs().length; i++) {
+    for (let i = 0; i < root.childs().length; i++) {
         let child = root.childs()[i]
         let newChildLink =  _api.preprocessor.iterator.initExpandedIterationNode(bindingObj, child, rootLink)
         newChildLink.set("instance", rootInstance)
@@ -184,31 +173,31 @@
     result.set("placeholder", [])
     
     let templatePlList = node.get("placeholder")
-    for (var i = 0; i < templatePlList.length; i++) {
+    for (let i = 0; i < templatePlList.length; i++) {
         let templatePl = templatePlList[i]
         let selector = _api.util.getPath(oldTemplate, templatePl)
-        let newPlaceholder = selector == "" ? template : $api.$()(selector, template)
+        let newPlaceholder = selector === "" ? template : $api.$()(selector, template)
         result.get("placeholder").push(newPlaceholder)
     }
     
     // Update slots
     let slots = node.get("slots")
     result.set("slots", [])
-    for (var i = 0; i < slots.length; i++) {
+    for (let i = 0; i < slots.length; i++) {
         let slot = slots[i]
         let element = slot.element
         let selector = _api.util.getPath(oldTemplate, element)
-        let newElement = selector == "" ? template : $api.$()(selector,  template)
+        let newElement = selector === "" ? template : $api.$()(selector,  template)
         result.get("slots").push({ element: newElement, id: slot.id })
     }
     
     // The references inside binding still refer to the template before it was cloned
     let scopes = binding.getAll("Scope")
-    for (var i = 0; i < scopes.length; i++) {
+    for (let i = 0; i < scopes.length; i++) {
         let scope =  scopes[i]
         let element = scope.get("element")
         let selector = _api.util.getPath(oldTemplate, element)
-        let newElement = selector == "" ? template : $api.$()(selector, template)
+        let newElement = selector === "" ? template : $api.$()(selector, template)
         if (newElement.length !== 1) {
             throw _api.util.exception("Could not locate element in template clone")
         }
@@ -224,11 +213,11 @@
     let parentRenames = parentLink ? parentLink.get("bindingRenames") : []
     if (!$api.$().isEmptyObject(parentRenames)) {
         // Do the renaming
-        for (var i = 0; i < variables.length; i++) {
+        for (let i = 0; i < variables.length; i++) {
             let variable = variables[i]
-            for (var oldId in parentRenames) {
-                if (variable.get("ns") == bindingObj.bindingScopePrefix() &&
-                    variable.get("id") == oldId) {
+            for (let oldId in parentRenames) {
+                if (variable.get("ns") === bindingObj.bindingScopePrefix() &&
+                    variable.get("id") === oldId) {
                         variable.set("id", parentRenames[oldId]) 
                 }
             }
@@ -243,17 +232,17 @@
     let ancestorOwnVariables = []
     let parent = parentLink
     while (parent) {
-        for (var i = 0; i < parent.get("ownVariables").length; i++) {
+        for (let i = 0; i < parent.get("ownVariables").length; i++) {
             ancestorOwnVariables.push(parent.get("ownVariables")[i])
         }
         parent = parent.getParent()
     }
     
     let ownVariables = []
-    for (var i = 0; i < variables.length; i++) {
+    for (let i = 0; i < variables.length; i++) {
         let variable = variables[i]
-        if (variable.get("ns") == bindingObj.bindingScopePrefix() &&
-            ancestorOwnVariables.indexOf(variable.get("id")) == -1) {
+        if (variable.get("ns") === bindingObj.bindingScopePrefix() &&
+            ancestorOwnVariables.indexOf(variable.get("id")) === -1) {
             ownVariables.push(variable.get("id"))
         }
     }
@@ -271,7 +260,7 @@
     
     // For each own variable add an own rename
     let ownRenames = {}
-    for (var i = 0; i < ownVariables.length; i++) {
+    for (let i = 0; i < ownVariables.length; i++) {
         let ownVariable = ownVariables[i]
         let newId = "temp" + bindingObj.vars.tempCounter.getNext()
         ownRenames[ownVariable] = newId
@@ -280,11 +269,11 @@
     }
     
     // Do the ownRenames renaming
-    for (var i = 0; i < variables.length; i++) {
+    for (let i = 0; i < variables.length; i++) {
         let variable = variables[i]
-        for (var oldId in ownRenames) {
-            if (variable.get("ns") == bindingObj.bindingScopePrefix() &&
-                variable.get("id") == oldId) {
+        for (let oldId in ownRenames) {
+            if (variable.get("ns") === bindingObj.bindingScopePrefix() &&
+                variable.get("id") === oldId) {
                     variable.set("id", ownRenames[oldId]) 
             }
         }
@@ -305,7 +294,7 @@
     // Copy parentRenames
     let bindingRenames = $api.$().extend({}, parentRenames)
     // Add entries from ownRenames
-    for (var oldId in ownRenames) {
+    for (let oldId in ownRenames) {
         bindingRenames[oldId] = ownRenames[oldId]
     }
     result.set("bindingRenames", bindingRenames)
@@ -313,7 +302,7 @@
     return result
  }
  
- _api.preprocessor.iterator.shutdownExpandedIterationNode = (binding, newLink) => {
+ _api.preprocessor.iterator.shutdownExpandedIterationNode = (/*binding, newLink*/) => {
     // Do the opposite of _api.preprocessor.iterator.initExpandedIterationNode in reverse order
     
     // Nothing to do yet

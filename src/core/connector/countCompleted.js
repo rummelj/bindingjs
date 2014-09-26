@@ -11,7 +11,7 @@
 _api.connector.countCompleted = class countCompleted {
     process (input) {
         let count = 0
-        for (var i = 0; i < input.length; i++) {
+        for (let i = 0; i < input.length; i++) {
           let item = input[i]
           if (_api.util.isReference(item)) {
               item = item.getValue()

@@ -21,12 +21,12 @@ _api.adapter.value = class ValueAdapter {
     }
     
     notify (element) {
-        if (this.observedElements.indexOf(element) == -1) {
+        if (this.observedElements.indexOf(element) === -1) {
             return
         }
         
         let observer = this.observer[this.observedElements.indexOf(element)]
-        for (var i = 0; i < observer.length; i++) {
+        for (let i = 0; i < observer.length; i++) {
             observer[i].callback()
         }
     }
@@ -36,7 +36,7 @@ _api.adapter.value = class ValueAdapter {
             throw _api.util.exception("value can not process paths")
         }
         
-        if (this.observedElements.indexOf(element) == -1) {
+        if (this.observedElements.indexOf(element) === -1) {
             this.observedElements.push(element)
             this.observer.push([])
             let self = this
@@ -52,10 +52,10 @@ _api.adapter.value = class ValueAdapter {
         let elementIndex
         let observerIndex
         let found = false
-        for (var i = 0; i < this.observer.length; i++) {
+        for (let i = 0; i < this.observer.length; i++) {
             let elementObserver = this.observer[i]
-            for (var j = 0; j < elementObserver.length; j++) {
-                if (elementObserver[j].observerId == observerId) {
+            for (let j = 0; j < elementObserver.length; j++) {
+                if (elementObserver[j].observerId === observerId) {
                     elementIndex = i
                     observerIndex = j
                     found = true
@@ -72,7 +72,7 @@ _api.adapter.value = class ValueAdapter {
             return
         }
         
-        if (this.observer[observerIndex].length == 1) {
+        if (this.observer[observerIndex].length === 1) {
             this.observedElements[elementIndex].off("change input propertychange paste")
             this.observedElements.splice(elementIndex, 1)
             this.observer.splice(elementIndex, 1)

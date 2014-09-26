@@ -25,13 +25,14 @@ $api.$ = () => {
         throw _api.util.exception("Expected no or one argument but received " + arguments.length)
     }
     
-    if (arguments.length == 0) {
+    if (arguments.length === 0) {
         // Return jQuery
         if (_api.$) {
             return _api.$
         } else {
             // Try default access
-            if (typeof jQuery !== 'undefined') {
+            /* global jQuery */
+            if (typeof jQuery !== "undefined") {
                 return jQuery
             } else {
                throw _api.util.exception("BindingJS requires jQuery which is not loaded or not " +

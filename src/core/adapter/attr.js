@@ -15,18 +15,18 @@ _api.adapter.attr = class AttrAdapter {
     }
     
     getValue (element, path) {
-        if (path.length != 1) {
+        if (path.length !== 1) {
             throw _api.util.exception("attr needs a path of length 1")
         }
         return element.attr(path[0])
     }
     
     set (element, path, value) {
-        if (path.length != 1) {
+        if (path.length !== 1) {
             throw _api.util.exception("attr needs a path of length 1")
         }
         let name = path[0]
-        if (name == "checked") {
+        if (name === "checked") {
             if (value) {
                 element.prop(name, true)
             } else {

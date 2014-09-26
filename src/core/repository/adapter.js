@@ -30,9 +30,9 @@
  _api.repository.adapter.getAll = (type) => {
     _api.repository.adapter.init()
     let result = []
-    for (var name in _api.adapterRepo) {
+    for (let name in _api.adapterRepo) {
         let impl = _api.repository.adapter.get(name)
-        if (impl.type() == type) {
+        if (impl.type() === type) {
             result.push(impl)
         }
     }

@@ -23,7 +23,7 @@ class LocalScope {
     
     resume() {
         this.paused = false
-        for (var i = 0; i < this.pauseQueue.length; i++) {
+        for (let i = 0; i < this.pauseQueue.length; i++) {
             this.notify(this.pauseQueue[i])
         }
         this.pauseQueue = []
@@ -31,7 +31,7 @@ class LocalScope {
     
     getIds() {
         let result = []
-        for (var id in this.data) {
+        for (let id in this.data) {
             result.push(id)
         }
         return result
@@ -60,18 +60,18 @@ class LocalScope {
             this.observerIds[id].push(value.observe(() => {
                 if (!this.paused) {
                     this.notify(id)
-                } else if (this.pauseQueue.indexOf(id) == -1) {
+                } else if (this.pauseQueue.indexOf(id) === -1) {
                     this.pauseQueue.push(id)
                 }
             }))
         } else {
             // Recursion
             if (value instanceof Array) {
-                for (var i = 0; i < value.length; i++) {
+                for (let i = 0; i < value.length; i++) {
                     this.observeReferences(id, value[i])
                 }
-            } else if (typeof value == "object") {
-                for (var key in value) {
+            } else if (typeof value === "object") {
+                for (let key in value) {
                     this.observeReferences(id, value[key])
                 }
             }
@@ -80,7 +80,7 @@ class LocalScope {
     
     unobserveReferences(id) {
         if (this.observerIds[id]) {
-            for (var i = 0; i < this.observerIds[id].length; i += 2) {
+            for (let i = 0; i < this.observerIds[id].length; i += 2) {
                 let reference = this.observerIds[id][i]
                 let observerId = this.observerIds[id][i + 1]
                 $api.debug(9, "Unobserving: " + JSON.stringify(reference.path))
@@ -110,9 +110,9 @@ class LocalScope {
     }
     
     unobserve(id) {
-        var found = false
-        for (var name in this.observer) {
-            for (var index in this.observer[name]) {
+        let found = false
+        for (let name in this.observer) {
+            for (let index in this.observer[name]) {
                 if (this.observer[name][index].id === id) {
                     this.observer[name].splice(index, 1)
                     // Break outer
@@ -128,7 +128,7 @@ class LocalScope {
     }
     
     notify(id) {
-        for (var i = 0; this.observer[id] && i < this.observer[id].length; i++) {
+        for (let i = 0; this.observer[id] && i < this.observer[id].length; i++) {
             this.observer[id][i].callback()
         }
     }

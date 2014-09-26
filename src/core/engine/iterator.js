@@ -18,23 +18,23 @@
  }
  
  _api.engine.iterator.callSlotRemovalObserver = (binding, node) => {
-    for (var i = 0; i < node.get("instances").length; i++) {
+    for (let i = 0; i < node.get("instances").length; i++) {
         let instance = node.get("instances")[i]
         _api.engine.iterator.callSlotRemovalObserverInstance(binding, node, instance)
     }
     
-    for (var i = 0; i < node.childs().length; i++) {
+    for (let i = 0; i < node.childs().length; i++) {
         _api.engine.iterator.callSlotRemovalObserver(binding, node.childs()[i])
     }
  }
  
  _api.engine.iterator.callSlotInsertionObserver = (binding, node) => {
-    for (var i = 0; i < node.get("instances").length; i++) {
+    for (let i = 0; i < node.get("instances").length; i++) {
         let instance = node.get("instances")[i]
         _api.engine.iterator.callSlotInsertionObserverInstance(binding, node, instance)
     }
     
-    for (var i = 0; i < node.childs().length; i++) {
+    for (let i = 0; i < node.childs().length; i++) {
         _api.engine.iterator.callSlotInsertionObserver(binding, node.childs()[i])
     }
  }
@@ -51,13 +51,13 @@
             keys.push(node.get("instance").key)
             node = node.getParent()
         }
-        for (var i = 0; i < instance.slots.length; i++) {
+        for (let i = 0; i < instance.slots.length; i++) {
             let slot = instance.slots[i]
             let id = slot.id
             let element = slot.element
             let callbacks = binding.vars.slotRemovalObserver[id]
             if (callbacks) {
-                for (var j = 0; j < callbacks.length; j++) {
+                for (let j = 0; j < callbacks.length; j++) {
                     let callback = callbacks[j]
                     callback(keys, element)
                 }
@@ -78,13 +78,13 @@
             keys.push(node.get("instance").key)
             node = node.getParent()
         }
-        for (var i = 0; i < instance.slots.length; i++) {
+        for (let i = 0; i < instance.slots.length; i++) {
             let slot = instance.slots[i]
             let id = slot.id
             let element = slot.element
             let callbacks = binding.vars.slotInsertionObserver[id]
             if (callbacks) {
-                for (var j = 0; j < callbacks.length; j++) {
+                for (let j = 0; j < callbacks.length; j++) {
                     let callback = callbacks[j]
                     callback(keys, element)
                 }
@@ -94,11 +94,11 @@
  }
  
  _api.engine.iterator.init = (binding) => {
-    var root = binding.vars.iterationTree
+    let root = binding.vars.iterationTree
     // Init binding of root instance
     _api.engine.binding.init(binding, root.get("links")[0].get("instances")[0])
     binding.vars.firstLevelIterationObserverIds = []
-    for (var i = 0; i < root.childs().length; i++) {
+    for (let i = 0; i < root.childs().length; i++) {
         let observerId = _api.engine.iterator.initInternal(binding, root.childs()[i])
         binding.vars.firstLevelIterationObserverIds.push(observerId)
     }
@@ -106,16 +106,16 @@
  
  _api.engine.iterator.shutdown = (binding) => {
     // Opposite of _api.engine.iterator.init in reverse order
-    var root = binding.vars.iterationTree
+    let root = binding.vars.iterationTree
     
-    for (var i = 0; i < binding.vars.firstLevelIterationObserverIds.length; i++) {
+    for (let i = 0; i < binding.vars.firstLevelIterationObserverIds.length; i++) {
         let observerId = binding.vars.firstLevelIterationObserverIds[i]
         binding.vars.localScope.unobserve(observerId)
         // Destroy is not necessary, since in shutdownInternal the values (which might be references for when)
         // will be overwritten and the unobserve is done in localScope
     }
     
-    for (var i = 0; i < root.childs().length; i++) {
+    for (let i = 0; i < root.childs().length; i++) {
         _api.engine.iterator.shutdownInternal(binding, root.childs()[i])
     }
     _api.engine.binding.shutdown(binding, root.get("links")[0].get("instances")[0])
@@ -144,7 +144,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     let currentCollectionType = Object.prototype.toString.call(currentCollection)
     
     let newCollection = null
-    if (currentCollectionType == "[object Boolean]") {
+    if (currentCollectionType === "[object Boolean]") {
         newCollection = false
     } else if (currentCollection instanceof Array) {
         newCollection = []
@@ -159,20 +159,20 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
 }
 
  _api.engine.iterator.changeListener = (binding, node) => {
-    var newCollection = binding.vars.localScope.get(node.get("sourceId"))
+    let newCollection = binding.vars.localScope.get(node.get("sourceId"))
     // Special case for true and false or empty collection
     if (newCollection instanceof _api.engine.binding.Reference) {
         newCollection = newCollection.getValue()
     }
     newCollection = (typeof newCollection === "undefined") ? [] : newCollection
-    var oldCollection = node.get("collection")
+    let oldCollection = node.get("collection")
     node.set("collection", _api.engine.binding.convertToValues(newCollection))
     
     let newCollectionType = Object.prototype.toString.call(newCollection)
-    if (newCollectionType == "[object Boolean]") {
+    if (newCollectionType === "[object Boolean]") {
         // collection is always initialized with [], so if the boolean arrives for the first time
         // this needs to be interpreted as false
-        if (oldCollection.hasOwnProperty("length") && oldCollection.length == 0) {
+        if (oldCollection.hasOwnProperty("length") && oldCollection.length === 0) {
             oldCollection = false
         }
         if (oldCollection && !newCollection) {
@@ -183,8 +183,8 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
             _api.engine.iterator.add(binding, node, { key: 0, value: true })
         }
     } else {
-        var changes = _api.engine.iterator.levensthein(oldCollection, newCollection)
-        for (var i = 0; i < changes.length; i++) {
+        let changes = _api.engine.iterator.levensthein(oldCollection, newCollection)
+        for (let i = 0; i < changes.length; i++) {
             switch (changes[i].action) {
                 case "remove":
                     _api.engine.iterator.remove(binding, node, changes[i].key)
@@ -207,9 +207,9 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     let newInstance = _api.engine.iterator.addInstance(binding, node, property)
     
     // Initialize new children
-    for (var j = 0; j < childs.length; j++) {
+    for (let j = 0; j < childs.length; j++) {
         let child = childs[j]
-        let newChildLink = _api.engine.iterator.initChild(binding, node, child, newInstance, property.key)
+        let newChildLink = _api.engine.iterator.initChild(binding, node, child, newInstance)
         node.add(newChildLink)
     }
     
@@ -222,9 +222,9 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     // Find instance
     let oldInstance
     let instances = node.get("instances")
-    for (var i = 0; i < instances.length; i++) {
+    for (let i = 0; i < instances.length; i++) {
         let instance = instances[i]
-        if (instance.key == key) {
+        if (instance.key === key) {
             oldInstance = instance
             break
         }
@@ -237,7 +237,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     _api.engine.binding.shutdown(binding, oldInstance)
     
     let childs = node.childs()
-    for (var i = 0; i < childs.length; i++) {
+    for (let i = 0; i < childs.length; i++) {
         let child = childs[i]
         if (child.get("instance") === oldInstance) {
             node.del(child)
@@ -250,9 +250,9 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
  }
  
  _api.engine.iterator.replace = (binding, node, key, newValue) => {
-    for (var i = 0; i < node.childs().length; i++) {
+    for (let i = 0; i < node.childs().length; i++) {
         let child = node.childs()[i]
-        if (child.get("instance").key == key) {
+        if (child.get("instance").key === key) {
             binding.vars.localScope.set(child.get("sourceId"), newValue)
         }
     }
@@ -260,7 +260,6 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
  
  _api.engine.iterator.addInstance = (binding, link, property) => {
     $api.debug(8, "Adding instance, property.key: " + property.key)
-    let instances = link.get("instances")
     
     // Template
     let oldTemplate = link.get("template")
@@ -269,10 +268,10 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     // Template Placeholder
     let oldTemplatePlaceholder = link.get("placeholder")
     let newTemplatePlaceholder = []
-    for (var i = 0; i < oldTemplatePlaceholder.length; i++) {
+    for (let i = 0; i < oldTemplatePlaceholder.length; i++) {
         let oldPlaceholder = oldTemplatePlaceholder[i]
         let selector = _api.util.getPath(oldTemplate, oldPlaceholder)
-        let newPlaceholder = selector == "" ? newTemplate : $api.$()(selector, newTemplate)
+        let newPlaceholder = selector === "" ? newTemplate : $api.$()(selector, newTemplate)
         let comment = $api.$()("<!-- -->")
         newPlaceholder.replaceWith(comment)
         newTemplatePlaceholder.push(comment)
@@ -281,22 +280,22 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     // Update slots
     let slots = link.get("slots")
     let newSlots = []
-    for (var i = 0; i < slots.length; i++) {
+    for (let i = 0; i < slots.length; i++) {
         let slot = slots[i]
         let element = slot.element
         let selector = _api.util.getPath(oldTemplate, element)
-        let newElement = selector == "" ? newTemplate : $api.$()(selector,  newTemplate)
+        let newElement = selector === "" ? newTemplate : $api.$()(selector,  newTemplate)
         newSlots.push({ element: newElement, id: slot.id })
     }
     
     // Binding
     let newBinding = link.get("binding").clone()
     let scopes = newBinding.getAll("Scope")
-    for (var i = 0; i < scopes.length; i++) {
+    for (let i = 0; i < scopes.length; i++) {
         let scope =  scopes[i]
         let element = scope.get("element")
         let selector = _api.util.getPath(oldTemplate, element)
-        let newElement = selector == "" ? newTemplate : $api.$()(selector, newTemplate)
+        let newElement = selector === "" ? newTemplate : $api.$()(selector, newTemplate)
         if (newElement.length !== 1) {
             throw _api.util.exception("Could not locate element in template clone")
         }
@@ -310,7 +309,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     let bindingRenames = {}
     // Rename all own variables
     let ownVariables = link.get("ownVariables")
-    for (var i = 0; i < ownVariables.length; i++) {
+    for (let i = 0; i < ownVariables.length; i++) {
         let ownVariable = ownVariables[i]
         bindingRenames[ownVariable] = "temp" + binding.vars.tempCounter.getNext()
     }
@@ -335,18 +334,18 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     
     // Also rename anything that parent has renamed
     let parentRenames = link.get("instance") ? link.get("instance").bindingRenames : {}
-    for (oldId in parentRenames) {
+    for (let oldId in parentRenames) {
         bindingRenames[oldId] = parentRenames[oldId]
     }
     
     // Do the renaming
     let variables = newBinding.getAll("Variable")
-    for (var i = 0; i < variables.length; i++) {
+    for (let i = 0; i < variables.length; i++) {
         let variable = variables[i]
         if (variable.get("ns") !== binding.bindingScopePrefix()) {
             continue 
         }
-        for (var bindingRename in bindingRenames) {
+        for (let bindingRename in bindingRenames) {
             let oldId = bindingRename
             let newId = bindingRenames[oldId]
             if (variable.get("id") === oldId) {
@@ -370,15 +369,16 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         slots: newSlots
     }
     
+    let instances = link.get("instances")
     // Insert template
     // afterKey === -1 means "insert at front"
     if (typeof property.afterKey !== "undefined" &&
           property.afterKey !== -1 &&
-          link.get("instances").length > 0) {
+          instances.length > 0) {
         // Search for instance with that key and insert after it
-        for (var i = 0; i < link.get("instances").length; i++) {
-            let instance = link.get("instances")[i]
-            if (instance.key == property.afterKey) {
+        for (let i = 0; i < instances.length; i++) {
+            let instance = instances[i]
+            if (instance.key === property.afterKey) {
                 instance.template.after(newTemplate)
                 break
             }
@@ -389,7 +389,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     }
    
     // Add to instances
-    link.get("instances").push(newInstance)
+    instances.push(newInstance)
     
     // Call slots
     _api.engine.iterator.callSlotInsertionObserverInstance(binding, link, newInstance)
@@ -402,7 +402,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     if (node.get("collection") instanceof Array) {
         // Increase key of all instances greater than keyAdded by one
         let instances = node.get("instances")
-        for (var i = 0; i < instances.length; i++) {
+        for (let i = 0; i < instances.length; i++) {
             let instance = instances[i]
             if (instance !== newInstance && instance.key >= keyAdded) {
                 // Update key
@@ -422,8 +422,8 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         let newRef = entry.clone()
         let refPath = newRef.getPath()
         // Check if paths fit together
-        for (var i = 0; i < path.length; i++) {
-            if (refPath[refPath.length - path.length + i] != path[i]) {
+        for (let i = 0; i < path.length; i++) {
+            if (refPath[refPath.length - path.length + i] !== path[i]) {
                 throw _api.util.exception("Internal error")
             }
         }
@@ -441,14 +441,14 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         // Recursion
         if (entry instanceof Array) {
             let newArr = []
-            for (var i = 0; i < entry.length; i++) {
+            for (let i = 0; i < entry.length; i++) {
                 let subResult = _api.engine.iterator.refreshKeysAddedEntry(entry[i], [].concat.apply([], [path, i]), keyAdded)
                 newArr.push(subResult)
             }
             return newArr
-        } else if (typeof entry == "object") {
+        } else if (typeof entry === "object") {
             let newObj = {}
-            for (var key in entry) {
+            for (let key in entry) {
                 let subResult = _api.engine.iterator.refreshKeysAddedEntry(entry[key], [].concat.apply([], [path, key]), keyAdded)
                 newObj[key] = subResult
             }
@@ -486,7 +486,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     if (node.get("collection") instanceof Array) {
         // Reduce key of all instances greater than keyRemoved by one
         let instances = node.get("instances")
-        for (var i = 0; i < instances.length; i++) {
+        for (let i = 0; i < instances.length; i++) {
             let instance = instances[i]
             if (instance.key > keyRemoved) {
                 // Update key
@@ -506,8 +506,8 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         let newRef = entry.clone()
         let refPath = newRef.getPath()
         // Check if paths fit together
-        for (var i = 0; i < path.length; i++) {
-            if (refPath[refPath.length - path.length + i] != path[i]) {
+        for (let i = 0; i < path.length; i++) {
+            if (refPath[refPath.length - path.length + i] !== path[i]) {
                 throw _api.util.exception("Internal error")
             }
         }
@@ -525,14 +525,14 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         // Recursion
         if (entry instanceof Array) {
             let newArr = []
-            for (var i = 0; i < entry.length; i++) {
+            for (let i = 0; i < entry.length; i++) {
                 let subResult = _api.engine.iterator.refreshKeysRemovedEntry(entry[i], [].concat.apply([], [path, i]), keyRemoved)
                 newArr.push(subResult)
             }
             return newArr
-        } else if (typeof entry == "object") {
+        } else if (typeof entry === "object") {
             let newObj = {}
-            for (var key in entry) {
+            for (let key in entry) {
                 let subResult = _api.engine.iterator.refreshKeysRemovedEntry(entry[key], [].concat.apply([], [path, key]), keyRemoved)
                 newObj[key] = subResult
             }
@@ -543,7 +543,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     }
  }
  
- _api.engine.iterator.initChild = (binding, parentLink, node, instance, key) => {
+ _api.engine.iterator.initChild = (binding, parentLink, node, instance) => {
     let newLink = _api.preprocessor.iterator.initExpandedIterationNode(binding, node, parentLink)
     node.get("links").push(newLink)
     
@@ -582,7 +582,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     let currentCollectionType = Object.prototype.toString.call(currentCollection)
     
     let newCollection = null
-    if (currentCollectionType == "[object Boolean]") {
+    if (currentCollectionType === "[object Boolean]") {
         newCollection = false
     } else if (currentCollection instanceof Array) {
         newCollection = []
@@ -606,7 +606,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     
     // New Collection might contain references
     let newValues = []
-    for (var key in newCollection) {
+    for (let key in newCollection) {
         newValues[key] = _api.engine.binding.convertToValues(newCollection[key])
     }
     
@@ -617,18 +617,18 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         let matrix = [];
          
         // increment along the first column of each row
-        for (var i = 0; i <= newCollection.length; i++) {
+        for (let i = 0; i <= newCollection.length; i++) {
             matrix[i] = [i];
         }
          
         // increment each column in the first row
-        for (var j = 0; j <= oldCollection.length; j++) {
+        for (let j = 0; j <= oldCollection.length; j++) {
             matrix[0][j] = j
         }
          
         // Fill in the rest of the matrix
-        for (var i = 1; i <= newCollection.length; i++) {
-            for (var j = 1; j <= oldCollection.length; j++) {
+        for (let i = 1; i <= newCollection.length; i++) {
+            for (let j = 1; j <= oldCollection.length; j++) {
                 if (_api.util.objectEquals(newValues[i-1], oldCollection[j-1])) {
                     matrix[i][j] = matrix[i-1][j-1];
                 } else {
@@ -651,12 +651,12 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
             if (diagonal <= Math.min(horizontal, vertical)) {
                 x--
                 y--
-                if (diagonal == current || diagonal + 1 == current) {
-                    if (diagonal + 1 == current) {
+                if (diagonal === current || diagonal + 1 === current) {
+                    if (diagonal + 1 === current) {
                         result.push({ action: "replace", key: y, newValue: newCollection[x] })
                     } 
                 }
-            } else if (horizontal <= vertical && horizontal == current || horizontal + 1 == current) {
+            } else if (horizontal <= vertical && horizontal === current || horizontal + 1 === current) {
                 y--
                 result.push({ action: "remove", key: y })
             } else {
@@ -670,10 +670,10 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         }
         
         result.reverse()
-        for (var i = 0; i < result.length; i++) {
+        for (let i = 0; i < result.length; i++) {
             let change = result[i]
             if (change.action === "add") {
-                for (var j = i + 1; j < result.length; j++) {
+                for (let j = i + 1; j < result.length; j++) {
                     let laterChange = result[j]
                     if (laterChange.action === "replace" || laterChange.action === "remove") {
                         if (laterChange.key >= change.newProperty.afterKey) {
@@ -686,7 +686,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
                     }
                 }
             } else if (change.action === "remove") {
-                for (var j = i + 1; j < result.length; j++) {
+                for (let j = i + 1; j < result.length; j++) {
                     let laterChange = result[j]
                     if (laterChange.action === "replace" || laterChange.action === "remove") {
                         if (laterChange.key >= change.key) {
@@ -702,7 +702,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         }
     } else {
         // Use a simple diff for objects
-        for (key in oldCollection) {
+        for (let key in oldCollection) {
             if (oldCollection.hasOwnProperty(key) && !newCollection.hasOwnProperty(key)) {
                 result.push({ action: "remove", key: key })
             } else if (oldCollection.hasOwnProperty(key) && newCollection.hasOwnProperty(key) &&
@@ -711,7 +711,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
             }
         }
         let last
-        for (key in newCollection) {
+        for (let key in newCollection) {
             if (newCollection.hasOwnProperty(key) && !oldCollection.hasOwnProperty(key)) {
                 result.push( {action: "add", newProperty: { afterKey: last, key: key, value: newCollection[key] } } )
                 last = key

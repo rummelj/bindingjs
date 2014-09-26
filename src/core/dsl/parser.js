@@ -75,7 +75,7 @@ _api.dsl.parser.parser = (txt, rule) => {
 }
 
 _api.dsl.parser.safeParser = (txt, rule) => {
-    var astWrapper = _api.dsl.parser.parser(txt, rule)
+    let astWrapper = _api.dsl.parser.parser(txt, rule)
     if (astWrapper.error !== null) {
         let e = astWrapper.error
         let prefix1 = "line " + e.line + " (col " + e.column + "): "

@@ -9,7 +9,7 @@
 
 _api.preprocessor.transform.renameSlots = (binding) => {
     let labels = binding.getAll("Label")
-    for (var i = 0; i < labels.length; i++) {
+    for (let i = 0; i < labels.length; i++) {
         let label = labels[i]
         let id = label.get("id")
         let ref = label.getParent()
@@ -28,14 +28,14 @@ _api.preprocessor.transform.expandSelectors = (template, binding) => {
     
     // Remove all placeholder
     let placeholders = binding.getAll("Placeholder")
-    for (var i = 0; i < placeholders.length; i++) {
+    for (let i = 0; i < placeholders.length; i++) {
         let placeholder = placeholders[i]
         placeholder.getParent().del(placeholder)
     }
     
     // Check if every scope received a template element
     let scopes = binding.getAll("Scope")
-    for (var i = 0; i < scopes.length; i++) {
+    for (let i = 0; i < scopes.length; i++) {
         let scope = scopes[i]
         if(!scope.get("element")) {
             throw _api.util.exception("Internal Error: Scope did not receive a template element")
@@ -50,14 +50,14 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
             let selectorList = []
             
             // Add intermediate selectors on the way down
-            var selectorListElem = binding.childs()[0]
+            let selectorListElem = binding.childs()[0]
             if (!selectorListElem.isA("SelectorList")) {
                 throw _api.util.exception("Expected the first child of Scope to always be " +
                                           "a SelectorList, but it was not")
             }
             
-            for (var i = 0; i < selectorListElem.childs().length; i++) {
-                var selectorCombination = selectorListElem.childs()[i]
+            for (let i = 0; i < selectorListElem.childs().length; i++) {
+                let selectorCombination = selectorListElem.childs()[i]
                 if (!selectorCombination.isA("SelectorCombination")) {
                     throw _api.util.exception("Expected all children of SelectorList to " +
                                               "always be SelectorCombination, but it was not")
@@ -75,18 +75,18 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
             // First child must be SelectorList (was checked above)
             binding.del(binding.childs()[0])
             
-            for (var i = 0; i < selectorList.length; i++) {
+            for (let i = 0; i < selectorList.length; i++) {
                 let selector = selectorList[i]
                 
                 // Select all matching elements in template
-                var elements = $api.$()(selector, template)
+                let elements = $api.$()(selector, template)
                 if (elements.length === 0) {
                     $api.debug(5, "Found no element for selector " + selector + " in\n" +
                                $api.$()(template).clone().wrap("<div>").parent().html())
                 }
                 
                 // Note. If the selector did not match any elements, the scope disappears
-                for (var j = 0; j < elements.length; j++) {
+                for (let j = 0; j < elements.length; j++) {
                     let newScope = binding.clone()
                     newScope.set("element", elements[j])
                     newScopes.push(newScope)
@@ -105,9 +105,9 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
             }
             
             // Recursion over every newly generated scope
-            for (var i = 0; i < newScopes.length; i++) {
+            for (let i = 0; i < newScopes.length; i++) {
                 let newScope = newScopes[i]
-                for (var j = 0; j < newScope.childs().length; j++) {
+                for (let j = 0; j < newScope.childs().length; j++) {
                     let child = newScope.childs()[j]
                     _api.preprocessor.transform.expandSelectorsRec(newScope.get("element"), child)
                 }
@@ -115,7 +115,7 @@ _api.preprocessor.transform.expandSelectorsRec = (template, binding) => {
         }
     } else {
         // Recursion
-        for (var i = 0; i < binding.childs().length; i++) {
+        for (let i = 0; i < binding.childs().length; i++) {
             let child = binding.childs()[i]
             _api.preprocessor.transform.expandSelectorsRec(template, child)
         }
@@ -131,7 +131,7 @@ _api.preprocessor.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix
         // Find all temp references in this scope
         let assignCopied = false
         let refs = binding.getAll("Variable", "Scope")
-        for (var i = 0; i < refs.length; i++) {
+        for (let i = 0; i < refs.length; i++) {
             let ref = refs[i]
             if (ref.get("ns") === bindingScopePrefix) {
                 // Check if ref was assigned before
@@ -154,7 +154,7 @@ _api.preprocessor.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix
     }
     
     // Recursion
-    for (var i = 0; i < binding.childs().length; i++) {
+    for (let i = 0; i < binding.childs().length; i++) {
         _api.preprocessor.transform.makeTempRefsUniqueRec(binding.childs()[i], bindingScopePrefix, tempCounter, assign)
     }
 }
@@ -162,7 +162,7 @@ _api.preprocessor.transform.makeTempRefsUniqueRec = (binding, bindingScopePrefix
 _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePrefix, tempCounter) => {
     let iterators = bind.getAll("Iterator")
     if (iterators.length > 0) {
-        for (var i = 0; i < iterators.length; i++) {
+        for (let i = 0; i < iterators.length; i++) {
             let iterator = iterators[i]
             
             // Scopes look different since Step 2 (expandSelectors)
@@ -195,7 +195,7 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
             iterationExpression = iterationExpression.childs()[0]
             let variables = newBinding.getAll("Variable")
             let found = false
-            for (var j = 0; j < variables.length; j++) {
+            for (let j = 0; j < variables.length; j++) {
                 let variable = variables[j]
                 if (variable.get("ns") === "" && variable.get("id") === "foo") {
                     variable.replace(iterationExpression.clone())
@@ -214,7 +214,7 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
             } else {
                 // 1. Check if no View Mask Adpater are used in iterationExpression
                 let variables = iterationExpression.getAll("Variable")
-                for (var j = 0; j < variables.length; j++) {
+                for (let j = 0; j < variables.length; j++) {
                     let variable = variables[j]
                     let adapterName
                     if (variable.get("ns") !== "") {
@@ -223,7 +223,7 @@ _api.preprocessor.transform.extractIterationCollections = (bind, bindingScopePre
                         adapterName = variable.get("id")
                     }
                     if (adapterName !== bindingScopePrefix) {
-                        if (_api.repository.adapter.get(adapterName).type() == "view") {
+                        if (_api.repository.adapter.get(adapterName).type() === "view") {
                             throw _api.util.exception("It is not allowed to use view adapter in iteration " +
                                 "expression, if the iteration has no parent inside the same group as in " +
                                 iterationExpression.asBindingSpec())
@@ -260,40 +260,39 @@ _api.preprocessor.transform.nestIteratedBindings = (binding) => {
     // Create a map of all elements and their scopes
     let elements = []
     let elementScopes = []
-    let addScope = (element, scope) => {
-        let index = elements.indexOf(element)
-        if (index == -1) {
-            elements.push(element)
-            elementScopes.push([scope])
+    let addScope = (elem, scop) => {
+        let index = elements.indexOf(elem)
+        if (index === -1) {
+            elements.push(elem)
+            elementScopes.push([scop])
         } else {
-            elementScopes[index].push(scope)
+            elementScopes[index].push(scop)
         }
     }
-    let getScopes = (element) => {
-        let index = elements.indexOf(element)
-        if (index == -1) {
+    let getScopes = (elem) => {
+        let index = elements.indexOf(elem)
+        if (index === -1) {
             return []
         } else {
             return elementScopes[index]
         }
     }
     
-    for (var i = 0; i < scopes.length; i++) {
+    for (let i = 0; i < scopes.length; i++) {
         let scope = scopes[i]
         let element = scope.get("element")
         addScope(element, scope)
     }
     
     // For each entry in the map, check if the element has a parent with an iterated scope
-    for (var i = 0; i < elements.length; i++) {
+    for (let i = 0; i < elements.length; i++) {
         let element = elements[i]
         
         // Check if any parent is iterated
-        let iteratedScope = undefined
+        let iteratedScope
         while (element) {
             let scopeList = getScopes(element)
-            let found = false
-            for (var j = 0; j < scopeList.length; j++) {
+            for (let j = 0; j < scopeList.length; j++) {
                 let scope = scopeList[j]
                 if (scope.childs().length > 0 && scope.childs()[0].isA("Iterator")) {
                     iteratedScope = scope
@@ -310,7 +309,7 @@ _api.preprocessor.transform.nestIteratedBindings = (binding) => {
         if (iteratedScope) {
             // Check if all scopes are a descendant of the iterated scope
             let scopeList = getScopes(element)
-            for (var j = 0; j < scopeList.length; j++) {
+            for (let j = 0; j < scopeList.length; j++) {
                 let scope = scopeList[j]
                 while (scope && scope !== iteratedScope) {
                     scope = scope.getParent()
@@ -326,7 +325,7 @@ _api.preprocessor.transform.nestIteratedBindings = (binding) => {
     }
     
     // Check for empty Scopes and remove them
-    for (var i = 0; i < scopes.length; i++) {
+    for (let i = 0; i < scopes.length; i++) {
         let scope = scopes[i]
         let bindings = scope.getAll("Binding")
         let iterators = scope.getAll("Iterator")
@@ -349,7 +348,7 @@ _api.preprocessor.transform.markSlots = (iterationTree) => {
     
     let binding = iterationTree.get("binding")
     let labels = binding.getAll("Label")
-    for (var i = 0; i < labels.length; i++) {
+    for (let i = 0; i < labels.length; i++) {
         let label = labels[i]
         let scope = label.getParent()
         if (!scope.isA("Scope")) {
@@ -361,12 +360,12 @@ _api.preprocessor.transform.markSlots = (iterationTree) => {
         iterationTree.get("slots").push( {element: element, id: labelId} )
     }
     
-    for (var i = 0; i < iterationTree.childs().length; i++) {
+    for (let i = 0; i < iterationTree.childs().length; i++) {
         _api.preprocessor.transform.markSlots(iterationTree.childs()[i])
     }
     
     // Remove the scopes with the slots
-    for (var i = 0; i < labels.length; i++) {
+    for (let i = 0; i < labels.length; i++) {
         let label = labels[i]
         let scope = label.getParent()
         scope.getParent().del(scope)
