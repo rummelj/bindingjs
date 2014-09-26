@@ -191,8 +191,8 @@ module.exports = function (grunt) {
                 options: { tasks: [ "expand-include:stage3-src-core" ] }
             },
             "stage3-src-plugin": {
-                src: [ "bld/stage2/src/plugin/*.js" ],
-                dest: "bld/stage3/src/plugin/binding.plugin.adapter-componentjs.js",
+                src: [ "bld/stage2/src/plugin/**/*.js" ],
+                dest: "bld/stage3/src/plugin/",
                 options: { tasks: [ "expand-include:stage3-src-plugin" ] }
             }
         },
@@ -213,7 +213,7 @@ module.exports = function (grunt) {
             "stage3-src-plugin": {
                 files: [{
                     expand: true,
-                    src: [ "bld/stage2/src/plugin/*.js" ],
+                    src: [ "bld/stage2/src/plugin/**/*.js" ],
                     dest: "bld/stage3/src/plugin/",
                     flatten: true
                 }],
@@ -240,7 +240,7 @@ module.exports = function (grunt) {
     grunt.config.merge({
         newer: {
             "stage4": {
-                src: [ "bld/stage3/src/core/*.js", "bld/stage3/src/plugin/*.js" ],
+                src: [ "bld/stage3/src/core/*.js", "bld/stage3/src/plugin/**/*.js" ],
                 dest: "bld/stage4/binding.min.js",
                 options: { tasks: [ "uglify:stage4" ] }
             }

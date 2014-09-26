@@ -16,8 +16,6 @@ _api.binding = {}
 include("util/wrapper.js")
 include("api/wrapper.js")
 include("repository/wrapper.js")
-include("adapter/wrapper.js")
-include("connector/wrapper.js")
 include("dsl/wrapper.js")
 include("engine/wrapper.js")
 include("preprocessor/wrapper.js")

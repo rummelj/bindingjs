@@ -88,6 +88,21 @@ class Reference {
         result.setElement(this.element)
         return result
     }
+    
+    cloneAndAddToPath (elem) {
+        let newPath = this.path.slice(0)
+        if (elem instanceof Array) {
+            for (let i = 0; i < elem.length; i++) {
+                newPath.push(elem[i])
+            }
+        } else {
+            newPath.push(elem)
+        }
+        let result = new Reference(this.adapter, newPath)
+        result.setModel(this.model)
+        result.setElement(this.element)
+        return result
+    }
 }
 
 /*  export class  */

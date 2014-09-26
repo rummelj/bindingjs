@@ -9,6 +9,8 @@ For details see thesis.
     <head>
         <script src="../res/jquery-2.1.1.min.js"></script>
         <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.model.json.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.view.value.js"></script>
         <script type="text/binding">
             @binding view {
                 input {
@@ -23,6 +25,15 @@ For details see thesis.
             }
             
             $(function() {
+                BindingJS.plugin("addOne", function($api, _api) {
+                    return {
+                        process: function(input) {
+                            input = _api.util.convertIfReference(input)
+                            return parseInt(input) + 1
+                        }
+                    }
+                })
+                
                 BindingJS
                     .create()
                     .template("#template")

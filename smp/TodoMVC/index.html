@@ -6,6 +6,10 @@
     <link rel="stylesheet" href="common/base.css">
     <script src="../../tst/res/jquery-2.1.1.min.js"></script>
     <script src="../../bld/stage3/src/core/binding.js"></script>
+    <script src="../../bld/stage3/src/plugin/binding.adapter.model.json.js"></script>
+    <script src="../../bld/stage3/src/plugin/binding.adapter.view.text.js"></script>
+    <script src="../../bld/stage3/src/plugin/binding.adapter.view.value.js"></script>
+    <script src="../../bld/stage3/src/plugin/binding.adapter.view.attr.js"></script>
     <script type="text/binding">
       @binding TodoMVC {
         #new-todo {
@@ -85,78 +89,125 @@
       }
     </script>
     <script type="text/javascript">
-      var model = {
+    var model = {
         // completed: boolean, title: string
         todos: [],
         newTodoText : "",
         getTodoString : function() {
-          return model.todos.length == 1 ? "item" : "items"
+            return model.todos.length == 1 ? "item" : "items"
         },
         getRemaining : function() {
-          var count = 0
-          for (var i = 0; i < model.todos.length; i++) {
-            var todo = model.todos[i]
-            if (todo.completed) {
-              count++
+            var count = 0
+            for (var i = 0; i < model.todos.length; i++) {
+                var todo = model.todos[i]
+                if (todo.completed) {
+                    count++
+                }
             }
-          }
-          return count
+            return count
         }
-      }
+    }
       
-      $(function() {
-          var binding = BindingJS
-              .create()
-              .template("#todoapp")
-              .binding($("script[type='text/binding']"))
-              .model(model)
-          
-          binding.slot("TodoMVC.todoSocket").onInsert(function (keys, element) {
-              var li = element.parent()
-              var index = keys[0]
-              var value = model.todos[index]
-              li.find(".destroy").on("click", function() {
-                  for (var i = 0; i < model.todos.length; i++) {
-                    if (model.todos[i] === value) {
-                        model.todos.splice(i, 1)
-                        break
+    $(function() {
+        // Connectors, most of them can be removed as soon as expressions are available
+        BindingJS.plugin("addCompletedToPath", function($api, _api) {
+            return {
+                process: function(input) {
+                    if (!_api.util.isReference(input)) {
+                        return input.completed
+                    } else {
+                        return input.cloneAndAddToPath("completed")
                     }
-                  }
-              })
-              var label = li.find("label")
-              var edit = li.find(".edit")
-              label.on("dblclick", function() {
-                  li.addClass('editing')
-                  edit.focus()
-              })
-              edit.on("blur", function() {
-                  li.removeClass('editing')
-              })
-              var toggle = li.find(".toggle")
-              toggle.change(function() {
-                  value.completed = toggle.prop("checked")
-                  model.todos.notify
-              })
-              
-              element.detach()
-          })
+                }
+            }
+        })
+        BindingJS.plugin("addTitleToPath", function($api, _api) {
+            return {
+                process: function(input) {
+                    if (!_api.util.isReference(input)) {
+                        return input.title
+                    } else {
+                        return input.cloneAndAddToPath("title")
+                    }
+                }
+            }
+        })
+        BindingJS.plugin("countCompleted", function($api, _api) {
+            return {
+                process: function(input) {
+                    var count = 0
+                    for (var i = 0; i < input.length; i++) {
+                        var item = input[i]
+                        item = _api.util.convertIfReference(item)
+                        if (item.completed) {
+                          count++
+                        }
+                    }
+                    return parseInt(input) + 1
+                }
+            }
+        })
+        BindingJS.plugin("gtZero", function($api, _api) {
+            return {
+                process: function(input) {
+                    input = _api.util.convertIfReference(input)
+                    return input > 0
+                }
+            }
+        })
+
+        var binding = BindingJS
+            .create()
+            .template("#todoapp")
+            .binding($("script[type='text/binding']"))
+            .model(model)
           
-          binding
-              .mount("#todoapp")
-              .activate()
+        binding.slot("TodoMVC.todoSocket").onInsert(function (keys, element) {
+            var li = element.parent()
+            var index = keys[0]
+            var value = model.todos[index]
+            li.find(".destroy").on("click", function() {
+                for (var i = 0; i < model.todos.length; i++) {
+                  if (model.todos[i] === value) {
+                      model.todos.splice(i, 1)
+                      break
+                  }
+                }
+            })
+            var label = li.find("label")
+            var edit = li.find(".edit")
+            label.on("dblclick", function() {
+                li.addClass('editing')
+                edit.focus()
+            })
+            edit.on("blur", function() {
+                li.removeClass('editing')
+            })
+            var toggle = li.find(".toggle")
+            toggle.change(function() {
+                value.completed = toggle.prop("checked")
+                model.todos.notify
+            })
+          
+            element.detach()
+        })
+
+        binding
+            .mount("#todoapp")
+            .activate()
               
-          $("#new-todo").keyup(function(e) {
-              if (e.keyCode == 13) {
-                  model.todos.push({ completed: false, title: model.newTodoText })
-                  model.newTodoText = ""
-              }
-          })
-      })
-      
-      // Required for Selenium Test only
-      function pushQux() {
+        $("#new-todo").keyup(function(e) {
+            if (e.keyCode == 13) {
+                model.todos.push({ completed: false, title: model.newTodoText })
+                model.newTodoText = ""
+            }
+        })
+    })
+
+    // Required for Selenium Test only
+    function pushQux() {
         model.todos.push({ completed: false, title: "qux" })
-      }
+    }
     </script>
   </head>
   <body>

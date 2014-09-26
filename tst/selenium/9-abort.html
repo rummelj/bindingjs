@@ -2,6 +2,8 @@
     <head>
         <script src="../res/jquery-2.1.1.min.js"></script>
         <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.model.json.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.view.text.js"></script>
         <script type="text/binding">
             @binding view {
                 span {
@@ -15,20 +17,20 @@
                 flag: false
             }
             $(function() {
-                BindingJS.plugin("fooIfTrue", {
-                    process: function(input) {
-                        if (typeof input.getValue === "function") {
-                            input = input.getValue()
+                BindingJS.plugin("fooIfTrue", function($api, _api) {
+                    return {
+                        process: function(input) {
+                            input = _api.util.convertIfReference(input)
+                            return input ? "foo" : BindingJS.abortSymbol
                         }
-                        return input ? "foo" : BindingJS.abortSymbol
                     }
                 })
-                BindingJS.plugin("barIfFalse", {
-                    process: function(input) {
-                        if (typeof input.getValue === "function") {
-                            input = input.getValue()
+                BindingJS.plugin("barIfFalse", function($api, _api) {
+                    return {
+                        process: function(input) {
+                            input = _api.util.convertIfReference(input)
+                            return input ? BindingJS.abortSymbol : "bar"
                         }
-                        return input ? BindingJS.abortSymbol : "bar"
                     }
                 })
                 

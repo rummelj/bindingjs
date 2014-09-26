@@ -6,7 +6,7 @@
 **  License, v. 2.0. If a copy of the MPL was not distributed with this
 **  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
-
+//TODO: Evaluate, In what ways the library can be used outside a browser
 /*  Universal Module Definition (UMD) for Library  */
 (function (root, name, factory) {
     /* global define: false */
@@ -57,31 +57,3 @@
     /*  define internal and external API  */
     var _api = {};
     var $api = {};
-
-    /*  provide plugin API  */
-    $api.plugin = (function () {
-        var plugins = {};
-        return function (name, callback) {
-            if (arguments.length === 0)
-                /*  use case 1: return list of registered plugins  */
-                return Object.keys(plugins);
-            else if (arguments.length === 1) {
-                /*  use case 2: check whether particular plugin was registered  */
-                if (typeof name !== "string")
-                    throw new Error("plugin: invalid plugin name parameter type");
-                return (typeof plugins[name] !== "undefined");
-            }
-            else if (arguments.length === 2) {
-                /*  use case 3: register a new plugin  */
-                if (typeof name !== "string")
-                    throw new Error("plugin: invalid plugin name parameter type");
-                if (typeof plugins[name] !== "undefined")
-                    throw new Error("plugin: plugin named \"" + name + "\" already registered");
-                callback.call(root, _api, $api, root);
-                plugins[name] = true;
-            }
-            else
-                throw new Error("plugin: invalid number of parameters");
-        };
-    })();
-

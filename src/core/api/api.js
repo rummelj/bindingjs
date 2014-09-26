@@ -81,8 +81,9 @@ $api.debug = (() => {
 })()
 
 // TODO: Add docu
-$api.plugin = (name, component) => {
+$api.plugin = (name, factory) => {
     // TODO: Check type of component and if correct methods present
+    let component = factory($api, _api)
     if (typeof component.type === "function") {
         // Adapter
         _api.repository.adapter.register(name, component)

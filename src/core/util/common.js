@@ -138,3 +138,11 @@ _api.util.isPrimitive = (value) => {
            value === "undefined" ||
            value === null
 }
+
+_api.util.convertIfReference = (value) => {
+    if (value instanceof _api.engine.binding.Reference) {
+        return value.getValue()
+    } else {
+        return value
+    }
+}
