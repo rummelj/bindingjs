@@ -18,6 +18,11 @@
     _api.adapterRepo[name] = impl
  }
  
+ _api.repository.adapter.has = (name) => {
+    _api.repository.adapter.init()
+    return _api.adapterRepo[name] ? true : false
+ }
+ 
  _api.repository.adapter.get = (name) => {
     _api.repository.adapter.init()
     if (!_api.adapterRepo[name]) {

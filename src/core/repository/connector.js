@@ -18,6 +18,11 @@
     _api.connectorRepo[name] = impl
  }
  
+ _api.repository.connector.has = (name) => {
+    _api.repository.adapter.init()
+    return _api.connectorRepo[name] ? true : false
+ }
+ 
  _api.repository.connector.get = (name) => {
     _api.repository.connector.init()
     if (!_api.connectorRepo[name]) {
