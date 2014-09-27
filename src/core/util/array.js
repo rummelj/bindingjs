@@ -30,3 +30,17 @@ _api.util.array.subArray = (array, from, to) => {
     }
     return result
 }
+
+_api.util.array.map = (array, fn) => {
+    let result = []
+    for (var i = 0; i < array.length; i++) {
+        result.push(fn(array[i], i, array))
+    }
+    return result
+}
+
+_api.util.array.addAll = (addTo, array) => {
+    for (var i = 0; i < array.length; i++) {
+        addTo.push(array[i])
+    }
+}

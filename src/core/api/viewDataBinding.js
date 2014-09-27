@@ -51,12 +51,11 @@ let methods = {
         return ast
     },
     
-    // Checks if all three parts, that are necessary for preprocessing
+    // Checks if both template and bindingspec, that are necessary for preprocessing
     // are present and does preprocessing if so
     initIfReady: (viewDataBinding) => {
         let ready = viewDataBinding.vars.template
                     && viewDataBinding.vars.ast
-                    && viewDataBinding.vars.model
         if (ready) {
             _api.preprocessor.preprocess(viewDataBinding)
             viewDataBinding.vars.initialized = true
@@ -79,39 +78,45 @@ let methods = {
     },
     
     getAllSocketIds: (iterationTree) => {
-        let result = []
-        let sockets = iterationTree.get("sockets")
-        for (let i = 0; i < sockets.length; i++) {
-            let socket = sockets[i]
-            result.push(socket.id)
-        }
+        let result = _api.util.array.map(iterationTree.get("sockets"), (element) => {
+            return element.id
+        })
         for (let i = 0; i < iterationTree.childs().length; i++) {
-            let subResult = methods.getAllSocketIds(iterationTree.childs()[i])
-            for (let j = 0; j < subResult.length; j++) {
-                result.push(subResult[j])
-            }
+            // Recursion
+            _api.util.array.addAll(result, methods.getAllSocketIds(iterationTree.childs()[i]))
         }
         return result
+    },
+    
+    checkDestroyed: (viewDataBinding) => {
+        if (viewDataBinding.vars.destroyed) {
+            throw _api.util.exception("You can not operate on an instance " +
+                " of view data binding, that has been destroyed!")
+        }
     }
 }
 
 class ViewDataBinding {
     
     constructor () {
-        this.vars = {}
-        this.vars.tempCounter = new _api.util.Counter()
-        this.vars.active = false
-        this.vars.socketInsertionObserver = {}
-        this.vars.socketRemovalObserver = {}
-        this.vars.localScope = new _api.engine.LocalScope()
-        this.vars.paused = false
-        this.vars.pauseQueue = []
-        this.vars.initialized = false
+        this.vars = {
+            tempCounter: new _api.util.Counter(),
+            active: false,
+            socketInsertionObserver: {},
+            socketRemovalObserver: {},
+            localScope: new _api.engine.LocalScope(),
+            paused: false,
+            pauseQueue: [],
+            initialized: false,
+            bindingScopePrefix: "@",
+            destroyed: false
+        }
         return this
     }
     
     // Sets the binding specification with optional group selector (foo.bar)
     binding (bindingSpec, groupString) {
+        methods.checkDestroyed(this)
         // Prevent setting binding more than once
         if (this.vars.ast) {
             throw _api.util.exception("Cannot set binding more than once")
@@ -129,24 +134,20 @@ class ViewDataBinding {
     }
     
     // Sets the template
-    template () {
+    template (param) {
+        methods.checkDestroyed(this)
         // Prevent setting template more than once
         if (this.vars.template) {
             throw _api.util.exception("Cannot set template more than once")
         }
         
-        if (arguments.length !== 1) {
-            throw _api.util.exception("Expected 1 argument, but received " + arguments.length)
-        }
-                
-        let templateDomFragment = arguments[0]
-        if (typeof templateDomFragment === "object") {
+        if (typeof param === "object") {
             // TODO: Handle DocumentFragment and HTMLElement
-        } else if (typeof templateDomFragment === "string") {
+        } else if (typeof param === "string") {
             // TODO: Decide if Selector or HTMLString, do not clone if latter
-            this.vars.template = $api.$()(templateDomFragment).clone()
+            this.vars.template = $api.$()(param).clone()
         } else {
-            throw _api.util.exception("Unexpected type " + (typeof templateDomFragment) + " as template")
+            throw _api.util.exception("Unexpected type " + (typeof param) + " as template")
         }
         
         methods.initIfReady(this)
@@ -154,75 +155,75 @@ class ViewDataBinding {
     }
     
     // Sets the model
-    model () {
-        // Prevent setting model more than once
-        if (this.vars.model) {
-            throw _api.util.exception("Cannot set model more than once")
+    model (param) {
+        methods.checkDestroyed(this)
+        if (typeof this.vars.model !== "undefined") {
+            throw _api.util.exception("Setting the model more than once is " +
+                " not supported")
         }
-        
-        if (arguments.length !== 1) {
-            throw _api.util.exception("Expected 1 argument, but received " + arguments.length)
-        }
-        this.vars.model = arguments[0]
-        
-        methods.initIfReady(this)
+        this.vars.model = param
         return this
     }
     
     mount () {
-        // TODO: Implement version with callback and fragment (see spec.d.ts)
+        methods.checkDestroyed(this)
         _api.engine.mount(this, arguments)
         return this
     }
     
     activate () {
+        methods.checkDestroyed(this)
         if (!this.vars.active) {
             _api.engine.activate(this)
             this.vars.active = true
         } else {
-            $api.debug(1, "Tried to activate binding, which was already active")
+            $api.debug(1, "Warning: Tried to activate binding, which was already active")
         }
         return this
     }
     
     deactivate () {
+        methods.checkDestroyed(this)
         if (this.vars.active) {
             _api.engine.deactivate(this)
             this.vars.active = false
         } else {
-            $api.debug(1, "Tried to deactivate binding, which was already inactive")
+            $api.debug(1, "Warning: Tried to deactivate binding, which was already inactive")
         }
         return this
     }
     
     pause () {
-        if (this.vars.paused) {
-            $api.debug(1, "Tried to pause binding, which was already paused")
-        } else {
+        methods.checkDestroyed(this)
+        if (!this.vars.paused) {
             this.vars.paused = true
             this.vars.localScope.pause()
+        } else {
+            $api.debug(1, "Warning: Tried to pause binding, which was already paused")
         }
         return this
     }
     
     resume () {
-        if (!this.vars.paused) {
-            $api.debug(1, "Tried to resume binding, which was not paused")
-        } else {
+        methods.checkDestroyed(this)
+        if (this.vars.paused) {
             this.vars.localScope.resume()
             this.vars.paused = false
             for (let i = 0; i < this.vars.pauseQueue.length; i++) {
                 _api.engine.binding.propagate(this, this.vars.pauseQueue[i])
             }
             this.vars.pauseQueue = []
+        } else {
+            $api.debug(1, "Warning: Tried to resume binding, which was not paused")
         }
         return this
     }
     
     socket (id) {
+        methods.checkDestroyed(this)
         methods.checkIfSocketExists(this, id)
         return {
-            instaces: () => {
+            instances: () => {
                 // TODO
                 throw _api.util.exception("Not implemented yet")
             },
@@ -252,24 +253,22 @@ class ViewDataBinding {
     }
     
     destroy() {
-        // TODO
+        methods.checkDestroyed(this)
+        this.vars = null
+        this.vars = {
+            destroyed: true
+        }
     }
     
     bindingScopePrefix () {
-        if (arguments.length > 1) {
-            throw _api.util.exception("Expected no or one argument but received " + arguments.length)
-        }
-        
-        if (arguments.length === 0) {
-            // Return
-            if (this.vars.bindingScopePrefix) {
-                return this.vars.bindingScopePrefix
-            } else {
-                return "@"
-            }
-        } else /* if (arguments.length == 1) */ {
-            // Set
-            this.vars.bindingScopePrefix = arguments[0]
+        methods.checkDestroyed(this)
+        let params = _api.util.Ducky.params("bindingScopePrefix", arguments, {
+            newPrefix: { pos: 0, req: false, valid: "string" }
+        })
+        if (typeof params.newPrefix === "undefined") {
+            return this.vars.bindingScopePrefix
+        } else /* if (params.newPrefix) */ {
+            this.vars.bindingScopePrefix = params.newPrefix
             return this
         }
     }
