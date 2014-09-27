@@ -7,16 +7,16 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-describe("BindingJS DSL Parser", function () {
+describe("dsl/parser.js", function () {
     let path  = require("path")
     let fs    = require("fs")
     let chalk = require("chalk")
-    describe("parse()", function () {
-        it("allows the binding DSL to be parsed", () => {
+    describe("parse", function () {
+        it("Allows the binding DSL to be parsed", () => {
             let dsl = fs.readFileSync(
-                path.join(__dirname, "../../../../tst/res/parsertest.bind"),
+                path.join(__dirname, "parser.bind"),
                 { encoding: "utf8" })
-            let ast = BindingJS.parse(dsl, "spec")
+            let ast = BindingJS.internal().dsl.parser.parser(dsl, "spec")
             if (ast.error !== null) {
                 let e = ast.error
                 let prefix1 = "line " + e.line + " (col " + e.column + "): "
@@ -30,20 +30,8 @@ describe("BindingJS DSL Parser", function () {
                     chalk.black("ERROR: ") + chalk.red(e.message) + "\n"
                 )
             }
-            else {
-                // Remove comment for debugging
-                /*
-                console.log(ast.ast.dump()
-                    .replace(/([A-Z][a-zA-Z0-9_$]+)( [(\[])/g,          (all, id, E) => chalk.blue(id)  + E)
-                    .replace(/(:\s+)("(?:\\"|[^"])*"|\d+|true|false)/g, (all, P,  s) => P + chalk.yellow(s))
-                    .replace(/(:\s+)(\/(?:\\\/|[^\/])*\/)/g,            (all, P,  s) => P + chalk.yellow(s))
-                    .replace(/(\[\d+\/\d+\])/g,                         (all, P    ) => chalk.gray(P)      )
-                )
-                */
-            }
             expect(ast).to.have.keys([ "ast", "error" ])
             expect(ast).to.be.a("object")
-            // TODO: Write more assertions
         })
     })
 })

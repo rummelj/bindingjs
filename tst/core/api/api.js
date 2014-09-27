@@ -60,7 +60,7 @@ describe("api/api.js", () => {
         })
     })
     describe("version", () => {
-        it("should return reasonable structure", () => {
+        it("Should return reasonable structure", () => {
             expect(BindingJS.version).to.have.keys([ "major", "minor", "micro", "date" ])
             expect(BindingJS.version.major).to.be.a("number").least(0)
             expect(BindingJS.version.minor).to.be.a("number").least(0)
@@ -69,7 +69,7 @@ describe("api/api.js", () => {
         })
     })
     describe("abortSymbol", () => {
-        it("should be defined", () => {
+        it("Should be defined", () => {
             // Not so great chai here: https://github.com/chaijs/chai/issues/41
             /* jshint -W024 */
             /* jshint expr:true */

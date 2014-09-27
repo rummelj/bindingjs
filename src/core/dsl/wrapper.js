@@ -9,5 +9,4 @@
 
  _api.dsl = {}
 
-include("dsl.js")
 include("parser.js")

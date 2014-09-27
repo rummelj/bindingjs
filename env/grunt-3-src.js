@@ -152,11 +152,7 @@ module.exports = function (grunt) {
             "stage2-tst": {
                 files: [{
                     expand: true,
-                    src: [
-                        "tst/integration/**/*.json",
-                        "tst/integration/**/*.html",
-                        "tst/integration/**/*.bind"
-                    ],
+                    src: [ "tst/**/*.bind" ],
                     dest: "bld/stage2/",
                     flatten: false
                 }]
