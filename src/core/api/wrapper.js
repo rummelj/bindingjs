@@ -9,4 +9,3 @@
  
 include("api.js")
 include("viewDataBinding.js")
-include("version.js")

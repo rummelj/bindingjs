@@ -59,13 +59,21 @@ describe("api/api.js", () => {
             expect(BindingJS.plugin("bar")).to.equal(connector)
         })
     })
-    describe("version()", () => {
+    describe("version", () => {
         it("should return reasonable structure", () => {
             expect(BindingJS.version).to.have.keys([ "major", "minor", "micro", "date" ])
             expect(BindingJS.version.major).to.be.a("number").least(0)
             expect(BindingJS.version.minor).to.be.a("number").least(0)
             expect(BindingJS.version.micro).to.be.a("number").least(0)
             expect(BindingJS.version.date ).to.be.a("number").least(19700101)
+        })
+    })
+    describe("abortSymbol", () => {
+        it("should be defined", () => {
+            // Not so great chai here: https://github.com/chaijs/chai/issues/41
+            /* jshint -W024 */
+            /* jshint expr:true */
+            expect(BindingJS.abortSymbol).to.exist
         })
     })
 })

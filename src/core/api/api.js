@@ -149,6 +149,13 @@ $api.plugin = () => {
     }
 }
 
+$api.version = {
+    major: $major,
+    minor: $minor,
+    micro: $micro,
+    date:  $date
+}
+
 /*
 ** This variable must be returned by a Connector, if Propagation should
 ** be aborted.
