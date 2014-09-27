@@ -17,7 +17,7 @@ _api.dsl.parser = (function () {
 
 /*  provide a helper function for unrolling the parse stack  */
 _api.dsl.parser.unroll = (first, list, take) => {
-    if (   typeof list !== "object"
+    if (typeof list !== "object"
         || !(list instanceof Array))
         throw "unroll: invalid list argument (expected Array)"
     if (typeof take !== "undefined") {

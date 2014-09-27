@@ -146,3 +146,32 @@ _api.util.convertIfReference = (value) => {
         return value
     }
 }
+
+_api.util.traverseStructure = (value, callback) => {
+    if (value instanceof Array) {
+        let newArr = []
+        for (let i = 0; i < value.length; i++) {
+            newArr.push(_api.util.traverseStructure(value[i], callback))
+        }
+        return newArr
+    } else if (typeof value === "object" && value.constructor.name === "Object") {
+        let newObj = {}
+        for (let key in value) {
+            let newValue = _api.util.traverseStructure(value[key], callback)
+            newObj[key] = newValue
+        }
+        return newObj
+    } else {
+        return callback(value)
+    }
+}
+
+_api.util.assume = (condition) => {
+    if (!condition) {
+        throw _api.util.exception("Internal assumption error")
+    }
+}
+
+_api.util.jQueryOuterHtml = (jQuery) => {
+    return $api.$()(jQuery).clone().wrap("<div>").parent().html()
+}

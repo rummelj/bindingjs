@@ -304,7 +304,6 @@ exprOther
     =   exprArray
     /   exprHash
     /   exprLiteral
-    /   exprFunctionDef
     /   exprFunctionCall
     /   exprVariable
     /   exprParenthesis
@@ -314,15 +313,6 @@ exprLiteral
     /   regexp
     /   number
     /   value
-
-// TODO: Remove
-exprFunctionDef
-    =   "(" _ f:id? l:(_ "," _ id)* _ ")" _ "=>" _ e:expr {  /* RECURSION */
-            return AST("FuncDef").add(
-                AST("FuncDefParams").add(unroll(f, l, 3)),
-                AST("FuncDefBody").add(e)
-            )
-        }
 
 // Only relevant for connector
 exprFunctionCallBare

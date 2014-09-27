@@ -11,7 +11,6 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     let template = viewDataBinding.vars.template
     let bind = viewDataBinding.vars.ast
     let bindingScopePrefix = viewDataBinding.bindingScopePrefix()
-    // A getter would be nicer, but it would be exposed in the public API
     let tempCounter = viewDataBinding.vars.tempCounter
     
     // Step 1: Check if iteration ids were used earlier and if they're all starting with bindingScopePrefix

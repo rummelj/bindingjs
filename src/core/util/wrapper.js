@@ -9,13 +9,18 @@
 
 _api.util = {}
 _api.util.array = {}
+_api.util.object = {}
 _api.util.dom = {}
 _api.util.tree = {}
+_api.util.number = {}
 
 include("array.js")
+include("object.js")
 include("common.js")
 include("counter.js")
 include("dom.js")
 include("ducky.js")
 include("tree.js")
 include("watch.js")
+include("number.js")
+include("map.js")

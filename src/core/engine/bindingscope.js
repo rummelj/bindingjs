@@ -7,7 +7,8 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-class LocalScope {
+class BindingScope {
+
     constructor () {
         this.data = []
         this.observerIds = []
@@ -51,31 +52,21 @@ class LocalScope {
     }
     
     observeReferences(id, value) {
-        if (value instanceof _api.engine.binding.Reference) {
-            $api.debug(9, "Observing: " + JSON.stringify(value.path))
-            if (!this.observerIds[id]) {
-                this.observerIds[id] = []
-            }
-            this.observerIds[id].push(value)
-            this.observerIds[id].push(value.observe(() => {
-                if (!this.paused) {
-                    this.notify(id)
-                } else if (this.pauseQueue.indexOf(id) === -1) {
-                    this.pauseQueue.push(id)
+        _api.util.traverseStructure(value, (element) => {
+            if (_api.util.isReference(element)) {
+                if (!this.observerIds[id]) {
+                    this.observerIds[id] = []
                 }
-            }))
-        } else {
-            // Recursion
-            if (value instanceof Array) {
-                for (let i = 0; i < value.length; i++) {
-                    this.observeReferences(id, value[i])
-                }
-            } else if (typeof value === "object") {
-                for (let key in value) {
-                    this.observeReferences(id, value[key])
-                }
-            }
-        }
+                this.observerIds[id].push(element)
+                this.observerIds[id].push(element.observe(() => {
+                    if (!this.paused) {
+                        this.notify(id)
+                    } else if (this.pauseQueue.indexOf(id) === -1) {
+                        this.pauseQueue.push(id)
+                    }
+                }))
+            } 
+        })
     }
     
     unobserveReferences(id) {
@@ -83,7 +74,6 @@ class LocalScope {
             for (let i = 0; i < this.observerIds[id].length; i += 2) {
                 let reference = this.observerIds[id][i]
                 let observerId = this.observerIds[id][i + 1]
-                $api.debug(9, "Unobserving: " + JSON.stringify(reference.path))
                 reference.unobserve(observerId)
             }
             this.observerIds[id] = []
@@ -91,8 +81,8 @@ class LocalScope {
     }
     
     destroy(id) {
-        // If a reference was previously in localScope, unobserve it
-        if (this.data[id] instanceof _api.engine.binding.Reference) {
+        // If a reference was previously in bindingScope, unobserve it
+        if (_api.util.isReference(this.data[id])) {
             this.data[id].unobserve(this.observerIds[id])
         }
         
@@ -101,7 +91,6 @@ class LocalScope {
     }
     
     observe(id, callback) {
-        $api.debug(3, "LocalScope observer for " + id + " registered")
         if(!this.observer[id]) {
             this.observer[id] = []
         }
@@ -110,29 +99,23 @@ class LocalScope {
     }
     
     unobserve(id) {
-        let found = false
         for (let name in this.observer) {
-            for (let index in this.observer[name]) {
-                if (this.observer[name][index].id === id) {
-                    this.observer[name].splice(index, 1)
-                    // Break outer
-                    found = true
-                    // Break inner
-                    break;
-                }
-            }
-            if (found) {
-                break
+            let observer = _api.util.array.findFirst(this.observer[name], (item) => {
+                return item.id === id
+            })
+            if (observer) {
+                _api.util.array.remove(this.observer[name], observer)
+                break;
             }
         }
     }
     
     notify(id) {
-        for (let i = 0; this.observer[id] && i < this.observer[id].length; i++) {
-            this.observer[id][i].callback()
-        }
+        _api.util.array.each(this.observer[id], (observer) => {
+            observer.callback()
+        })
     }
 }
 
 /*  export class  */
-_api.engine.LocalScope = LocalScope
+_api.engine.BindingScope = BindingScope

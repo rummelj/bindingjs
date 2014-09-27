@@ -10,9 +10,10 @@
 _api.engine = {}
 _api.engine.iterator = {}
 _api.engine.binding = {}
+_api.engine.sockets = {}
 
 include("binding.js")
-include("engine.js")
 include("iterator.js")
-include("localscope.js")
+include("sockets.js")
+include("bindingscope.js")
 include("reference.js")

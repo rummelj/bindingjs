@@ -7,14 +7,13 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- _api.engine.binding.init = (bindingObj, instance) => {
-    // TODO: Implement aborter
+ // Initializes the Bindings of an Iteration Instance
+ _api.engine.binding.init = (viewDataBinding, instance) => {
     let spec = instance.binding
     let scopes = spec.getAll("Scope")
     
-    // We need to remember what was observed to be able to shut it down later
-    let bindingObserver = []
-    
+    //Remember what was observed to be able to shut it down later
+    let bindingObserver = [] 
     for (let i = 0; i < scopes.length; i++) {
         let scope = scopes[i]
         let element = scope.get("element")
@@ -22,49 +21,29 @@
         let allParts = []
         for (let j = 0; j < bindings.length; j++) {
             let binding = bindings[j]
-            let parts = _api.engine.binding.getParts(bindingObj, binding)
-            parts.element = element
+            let parts = _api.engine.binding.getParts(viewDataBinding, binding, element)
             allParts.push(parts)
-            
-            // TODO: Refactor
-            
+
+            // Check if source observation possible
+            if (parts.source.adapter !== "binding" && !parts.source.adapter.observe) {
+                throw _api.util.exception("Used the adapter " + parts.source.name + " as the source " +
+                    "of a binding, but it does not implement an observe method")
+            }
+                
             // Observe source
             if (parts.source.adapter === "binding") {
-                let observerId = bindingObj.vars.localScope.observe(parts.source.path[0], () => {
-                    if (!bindingObj.vars.paused) {
-                        _api.engine.binding.propagate(bindingObj, parts)
-                    } else {
-                        // TODO: This does not prevent, that the same "parts" is pushed multiple times
-                        // The question is, if it is really faster to do an expensive object comparison
-                        // or to just execute the callback multiple times...
-                        bindingObj.vars.pauseQueue.push(parts)
-                    }
+                let observerId = viewDataBinding.vars.bindingScope.observe(parts.source.path[0], () => {
+                    _api.engine.binding.observerCallback(viewDataBinding, parts)
                 })
                 bindingObserver.push({ adapter: "binding", observerId: observerId })
             } else if (parts.source.adapter.type() === "view") {
-                if (!parts.source.adapter.observe) {
-                    throw _api.util.exception("Used the adapter " + parts.source.name + " as the source " +
-                        "of a binding, but it does not implement an observe method")
-                }
                 let observerId = parts.source.adapter.observe(element, parts.source.path, () => {
-                    if (!bindingObj.vars.paused) {
-                        _api.engine.binding.propagate(bindingObj, parts)
-                    } else {
-                        bindingObj.vars.pauseQueue.push(parts)
-                    }
+                    _api.engine.binding.observerCallback(viewDataBinding, parts)
                 })
                 bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
             } else if (parts.source.adapter.type() === "model") {
-                if (!parts.source.adapter.observe) {
-                    throw _api.util.exception("Used the adapter " + parts.source.name + " as the source " +
-                        "of a binding, but it does not implement an observe method")
-                }
-                let observerId = parts.source.adapter.observe(bindingObj.vars.model, parts.source.path, () => {
-                    if (!bindingObj.vars.paused) {
-                        _api.engine.binding.propagate(bindingObj, parts)
-                    } else {
-                        bindingObj.vars.pauseQueue.push(parts)
-                    }
+                let observerId = parts.source.adapter.observe(viewDataBinding.vars.model, parts.source.path, () => {
+                    _api.engine.binding.observerCallback(viewDataBinding, parts)
                 })
                 bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
             } else {
@@ -76,69 +55,83 @@
         for (let j = 0; j < allParts.length; j++) {
             let parts = allParts[j]
             if (parts.source.adapter.type && parts.source.adapter.type() === "model") {
-                _api.engine.binding.propagate(bindingObj, parts)
+                _api.engine.binding.propagate(viewDataBinding, parts)
             }
         }
         for (let j = 0; j < allParts.length; j++) {
             let parts = allParts[j]
             if (!parts.source.adapter.type && parts.source.adapter === "binding") {
-                _api.engine.binding.propagate(bindingObj, parts)
+                _api.engine.binding.propagate(viewDataBinding, parts)
             }
         }
         for (let j = 0; j < allParts.length; j++) {
             let parts = allParts[j]
             if (parts.source.adapter.type && parts.source.adapter.type() === "view") {
-                _api.engine.binding.propagate(bindingObj, parts)
+                _api.engine.binding.propagate(viewDataBinding, parts)
             }
         }
     }
     
+    // Set bindingObserver ids in Iteration Instance
     instance.bindingObserver = bindingObserver
  }
  
- _api.engine.binding.shutdown = (bindingObj, instance) => {
+ // Shuts down the binding of an Iteration Instance
+ _api.engine.binding.shutdown = (viewDataBinding, instance) => {
     let observer = instance.bindingObserver
     for (let i = 0; i < observer.length; i++) {
         let elem = observer[i]
         if (elem.adapter === "binding") {
-            bindingObj.vars.localScope.unobserve(elem.observerId)
-            // TODO: Does not work like this, destroy expects qualifier
-            bindingObj.vars.localScope.destroy(elem.observerId)
+            viewDataBinding.vars.bindingScope.unobserve(elem.observerId)
         } else {
             elem.adapter.unobserve(elem.observerId)
         }
     }
  }
  
- _api.engine.binding.propagate = (bindingObj, parts) => {
+ // Wrapper for _api.engine.binding.propagate that handles pause
+ _api.engine.binding.observerCallback = (viewDataBinding, parts) => {
+    if (!viewDataBinding.vars.paused) {
+        _api.engine.binding.propagate(viewDataBinding, parts)
+    } else {
+        viewDataBinding.vars.pauseQueue.push(parts)
+    }
+ }
+ 
+ // Propagates a Binding (represented by parts)
+ _api.engine.binding.propagate = (viewDataBinding, parts) => {
     // Read value from source
     let source = parts.source
     let value = ""
     if (source.adapter === "binding") {
-        value = bindingObj.vars.localScope.get(source.path[0])
+        value = viewDataBinding.vars.bindingScope.get(source.path[0])
     } else if (source.adapter.type() === "view") {
         value = source.adapter.getPaths(parts.element, source.path)
     } else if (source.adapter.type() === "model") {
-        value = source.adapter.getPaths(bindingObj.vars.model, source.path)
+        value = source.adapter.getPaths(viewDataBinding.vars.model, source.path)
     } else {
         throw _api.util.exception("Unknown adapter type: " + source.adapter.type())
     }
     
+    // Convert to references, if not from binding adapter
     if (source.adapter !== "binding" &&
         (source.adapter.type() === "view"
          || source.adapter.type() === "model")) {
-        value = _api.engine.binding.convertToReferences(source.adapter, source.path, value, bindingObj.vars.model, parts.element)
+        value = _api.engine.binding.convertToReferences(source.adapter, source.path, value, 
+                                                        viewDataBinding.vars.model, parts.element)
     }
     
     // Propagate through connectors
     let connectorChain = parts.connectors
     for (let i = 0; i < connectorChain.length; i++) {
         value = connectorChain[i].process(value)
+        // Abort if necessary
         if (value === $api.abortSymbol) {
             return
         }
     }
     
+    // Convert to values if sink is not binding adapter
     let sink = parts.sink
     if (sink.adapter !== "binding" &&
         (sink.adapter.type() === "view"
@@ -148,36 +141,36 @@
     
     // Write to sink
     if (sink.adapter === "binding") {
-        let currentValue = bindingObj.vars.localScope.get(sink.path[0])
+        let currentValue = viewDataBinding.vars.bindingScope.get(sink.path[0])
         if (!currentValue ||
             (!(currentValue instanceof _api.engine.binding.Reference) &&
              !(value instanceof _api.engine.binding.Reference))) {
             // No value there or not references involved, write it
-            bindingObj.vars.localScope.set(sink.path[0], value)
+            viewDataBinding.vars.bindingScope.set(sink.path[0], value)
         } else if (!(currentValue instanceof _api.engine.binding.Reference) &&
             (value instanceof _api.engine.binding.Reference)) {
                 // current is not a reference, new is, write it
-                bindingObj.vars.localScope.set(sink.path[0], value)
+                viewDataBinding.vars.bindingScope.set(sink.path[0], value)
         } else if ((currentValue instanceof _api.engine.binding.Reference) &&
             _api.util.isPrimitive(value)) {
                // current is a reference, new is a primitive
                // write the new value into the point that is referenced
                currentValue.set(value)
-               // Notify observers of the localScope that refers to currentValue
+               // Notify observers of the bindingScope that refers to currentValue
                // which is sink.path[0]
-               bindingObj.vars.localScope.notify(sink.path[0])
+               viewDataBinding.vars.bindingScope.notify(sink.path[0])
         } else if ((currentValue instanceof _api.engine.binding.Reference) &&
             (value instanceof _api.engine.binding.Reference)) {
             // Both, old and new are references
             if (currentValue.type() === value.type()) {
                 // Overwrite if of same type
-                bindingObj.vars.localScope.set(sink.path[0], value)
+                viewDataBinding.vars.bindingScope.set(sink.path[0], value)
             } else {
                 // Never overwrwite model reference with view reference
                 // and vice versa
                 currentValue.set(value.getValue())
                 // See above
-                bindingObj.vars.localScope.notify(sink.path[0])
+                viewDataBinding.vars.bindingScope.notify(sink.path[0])
             }
         } else {
             // All we know is that currentValue is a reference and value is neither
@@ -186,7 +179,7 @@
             // By structured json containing only references of the same type
             if (_api.engine.binding.containsOnlyReferencesOfSameType(currentValue, value)) {
                 // Overwrite
-                bindingObj.vars.localScope.set(sink.path[0], value)
+                viewDataBinding.vars.bindingScope.set(sink.path[0], value)
             } else {
                 // TODO: See if this ever appears, if it appears in senseful case
                 // Adapt to thesis, where no error is thrown and value always overwritten
@@ -196,20 +189,22 @@
     } else if (sink.adapter.type() === "view") {
         sink.adapter.set(parts.element, sink.path, value)
     } else if (sink.adapter.type() === "model") {
-        sink.adapter.set(bindingObj.vars.model, sink.path, value)
+        sink.adapter.set(viewDataBinding.vars.model, sink.path, value)
     } else {
         throw _api.util.exception("Unknown adapter type: " + sink.adapter.type())
     }
  }
  
+ // Checks if value comprises only references and if
+ // all references in value have the same type as reference
  _api.engine.binding.containsOnlyReferencesOfSameType = (reference, value) => {
     if (_api.util.isPrimitive(value)) {
         return false
-    } else if (value instanceof _api.engine.binding.Reference) {
+    } else if (_api.util.isReference(value)) {
         return reference.type() === value.type()
-    }
-    if (typeof value === "object") {
+    } else if (typeof value === "object") {
         for (let key in value) {
+            // Recursion
             if(!_api.engine.binding.containsOnlyReferencesOfSameType(reference, value[key])) {
                 return false
             }
@@ -218,8 +213,32 @@
     }
  }
  
+ /* Converts a set of paths into structured json
+ ** Example:
+ **     Input: adapter: <ModelAdapter>
+ **            originalPath: ["people"]
+ **            paths: [ ["people", 0, "name"],
+ **                     ["people", 0, "age"],
+ **                     ["people", 1, "name"],
+ **                     ["people", 1, "age"] ]
+ **             model: <PresentationModelReference>
+ **             element: <jQuery>
+ **
+ **     Result: [
+ **                 {
+ **                     name: Reference(adapter: <ModelAdapter>, path: ["people", 0, "name"])
+ **                     age: Reference(adapter: <ModelAdapter>, path: ["people", 0, "age"])
+ **                 },
+ **                 {
+ **                     name: Reference(adapter: <ModelAdapter>, path: ["people", 1, "name"])
+ **                     age: Reference(adapter: <ModelAdapter>, path: ["people", 1, "age"])
+ **                 }
+ **             ]
+ */
  _api.engine.binding.convertToReferences = (adapter, originalPath, paths, model, element) => {
     let result = {}
+    
+    // Build the basic structure
     for (let i = 0; i < paths.length; i++) {
         let path = paths[i]
         // Determine position in result
@@ -232,97 +251,77 @@
             position = position[key]
         } 
     }
+    // See example above: Result now contains { 0: { name: {}, age: {} }, 1: { name: {}, age: {} } }
     
     // For every path write a reference into result if there still is a {}
     for (let i = 0; i < paths.length; i++) {
         let path = paths[i]
         let current = result
         for (let j = originalPath.length; j < path.length - 1; j++) {
-            let key = path[j]
-            current = current[key]
+            current = current[path[j]]
+        }
+        
+        // Helper function
+        let initReference = (ada, pat, elem, mod) => {
+            let newReference = new _api.engine.binding.Reference(ada, pat)
+            if (ada.type() === "view") {
+                newReference.setElement(elem)
+            } else if (adapter.type() === "model") {
+                newReference.setModel(mod)
+            }
+            return newReference
         }
         
         if (path.length - originalPath.length > 0) {
             if ($api.$().isEmptyObject(current[path[path.length - 1]])) {
-                let newReference = new _api.engine.binding.Reference(adapter, path)
-                if (adapter.type() === "view") {
-                    newReference.setElement(element)
-                } else if (adapter.type() === "model") {
-                    newReference.setModel(model)
-                }
-                current[path[path.length - 1]] = newReference
+                current[path[path.length - 1]] = initReference(adapter, path, element, model)
             }
         } else {
             if ($api.$().isEmptyObject(result)) {
-                let newReference = new _api.engine.binding.Reference(adapter, path)
-                if (adapter.type() === "view") {
-                    newReference.setElement(element)
-                } else if (adapter.type() === "model") {
-                    newReference.setModel(model)
-                }
-                result = newReference
+                result = initReference(adapter, path, element, model)
             }
         }
     }
+    
+    // Convert key sets on each level to arrays
     result = _api.engine.binding.recognizeArrays(result)
+    
     return result
  }
  
+ // Checks the set of keys in result on each level
+ // If they build a contingent series of whole numbers starting at 0
+ // This level is converted into an array
  _api.engine.binding.recognizeArrays = (result) => {
     if (typeof result === "object") {
-        let onlyNumbers = true
-        let maxNumber = -1
-        let minNumber = 9007199254740992
-        for (let key in result) {
-            if (key % 1 !== 0 || key < 0) {
-                onlyNumbers = false
-                break
-            } else {
-                key = parseInt(key, 10)
-                if (maxNumber < key) {
-                    maxNumber = key
+        let keySet = _api.util.getObjectKeys(result)
+        if (_api.util.array.ifAll(keySet, (item) => {
+            return _api.util.number.isWholePositiveNumber(item)
+        })) {
+            let stats = _api.util.array.getMinAndMax(keySet)
+            if (stats.min === 0 && keySet.length === stats.max + 1) {
+                let newResult = []
+                for (let i = 0; i < stats.max + 1; i++) {
+                    // Recursion
+                    newResult[i] = _api.engine.binding.recognizeArrays(result[i])
                 }
-                if (minNumber > key) {
-                    minNumber = key
-                }
+                return newResult
             }
         }
-        if (onlyNumbers && minNumber === 0 && Object.keys(result).length === maxNumber + 1) {
-            let newResult = []
-            for (let i = 0; i < maxNumber + 1; i++) {
-                newResult[i] = _api.engine.binding.recognizeArrays(result[i])
-            }
-            return newResult
-        } else {
-            return result
-        }
-    } else {
-        return result
     }
+    // In all other cases
+    return result
  }
  
+ // Replaces all references in value by their values
  _api.engine.binding.convertToValues = (value) => {
-    if (value instanceof _api.engine.binding.Reference) {
-        return value.getValue()
-    } else {
-        if (value instanceof Array) {
-            let newArr = []
-            for (let i = 0; i < value.length; i++) {
-                newArr.push(_api.engine.binding.convertToValues(value[i]))
-            }
-            return newArr
-        } else if (typeof value === "object") {
-            let newObj = {}
-            for (let key in value) {
-                let newValue = _api.engine.binding.convertToValues(value[key])
-                newObj[key] = newValue
-            }
-            return newObj
+    return _api.util.traverseStructure(value, (item) => {
+        if (_api.util.isReference(item)) {
+            return item.getValue()
         } else {
-            // TODO: If it causes trouble, string should be cloned here probably
-            return value
+            return item
         }
-    }
+    })
  }
  
  /*
@@ -338,33 +337,28 @@
  *      + adapter: Adapter / "binding"
  *      + path: String[]
  *    }
+ *    + element: jQuery
  *  }
  */
- _api.engine.binding.getParts = (bindingObj, binding) => {
+ _api.engine.binding.getParts = (viewDataBinding, binding, element) => {
     let direction = _api.engine.binding.getDirection(binding)
+    _api.util.assume(binding.childs().length >= 3)
     
-    if (binding.childs().length < 3) {
-        throw _api.util.exception("Assumed that every binding has at least " +
-            "three children")
-    }
     let firstAdapter = binding.childs()[0]
     let lastAdapter = binding.childs()[binding.childs().length - 1]
     
     let sourceAdapter = direction === "right" ? firstAdapter : lastAdapter
     let sourceName = _api.engine.binding.getName(sourceAdapter)
-    let source = sourceName === bindingObj.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sourceName)
+    let source = sourceName === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sourceName)
     let sourcePath = _api.engine.binding.getPath(sourceAdapter)
     
     let sinkAdapter = direction === "right" ? lastAdapter : firstAdapter
     let sinkName = _api.engine.binding.getName(sinkAdapter)
-    let sink = sinkName === bindingObj.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sinkName)
+    let sink = sinkName === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sinkName)
     let sinkPath = _api.engine.binding.getPath(sinkAdapter)
     
     let connector = binding.childs()[1]
-    if (!connector.isA("Connector")) {
-        throw _api.util.exception("Assumed that the second child of a binding " +
-            "always is a Connector, but it was not")
-    }
+    _api.util.assume(connector.isA("Connector"))
     let funcCalls = connector.getAll("FuncCall")
     let connectorChain = []
     for (let i = direction === "right" ? 0 : funcCalls.length - 1;
@@ -385,7 +379,8 @@
             name: sinkName,
             adapter: sink,
             path: sinkPath
-        }
+        },
+        element: element
     }
  }
  
@@ -395,20 +390,11 @@
  */
  _api.engine.binding.getDirection = (binding) => {
     let connectors = binding.getAll("Connector")
-    if (connectors.length !== 1) {
-        throw _api.util.exception("Assumed that every binding has exactly " +
-            "one connector element, but there were " + connectors.length)
-    }
+    _api.util.assume(connectors.length === 1)
     let connector = connectors[0]
-    if (connector.childs().length === 0) {
-        throw _api.util.exception("Assumed that every connector has at least " +
-            "one child, but there was none")
-    }
+    _api.util.assume(connector.childs().length !== 0)
     let bindingOperator = connector.childs()[0]
-    if (!bindingOperator.isA("BindingOperator")) {
-        throw _api.util.exception("Assumed that the first child of a connector " + 
-            "always is a BindingOperator, but it was not")
-    }
+    _api.util.assume(bindingOperator.isA("BindingOperator"))
     
     let value = bindingOperator.get("value")
     if (value === "<-") {
@@ -416,28 +402,17 @@
     } else if (value === "->") {
         return "right"
     } else {
-        throw _api.util.exception("Could not interpret direction for bindingoperator " +
-            value)
+        throw _api.util.exception("Could not interpret direction for bindingoperator " + value)
     }
  }
  
  _api.engine.binding.getName = (adapter) => {
-    if (adapter.childs().length === 0) {
-        throw _api.util.exception("Expected an adapter to always have at least one child")
-    }
+    _api.util.assume(adapter.childs().length !== 0)
     let exprSeq = adapter.childs()[0]
-    if (!exprSeq.isA("ExprSeq")) {
-        throw _api.util.exception("Expected the first child of an Adapter to always " +
-            "be an ExprSeq, but it was not")
-    }
-    if (exprSeq.childs().length === 0) {
-        throw _api.util.exception("Expected the ExprSeq to always have at least one child")
-    }
+    _api.util.assume(exprSeq.isA("ExprSeq"))
+    _api.util.assume(exprSeq.childs().length !== 0)
     let variable = exprSeq.childs()[0]
-    if (!variable.isA("Variable")) {
-        throw _api.util.exception("Expected the first child of an ExprSeq to always " +
-            "be a Variable, but it was not")
-    }
+    _api.util.assume(variable.isA("Variable"))
     if (variable.get("ns") !== "") {
         return variable.get("ns")
     } else {
@@ -446,22 +421,12 @@
  }
  
  _api.engine.binding.getPath = (adapter) => {
-    if (adapter.childs().length === 0) {
-        throw _api.util.exception("Expected an adapter to always have at least one child")
-    }
+    _api.util.assume(adapter.childs().length !== 0)
     let exprSeq = adapter.childs()[0]
-    if (!exprSeq.isA("ExprSeq")) {
-        throw _api.util.exception("Expected the first child of an Adapter to always " +
-            "be an ExprSeq, but it was not")
-    }
-    if (exprSeq.childs().length === 0) {
-        throw _api.util.exception("Expected the ExprSeq to always have at least one child")
-    }
+    _api.util.assume(exprSeq.isA("ExprSeq"))
+    _api.util.assume(exprSeq.childs().length !== 0)
     let variable = exprSeq.childs()[0]
-    if (!variable.isA("Variable")) {
-        throw _api.util.exception("Expected the first child of an ExprSeq to always " +
-            "be a Variable, but it was not")
-    }
+    _api.util.assume(variable.isA("Variable"))
     if (variable.get("ns") !== "") {
         return [variable.get("id")]
     } else {

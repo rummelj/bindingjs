@@ -8,7 +8,7 @@
 */
     
 class Reference {
-    /*  constructor for a Tree node  */
+
     constructor (adapter, path) {
         this.adapter = adapter
         this.path = path

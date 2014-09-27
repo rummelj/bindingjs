@@ -7,266 +7,160 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- _api.engine.iterator.mount = (binding, mountPoint) => {
-    let template = binding.vars.iterationTree.get("links")[0].get("instances")[0].template[0]
+ _api.engine.iterator.mount = (viewDataBinding, mountPoint) => {
+    let expandedIterationTreeRoot = viewDataBinding.vars.iterationTree.get("links")[0]
+    let iterationInstanceRoot = expandedIterationTreeRoot.get("instances")[0]
+    let template = iterationInstanceRoot.template
     // Check if template was mounted before and call destroy observer for sockets
     if (template.parentElement) {
-        _api.engine.iterator.callSocketRemovalObserver(binding, binding.vars.iterationTree.get("links")[0])
+        _api.engine.socket.callRemoval(viewDataBinding, expandedIterationTreeRoot)
     }
     mountPoint.replaceWith(template)
-    _api.engine.iterator.callSocketInsertionObserver(binding, binding.vars.iterationTree.get("links")[0])
+    _api.engine.sockets.callInsertion(viewDataBinding, expandedIterationTreeRoot)
  }
  
- _api.engine.iterator.callSocketRemovalObserver = (binding, node) => {
-    for (let i = 0; i < node.get("instances").length; i++) {
-        let instance = node.get("instances")[i]
-        _api.engine.iterator.callSocketRemovalObserverInstance(binding, node, instance)
-    }
-    
-    for (let i = 0; i < node.childs().length; i++) {
-        _api.engine.iterator.callSocketRemovalObserver(binding, node.childs()[i])
-    }
- }
- 
- _api.engine.iterator.callSocketInsertionObserver = (binding, node) => {
-    for (let i = 0; i < node.get("instances").length; i++) {
-        let instance = node.get("instances")[i]
-        _api.engine.iterator.callSocketInsertionObserverInstance(binding, node, instance)
-    }
-    
-    for (let i = 0; i < node.childs().length; i++) {
-        _api.engine.iterator.callSocketInsertionObserver(binding, node.childs()[i])
-    }
- }
- 
- _api.engine.iterator.callSocketRemovalObserverInstance = (binding, node, instance) => {
-    if (instance.sockets.length > 0) {
-        let keys = []
-        // Do not add key, if this is the root node
-        if (node.getParent()) {
-            keys.push(instance.key)
-        }
-        // If not node.getParent().getParent() means, that node.get("instance") refers to the instance of root
-        while (node.getParent() && node.getParent().getParent() && node.get("instance")) {
-            keys.push(node.get("instance").key)
-            node = node.getParent()
-        }
-        for (let i = 0; i < instance.sockets.length; i++) {
-            let socket = instance.sockets[i]
-            let id = socket.id
-            let element = socket.element
-            let callbacks = binding.vars.socketRemovalObserver[id]
-            if (callbacks) {
-                for (let j = 0; j < callbacks.length; j++) {
-                    let callback = callbacks[j]
-                    callback(keys, element)
-                }
-            }
-        }
-    }
- }
- 
- _api.engine.iterator.callSocketInsertionObserverInstance = (binding, node, instance) => {
-    if (instance.sockets.length > 0) {
-        let keys = []
-        // Do not add key, if this is the root node
-        if (node.getParent()) {
-            keys.push(instance.key)
-        }
-        // If not node.getParent().getParent() means, that node.get("instance") refers to the instance of root
-        while (node.getParent() && node.getParent().getParent() && node.get("instance")) {
-            keys.push(node.get("instance").key)
-            node = node.getParent()
-        }
-        for (let i = 0; i < instance.sockets.length; i++) {
-            let socket = instance.sockets[i]
-            let id = socket.id
-            let element = socket.element
-            let callbacks = binding.vars.socketInsertionObserver[id]
-            if (callbacks) {
-                for (let j = 0; j < callbacks.length; j++) {
-                    let callback = callbacks[j]
-                    callback(keys, element)
-                }
-            }
-        }
-    }
- }
- 
- _api.engine.iterator.init = (binding) => {
-    let root = binding.vars.iterationTree
+ _api.engine.iterator.init = (viewDataBinding) => {
+    let root = viewDataBinding.vars.iterationTree
     // Init binding of root instance
-    _api.engine.binding.init(binding, root.get("links")[0].get("instances")[0])
-    binding.vars.firstLevelIterationObserverIds = []
-    for (let i = 0; i < root.childs().length; i++) {
-        let observerId = _api.engine.iterator.initInternal(binding, root.childs()[i])
-        binding.vars.firstLevelIterationObserverIds.push(observerId)
-    }
- }
- 
- _api.engine.iterator.shutdown = (binding) => {
-    // Opposite of _api.engine.iterator.init in reverse order
-    let root = binding.vars.iterationTree
-    
-    for (let i = 0; i < binding.vars.firstLevelIterationObserverIds.length; i++) {
-        let observerId = binding.vars.firstLevelIterationObserverIds[i]
-        binding.vars.localScope.unobserve(observerId)
-        // Destroy is not necessary, since in shutdownInternal the values (which might be references for when)
-        // will be overwritten and the unobserve is done in localScope
-    }
-    
-    for (let i = 0; i < root.childs().length; i++) {
-        _api.engine.iterator.shutdownInternal(binding, root.childs()[i])
-    }
-    _api.engine.binding.shutdown(binding, root.get("links")[0].get("instances")[0])
- }
- 
- _api.engine.iterator.initInternal = (binding, node) => {
-    // Only observes first level iterations, all others will be 
-    // observed as soon as created through instances
-    let observerId = binding.vars.localScope.observe(node.get("links")[0].get("sourceId"), () => {
-        _api.engine.iterator.changeListener(binding, node.get("links")[0])
+    _api.engine.binding.init(viewDataBinding, root.get("links")[0].get("instances")[0])
+    viewDataBinding.vars.firstLevelIterationObserverIds = []
+    _api.util.array.each(root.childs(), (plItNode) => {
+        let observerId = viewDataBinding.vars.bindingScope.observe(plItNode.get("links")[0].get("sourceId"), () => {
+            _api.engine.iterator.changeListener(viewDataBinding, plItNode.get("links")[0])
+        })
+        _api.engine.iterator.changeListener(viewDataBinding, plItNode.get("links")[0])
+        viewDataBinding.vars.firstLevelIterationObserverIds.push(observerId)
     })
-    _api.engine.iterator.changeListener(binding, node.get("links")[0])
-    return observerId
-}
+ }
+ 
+ _api.engine.iterator.shutdown = (viewDataBinding) => {
+    // Opposite of _api.engine.iterator.init in reverse order
+    let root = viewDataBinding.vars.iterationTree
+    
+    _api.util.array.each(viewDataBinding.vars.firstLevelIterationObserverIds, (observerId) => {
+        viewDataBinding.vars.bindingScope.unobserve(observerId)
+        // Destroy is not necessary, since in shutdownInternal the values (which might be references for when)
+        // will be overwritten and the unobserve is done in bindingScope
+    })
+    _api.util.array.each(root.childs(), (child) => {
+        _api.engine.iterator.shutdownInternal(viewDataBinding, child)
+    })
+    _api.engine.binding.shutdown(viewDataBinding, root.get("links")[0].get("instances")[0])
+ }
 
-_api.engine.iterator.shutdownInternal = (binding, node) => {
-    // Opposite of _api.engine.iterator.initInternal in reverse order
-    
-    // Reset first level nodes to empty collections or false
+_api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     let sourceId = node.get("links")[0].get("sourceId")
-    let currentCollection = binding.vars.localScope.get(sourceId)
-    if (currentCollection instanceof _api.engine.binding.Reference) {
-        currentCollection = currentCollection.getValue()
-    }
-    currentCollection = currentCollection ? currentCollection : []
-    let currentCollectionType = Object.prototype.toString.call(currentCollection)
+    let currentCollection = viewDataBinding.vars.bindingScope.get(sourceId)
+    currentCollection = _api.util.convertIfReference(currentCollection)
+    currentCollection = _api.util.object.ifUndefined(currentCollection, [])
     
-    let newCollection = null
-    if (currentCollectionType === "[object Boolean]") {
+    let newCollection
+    if (_api.util.object.isBoolean(currentCollection)) {
         newCollection = false
     } else if (currentCollection instanceof Array) {
         newCollection = []
     } else {
         newCollection = {}
     }
-    
-    binding.vars.localScope.set(sourceId, newCollection)
+    viewDataBinding.vars.bindingScope.set(sourceId, newCollection)
     
     // Observers are already down, so call the changeListener manually
-    _api.engine.iterator.changeListener(binding, node.get("links")[0])
+    _api.engine.iterator.changeListener(viewDataBinding, node.get("links")[0])
 }
 
- _api.engine.iterator.changeListener = (binding, node) => {
-    let newCollection = binding.vars.localScope.get(node.get("sourceId"))
+ _api.engine.iterator.changeListener = (viewDataBinding, expItNode) => {
+    let newCollection = viewDataBinding.vars.bindingScope.get(expItNode.get("sourceId"))
     // Special case for true and false or empty collection
-    if (newCollection instanceof _api.engine.binding.Reference) {
-        newCollection = newCollection.getValue()
-    }
-    newCollection = (typeof newCollection === "undefined") ? [] : newCollection
-    let oldCollection = node.get("collection")
-    node.set("collection", _api.engine.binding.convertToValues(newCollection))
+    newCollection = _api.util.convertIfReference(newCollection)
+    newCollection = _api.util.object.ifUndefined(newCollection, [])
+    let oldCollection = expItNode.get("collection")
+    expItNode.set("collection", _api.engine.binding.convertToValues(newCollection))
     
-    let newCollectionType = Object.prototype.toString.call(newCollection)
-    if (newCollectionType === "[object Boolean]") {
+    if (_api.util.object.isBoolean(newCollection)) {
         // collection is always initialized with [], so if the boolean arrives for the first time
         // this needs to be interpreted as false
-        if (oldCollection.hasOwnProperty("length") && oldCollection.length === 0) {
+        if (oldCollection instanceof Array) {
             oldCollection = false
         }
-        if (oldCollection && !newCollection) {
+        if (oldCollection === true && newCollection === false) {
             // Was there, now is not there anymore
-            _api.engine.iterator.remove(binding, node, 0)
-        } else if (!oldCollection && newCollection) {
+            _api.engine.iterator.remove(viewDataBinding, expItNode, 0)
+        } else if (oldCollection === false && newCollection === true) {
             // Was not there, now should be there
-            _api.engine.iterator.add(binding, node, { key: 0, value: true })
+            _api.engine.iterator.add(viewDataBinding, expItNode, { key: 0, value: true })
         }
     } else {
         let changes = _api.engine.iterator.levensthein(oldCollection, newCollection)
         for (let i = 0; i < changes.length; i++) {
             switch (changes[i].action) {
                 case "remove":
-                    _api.engine.iterator.remove(binding, node, changes[i].key)
+                    _api.engine.iterator.remove(viewDataBinding, expItNode, changes[i].key)
                     break
                 case "add":
-                    _api.engine.iterator.add(binding, node, changes[i].newProperty)
+                    _api.engine.iterator.add(viewDataBinding, expItNode, changes[i].newProperty)
                     break
                 case "replace":
-                    _api.engine.iterator.replace(binding, node, changes[i].key, changes[i].newValue)
+                    _api.engine.iterator.replace(viewDataBinding, expItNode, changes[i].key, changes[i].newValue)
                     break
                 default:
-                    throw new _api.util.exception("Internal Error: Unknown change action")
+                    _api.util.assume(false)
             }
         }
     }
  }
  
- _api.engine.iterator.add = (binding, node, property) => {
-    let childs = node.get("origin").childs()
-    let newInstance = _api.engine.iterator.addInstance(binding, node, property)
+ _api.engine.iterator.add = (viewDataBinding, expItNode, property) => {
+    let newInstance = _api.engine.iterator.addInstance(viewDataBinding, expItNode, property)
     
-    // Initialize new children
-    for (let j = 0; j < childs.length; j++) {
-        let child = childs[j]
-        let newChildLink = _api.engine.iterator.initChild(binding, node, child, newInstance)
-        node.add(newChildLink)
-    }
+    // Initialize new children in expanded iteration tree
+    _api.util.array.each(expItNode.get("origin").childs(), (child) => {
+        let newChildLink = _api.engine.iterator.initChild(viewDataBinding, expItNode, child, newInstance)
+        expItNode.add(newChildLink)
+    })
     
     // Initialize binding for newInstance
-    _api.engine.binding.init(binding, newInstance)
-    _api.engine.iterator.refreshKeysAdded(binding, node, newInstance, property.key)
+    _api.engine.binding.init(viewDataBinding, newInstance)
+    _api.engine.iterator.refreshKeysAdded(viewDataBinding, expItNode, newInstance, property.key)
  }
  
- _api.engine.iterator.remove = (binding, node, key) => {
+ _api.engine.iterator.remove = (viewDataBinding, expItNode, key) => {
     // Find instance
-    let oldInstance
-    let instances = node.get("instances")
-    for (let i = 0; i < instances.length; i++) {
-        let instance = instances[i]
-        if (instance.key === key) {
-            oldInstance = instance
-            break
-        }
-    }
+    let oldInstance = _api.util.array.findFirst(expItNode.get("instances"), (instance) => {
+        return instance.key === key
+    })
     if (!oldInstance) {
         throw _api.util.exception("Cannot remove key " + key + " because it does not exist")
     }
     
-    // Do the opposite of _api.engine.iterator.add in reverse order
-    _api.engine.binding.shutdown(binding, oldInstance)
+    _api.engine.binding.shutdown(viewDataBinding, oldInstance)
     
-    let childs = node.childs()
-    for (let i = 0; i < childs.length; i++) {
-        let child = childs[i]
+    _api.util.array.each(expItNode.childs(), (child) => {
         if (child.get("instance") === oldInstance) {
-            node.del(child)
-            _api.engine.iterator.destroyChild(binding, child)
+            expItNode.del(child)
+            _api.engine.iterator.destroyChild(viewDataBinding, child)
         }
-    }
-    
-    _api.engine.iterator.removeInstance(binding, node, key, oldInstance)
-    _api.engine.iterator.refreshKeysRemoved(binding, node, key)
+    })
+
+    _api.engine.iterator.removeInstance(viewDataBinding, expItNode, key, oldInstance)
+    _api.engine.iterator.refreshKeysRemoved(viewDataBinding, expItNode, key)
  }
  
- _api.engine.iterator.replace = (binding, node, key, newValue) => {
-    for (let i = 0; i < node.childs().length; i++) {
-        let child = node.childs()[i]
-        if (child.get("instance").key === key) {
-            binding.vars.localScope.set(child.get("sourceId"), newValue)
-        }
-    }
+ _api.engine.iterator.replace = (viewDataBinding, expItNode, key, newValue) => {
+    let childrenWithKey = _api.util.array.findAll(expItNode.childs(), (child) => {
+        return child.get("instance").key === key
+    })
+    _api.util.array.each(childrenWithKey, (child) => {
+        viewDataBinding.vars.bindingScope.set(child.get("sourceId"), newValue)
+    })
  }
  
- _api.engine.iterator.addInstance = (binding, link, property) => {
-    $api.debug(8, "Adding instance, property.key: " + property.key)
-    
+ _api.engine.iterator.addInstance = (viewDataBinding, expItNode, property) => {
     // Template
-    let oldTemplate = link.get("template")
+    let oldTemplate = expItNode.get("template")
     let newTemplate = oldTemplate.clone()
     
     // Template Placeholder
-    let oldTemplatePlaceholder = link.get("placeholder")
+    let oldTemplatePlaceholder = expItNode.get("placeholder")
     let newTemplatePlaceholder = []
     for (let i = 0; i < oldTemplatePlaceholder.length; i++) {
         let oldPlaceholder = oldTemplatePlaceholder[i]
@@ -277,8 +171,8 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         newTemplatePlaceholder.push(comment)
     }
     
-    // Update sockets
-    let sockets = link.get("sockets")
+    // Sockets
+    let sockets = expItNode.get("sockets")
     let newSockets = []
     for (let i = 0; i < sockets.length; i++) {
         let socket = sockets[i]
@@ -289,7 +183,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     }
     
     // Binding
-    let newBinding = link.get("binding").clone()
+    let newBinding = expItNode.get("binding").clone()
     let scopes = newBinding.getAll("Scope")
     for (let i = 0; i < scopes.length; i++) {
         let scope =  scopes[i]
@@ -308,32 +202,35 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     
     let bindingRenames = {}
     // Rename all own variables
-    let ownVariables = link.get("ownVariables")
+    let ownVariables = expItNode.get("ownVariables")
+    let newOwnVariables = []
     for (let i = 0; i < ownVariables.length; i++) {
         let ownVariable = ownVariables[i]
-        bindingRenames[ownVariable] = "temp" + binding.vars.tempCounter.getNext()
+        let newOwnVariable = "temp" + viewDataBinding.vars.tempCounter.getNext()
+        newOwnVariables.push(newOwnVariable)
+        bindingRenames[ownVariable] = newOwnVariable
     }
     
     // Generate new rename for entry and key
-    let entryId = link.get("entryId")
+    let entryId = expItNode.get("entryId")
     if (entryId) {
-        let newEntryId = "temp" + binding.vars.tempCounter.getNext()
+        let newEntryId = "temp" + viewDataBinding.vars.tempCounter.getNext()
         bindingRenames[entryId] = newEntryId
-        // Set the entry in localScope
-        binding.vars.localScope.set(newEntryId, property.value)
+        // Set the entry in bindingScope
+        viewDataBinding.vars.bindingScope.set(newEntryId, property.value)
         entryId = newEntryId
     }
-    let keyId = link.get("keyId")
+    let keyId = expItNode.get("keyId")
     if (keyId) {
-        let newKeyId = "temp" + binding.vars.tempCounter.getNext()
+        let newKeyId = "temp" + viewDataBinding.vars.tempCounter.getNext()
         bindingRenames[keyId] = newKeyId
-        // Set the key in localScope
-        binding.vars.localScope.set(newKeyId, property.key)
+        // Set the key in bindingScope
+        viewDataBinding.vars.bindingScope.set(newKeyId, property.key)
         keyId = newKeyId
     }
     
     // Also rename anything that parent has renamed
-    let parentRenames = link.get("instance") ? link.get("instance").bindingRenames : {}
+    let parentRenames = expItNode.get("instance") ? expItNode.get("instance").bindingRenames : {}
     for (let oldId in parentRenames) {
         bindingRenames[oldId] = parentRenames[oldId]
     }
@@ -342,7 +239,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     let variables = newBinding.getAll("Variable")
     for (let i = 0; i < variables.length; i++) {
         let variable = variables[i]
-        if (variable.get("ns") !== binding.bindingScopePrefix()) {
+        if (variable.get("ns") !== viewDataBinding.bindingScopePrefix()) {
             continue 
         }
         for (let bindingRename in bindingRenames) {
@@ -355,9 +252,10 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     }
     
     // If afterKey is numeric
-    let newKey = (typeof property.afterKey === "undefined" ||
-                  property.afterKey % 1 !== 0) ?
+    let newKey = (!_api.util.object.isDefined(property.afterKey) ||
+                  !_api.util.number.isWholePositiveNumber(property.afterKey)) ?
                   property.key : parseInt(property.afterKey) + 1
+                  
     let newInstance = {
         key: newKey,
         keyId: keyId,
@@ -366,54 +264,52 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         binding: newBinding,
         bindingRenames: bindingRenames,
         placeholder: newTemplatePlaceholder,
-        sockets: newSockets
+        sockets: newSockets,
+        ownVariables: newOwnVariables
     }
     
-    let instances = link.get("instances")
+    let instances = expItNode.get("instances")
     // Insert template
     // afterKey === -1 means "insert at front"
-    if (typeof property.afterKey !== "undefined" &&
+    if (_api.util.object.isDefined(property.afterKey) &&
           property.afterKey !== -1 &&
           instances.length > 0) {
         // Search for instance with that key and insert after it
-        for (let i = 0; i < instances.length; i++) {
-            let instance = instances[i]
-            if (instance.key === property.afterKey) {
-                instance.template.after(newTemplate)
-                break
-            }
+        let instanceWithKey = _api.util.array.findFirst(instances, (instance) => {
+            return instance.key === property.afterKey
+        })
+        if (!instanceWithKey) {
+            _api.util.assume(false)
         }
-    } else if (link.get("instance") /* only false if initializing root instance */){
-        // link.get("instance") === link.getParent().get("instances")[link.getParent().get("instances").indexOf(link.get("instance")]
-        link.get("instance").placeholder[link.get("placeholderIndex")].after(newTemplate)
+        instanceWithKey.template.after(newTemplate)
+    } else if (expItNode.get("instance") /* only false if initializing root instance */){
+        expItNode.get("instance").placeholder[expItNode.get("placeholderIndex")].after(newTemplate)
     }
    
     // Add to instances
     instances.push(newInstance)
     
     // Call sockets
-    _api.engine.iterator.callSocketInsertionObserverInstance(binding, link, newInstance)
+    _api.engine.sockets.callInsertionInstance(viewDataBinding, expItNode, newInstance)
     
     return newInstance
  }
  
- _api.engine.iterator.refreshKeysAdded = (binding, node, newInstance, keyAdded) => {
+ _api.engine.iterator.refreshKeysAdded = (viewDataBinding, expItNode, newInstance, keyAdded) => {
     // Check if collection is array
-    if (node.get("collection") instanceof Array) {
+    if (expItNode.get("collection") instanceof Array) {
         // Increase key of all instances greater than keyAdded by one
-        let instances = node.get("instances")
-        for (let i = 0; i < instances.length; i++) {
-            let instance = instances[i]
+        _api.util.array.each(expItNode.get("instances"), (instance) => {
             if (instance !== newInstance && instance.key >= keyAdded) {
                 // Update key
                 instance.key = parseInt(instance.key) + 1
-                binding.vars.localScope.set(instance.keyId, instance.key)
+                viewDataBinding.vars.bindingScope.set(instance.keyId, instance.key)
                 // Update references in entry
-                let entry = binding.vars.localScope.get(instance.entryId)
+                let entry = viewDataBinding.vars.bindingScope.get(instance.entryId)
                 let newEntry = _api.engine.iterator.refreshKeysAddedEntry(entry, [], keyAdded)
-                binding.vars.localScope.set(instance.entryId, newEntry)
+                viewDataBinding.vars.bindingScope.set(instance.entryId, newEntry)
             }
-        }
+        })
     }
  }
  
@@ -424,12 +320,11 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         // Check if paths fit together
         for (let i = 0; i < path.length; i++) {
             if (refPath[refPath.length - path.length + i] !== path[i]) {
-                throw _api.util.exception("Internal error")
+                _api.util.assume(false)
             }
         }
-        // Check if numeric
-        if (refPath[refPath.length - path.length - 1] % 1 !== 0) {
-            throw _api.util.exception("Internal error")
+        if (!_api.util.number.isWholeNumber(refPath[refPath.length - path.length - 1])) {
+            _api.util.assume(false)
         }
         // Increase if necessary
         if (parseInt(refPath[refPath.length - path.length - 1]) >= keyAdded) {
@@ -459,45 +354,42 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     }
  }
  
- _api.engine.iterator.removeInstance = (binding, link, key, instance) => {
-    $api.debug(8, "Removing instance, key: " + key)
-    // Do the opposite of everything relevant from _api.engine.iterator.addInstance in reverse order
-    
+ _api.engine.iterator.removeInstance = (viewDataBinding, expItNode, key, instance) => {
     // Call sockets
-    _api.engine.iterator.callSocketRemovalObserverInstance(binding, link, instance)
-    
+    _api.engine.sockets.callRemovalInstance(viewDataBinding, expItNode, instance)
     // Remove from instances
-    link.get("instances").splice(link.get("instances").indexOf(instance), 1)
-    
+    _api.util.array.remove(expItNode.get("instances"), instance)
     // Remove template
     instance.template.detach()
-    
-    // Kill the entries in localScope for entry and key (to destroy probable observers)
+    // Kill the entries in bindingScope for entry and key (to destroy probable observers)
     if (instance.entryId) {
-        binding.vars.localScope.destroy(instance.entryId)
+        viewDataBinding.vars.bindingScope.destroy(instance.entryId)
     }
     if (instance.keyId) {
-        binding.vars.localScope.destroy(instance.keyId)
+        viewDataBinding.vars.bindingScope.destroy(instance.keyId)
+    }
+    // Kill all own variables
+    let ownVariables = instance.ownVariables
+    for (let i = 0; i < ownVariables; i++) {
+        viewDataBinding.vars.bindingScope.destroy(ownVariables[i])
     }
  }
  
- _api.engine.iterator.refreshKeysRemoved = (binding, node, keyRemoved) => {
+ _api.engine.iterator.refreshKeysRemoved = (viewDataBinding, expItNode, keyRemoved) => {
     // Check if collection is array
-    if (node.get("collection") instanceof Array) {
+    if (expItNode.get("collection") instanceof Array) {
         // Reduce key of all instances greater than keyRemoved by one
-        let instances = node.get("instances")
-        for (let i = 0; i < instances.length; i++) {
-            let instance = instances[i]
+        _api.util.array.each(expItNode.get("instances"), (instance) => {
             if (instance.key > keyRemoved) {
                 // Update key
                 instance.key = parseInt(instance.key) - 1
-                binding.vars.localScope.set(instance.keyId, instance.key)
+                viewDataBinding.vars.bindingScope.set(instance.keyId, instance.key)
                 // Update references in entry
-                let entry = binding.vars.localScope.get(instance.entryId)
+                let entry = viewDataBinding.vars.bindingScope.get(instance.entryId)
                 let newEntry = _api.engine.iterator.refreshKeysRemovedEntry(entry, [], keyRemoved)
-                binding.vars.localScope.set(instance.entryId, newEntry)
+                viewDataBinding.vars.bindingScope.set(instance.entryId, newEntry)
             }
-        }
+        })
     }
  }
  
@@ -508,12 +400,11 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         // Check if paths fit together
         for (let i = 0; i < path.length; i++) {
             if (refPath[refPath.length - path.length + i] !== path[i]) {
-                throw _api.util.exception("Internal error")
+                _api.util.assume(false)
             }
         }
-        // Check if numeric
-        if (refPath[refPath.length - path.length - 1] % 1 !== 0) {
-            throw _api.util.exception("Internal error")
+        if (!_api.util.number.isWholeNumber(refPath[refPath.length - path.length - 1])) {
+            _api.util.assume(false)
         }
         // Decrease if necessary
         if (parseInt(refPath[refPath.length - path.length - 1]) > keyRemoved) {
@@ -543,46 +434,40 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     }
  }
  
- _api.engine.iterator.initChild = (binding, parentLink, node, instance) => {
-    let newLink = _api.preprocessor.iterator.initExpandedIterationNode(binding, node, parentLink)
-    node.get("links").push(newLink)
-    
-    newLink.set("instance", instance)
+ _api.engine.iterator.initChild = (viewDataBinding, parentExpItNode, plItNode, instance) => {
+    let expItNode = _api.preprocessor.iterator.initExpandedIterationNode(viewDataBinding, plItNode, parentExpItNode)
+    plItNode.get("links").push(expItNode)
+    expItNode.set("instance", instance)
     
     // Change sourceId if appropriate
-    if (instance.bindingRenames[newLink.get("sourceId")]) {
-        newLink.set("sourceId", instance.bindingRenames[newLink.get("sourceId")])
+    if (instance.bindingRenames[expItNode.get("sourceId")]) {
+        expItNode.set("sourceId", instance.bindingRenames[expItNode.get("sourceId")])
     }
     
     // Setup observer
-    let sourceObserverId = binding.vars.localScope.observe(newLink.get("sourceId"), () => {
-        _api.engine.iterator.changeListener(binding, newLink)
+    let sourceObserverId = viewDataBinding.vars.bindingScope.observe(expItNode.get("sourceId"), () => {
+        _api.engine.iterator.changeListener(viewDataBinding, expItNode)
     })
-    _api.engine.iterator.changeListener(binding, newLink)
+    _api.engine.iterator.changeListener(viewDataBinding, expItNode)
     
     // Store observerId
-    newLink.set("sourceObserverId", sourceObserverId)
+    expItNode.set("sourceObserverId", sourceObserverId)
     
-    return newLink
+    return expItNode
  }
  
- _api.engine.iterator.destroyChild = (binding, newLink) => {
-    // Do the opposite of _api.engine.iterator.initChild in reverse order
-    
+ _api.engine.iterator.destroyChild = (viewDataBinding, expItNode) => {
     // Unobserve
-    binding.vars.localScope.unobserve(newLink.get("sourceObserverId"))
+    viewDataBinding.vars.bindingScope.unobserve(expItNode.get("sourceObserverId"))
     
     // Reset collection to empty collections or false
-    let sourceId = newLink.get("sourceId")
-    let currentCollection = binding.vars.localScope.get(sourceId)
-    if (currentCollection instanceof _api.engine.binding.Reference) {
-        currentCollection = currentCollection.getValue()
-    }
-    currentCollection = currentCollection ? currentCollection : []
-    let currentCollectionType = Object.prototype.toString.call(currentCollection)
+    let sourceId = expItNode.get("sourceId")
+    let currentCollection = viewDataBinding.vars.bindingScope.get(sourceId)
+    currentCollection = _api.util.convertIfReference(currentCollection)
+    currentCollection = _api.util.object.ifUndefined(currentCollection, [])
     
     let newCollection = null
-    if (currentCollectionType === "[object Boolean]") {
+    if (_api.util.object.isBoolean(currentCollection)) {
         newCollection = false
     } else if (currentCollection instanceof Array) {
         newCollection = []
@@ -590,16 +475,13 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         newCollection = {}
     }
     
-    binding.vars.localScope.set(sourceId, newCollection)
+    viewDataBinding.vars.bindingScope.set(sourceId, newCollection)
     
     // Observers are already down, so call the changeListener manually
-    _api.engine.iterator.changeListener(binding, newLink)
+    _api.engine.iterator.changeListener(viewDataBinding, expItNode)
     
     // Remove from links of origin
-    let originLinks = newLink.get("origin").get("links")
-    originLinks.splice(originLinks.indexOf(newLink), 1)
-    
-    _api.preprocessor.iterator.shutdownExpandedIterationNode(binding, newLink)
+    _api.util.array.remove(expItNode.get("origin").get("links"), expItNode)
  }
  
  _api.engine.iterator.levensthein = (oldCollection, newCollection) => {

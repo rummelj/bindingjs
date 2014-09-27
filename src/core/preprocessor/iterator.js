@@ -7,52 +7,36 @@
  **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
  
- _api.preprocessor.iterator.setupIterationTree = (binding, template) => {
+ _api.preprocessor.iterator.setupIterationTree = (ast, template) => {
     let iteratedNode = new _api.util.Tree("PlainIteration")
 
     // Move the iteration information into interatedNode
-    if (binding.isA("Scope") && binding.hasChild("Iterator")) {
+    if (ast.isA("Scope") && ast.hasChild("Iterator")) {
         // Create iterated node
-        let iterator = binding.childs()[0]
-        if (!iterator.isA("Iterator")) {
-            throw _api.util.exception("Expected the first child of an iterated " +
-                                      "scope to be Iterator, but it was not")
-        }
+        let iterator = ast.childs()[0]
+        _api.util.assume(iterator.isA("Iterator"))
         let variables = iterator.getAll("Variables")
-        if (variables.length !== 1) {
-            throw _api.util.exception("Expected Iterator to have exactly one descendant " +
-                                      "with type Variables")
-        }
-        
+        _api.util.assume(variables.length === 1)
+            
         // Parse variables
         let variableNodes = variables[0].getAll("Variable")
         if (variableNodes.length === 1) {
             iteratedNode.set("entryId", variableNodes[0].get("id"))
         } else if (variableNodes.length === 2) /* Could also be 0 */ {
-            // TODO: Think about if (@key, @entry : @coll) feels more naturally (?)
             iteratedNode.set("entryId", variableNodes[0].get("id"))
             iteratedNode.set("keyId", variableNodes[1].get("id"))
         }
         
         // After the preprocessing the iterator always has a temp ref as input
         let exprs = iterator.getAll("Expr")
-        if (exprs.length !== 1) {
-            throw _api.util.exception("Expected Iterator to always have exactly one " +
-                                      "child with type Expr")
-        }
-        if (exprs[0].childs().length !== 1) {
-            throw _api.util.exception("Expected the Expr in Iteration to always have " +
-                                     "exactly one child")
-        }
+        _api.util.assume(exprs.length === 1)
+        _api.util.assume(exprs[0].childs().length === 1) 
         let inputVariable = exprs[0].childs()[0]
-        if (!inputVariable.isA("Variable")) {
-            throw _api.util.exception("Expected the expr of an iteration to always " +
-                                      "be a Variable after the preprocessing")
-        }
+        _api.util.assume(inputVariable.isA("Variable"))
         iteratedNode.set("sourceId", inputVariable.get("id"))
         
         // Delete the iterator
-        binding.del(iterator)
+        ast.del(iterator)
         
         let $template = $api.$()(template)
         // Tag names starting with numbers are invalid, so always prepend BindingJS-
@@ -69,15 +53,12 @@
     iteratedNode.set("links", [])
     iteratedNode.set("placeholder", [])
     
-    let iterators = binding.getAll("Iterator")
+    let iterators = ast.getAll("Iterator")
+    let newIterators = []
     // Filter out all, that are nested in other iterators
-    for (let i = 0; i < iterators.length; i++) {
-        let iterator = iterators[i]
+    _api.util.array.each(iterators, (iterator) => {
         let scope = iterator.getParent()
-        if (!scope.isA("Scope")) {
-            throw _api.util.exception("Assumed that the parent of an Iterator " +
-                                      "always is a scope, but it was not")
-        }
+        _api.util.assume(scope.isA("Scope"))
         
         // Check if this iterator is nested inside other iterators
         let nested = false
@@ -92,34 +73,29 @@
             temp = temp.getParent()
         }
         
-        if (nested) {
-            // Remove this iterator
-            iterators.splice(i, 1)
-            i--
+        if (!nested) {
+            newIterators.push(iterator)
         }
-    }
+    })
+    iterators = newIterators
     
     // Recursion
-    for (let i = 0; i < iterators.length; i++) {
-        let iterator = iterators[i]
+    _api.util.array.each(iterators, (iterator) => {
         let scope = iterator.getParent()
-        
-        // Recursion
         let child = _api.preprocessor.iterator.setupIterationTree(scope, scope.get("element"))
         
         // Cut out childs binding
         scope.getParent().del(scope)
         iteratedNode.get("placeholder").push(child.get("template"))
-        
         iteratedNode.add(child)
-    }
-    iteratedNode.set("binding", binding.clone())
+    })
+    iteratedNode.set("binding", ast.clone())
 
     return iteratedNode
  }
  
- _api.preprocessor.iterator.setupExpandedIterationTree = (bindingObj, root) => {
-    let rootLink = _api.preprocessor.iterator.initExpandedIterationNode(bindingObj, root)
+ _api.preprocessor.iterator.setupExpandedIterationTree = (viewDataBinding, root) => {
+    let rootLink = _api.preprocessor.iterator.initExpandedIterationNode(viewDataBinding, root)
     
     // rootLink always exactly has one instance, the placeholder in rootLink
     // will never have to be located again, so they can be safely replaced
@@ -142,37 +118,35 @@
     root.set("links", [rootLink])
     
     // Each child iteration of root is initially present without instances
-    for (let i = 0; i < root.childs().length; i++) {
-        let child = root.childs()[i]
-        let newChildLink =  _api.preprocessor.iterator.initExpandedIterationNode(bindingObj, child, rootLink)
-        newChildLink.set("instance", rootInstance)
-        
+    _api.util.array.each(root.childs(), (child) => {
+        let newChildLink =  _api.preprocessor.iterator.initExpandedIterationNode(viewDataBinding, child, rootLink)
+        newChildLink.set("instance", rootInstance)       
         child.set("links", [newChildLink])
         rootLink.add(newChildLink)
-    }
+    })
     
     return rootLink
  }
  
- _api.preprocessor.iterator.initExpandedIterationNode = (bindingObj, node, parentLink) => {
+ _api.preprocessor.iterator.initExpandedIterationNode = (viewDataBinding, plItNode, parentLink) => {
     let result = new _api.util.Tree("ExpandedIteration")
     
-    let isRoot = !node.getParent()
-    let oldTemplate = isRoot ? node.get("template") : node.get("iterationTemplate")
+    let isRoot = !plItNode.getParent()
+    let oldTemplate = isRoot ? plItNode.get("template") : plItNode.get("iterationTemplate")
     let template = oldTemplate.clone()
-    let binding = node.get("binding").clone()
+    let binding = plItNode.get("binding").clone()
     result.set("template", template)
     result.set("binding", binding)
     result.set("instances", [])
-    result.set("placeholderIndex", isRoot ? -1 : node.getParent().childs().indexOf(node))
-    result.set("sourceId", node.get("sourceId"))
-    result.set("origin", node)
+    result.set("placeholderIndex", isRoot ? -1 : plItNode.getParent().childs().indexOf(plItNode))
+    result.set("sourceId", plItNode.get("sourceId"))
+    result.set("origin", plItNode)
     result.set("collection", [])
     
     // Update template placeholders
     result.set("placeholder", [])
     
-    let templatePlList = node.get("placeholder")
+    let templatePlList = plItNode.get("placeholder")
     for (let i = 0; i < templatePlList.length; i++) {
         let templatePl = templatePlList[i]
         let selector = _api.util.getPath(oldTemplate, templatePl)
@@ -181,7 +155,7 @@
     }
     
     // Update sockets
-    let sockets = node.get("sockets")
+    let sockets = plItNode.get("sockets")
     result.set("sockets", [])
     for (let i = 0; i < sockets.length; i++) {
         let socket = sockets[i]
@@ -216,7 +190,7 @@
         for (let i = 0; i < variables.length; i++) {
             let variable = variables[i]
             for (let oldId in parentRenames) {
-                if (variable.get("ns") === bindingObj.bindingScopePrefix() &&
+                if (variable.get("ns") === viewDataBinding.bindingScopePrefix() &&
                     variable.get("id") === oldId) {
                         variable.set("id", parentRenames[oldId]) 
                 }
@@ -228,7 +202,7 @@
         }
     }
     
-    // Find all tempVariables in node, which are in no ancestor
+    // Find all tempVariables in plItNode, which are in no ancestor
     let ancestorOwnVariables = []
     let parent = parentLink
     while (parent) {
@@ -241,17 +215,17 @@
     let ownVariables = []
     for (let i = 0; i < variables.length; i++) {
         let variable = variables[i]
-        if (variable.get("ns") === bindingObj.bindingScopePrefix() &&
+        if (variable.get("ns") === viewDataBinding.bindingScopePrefix() &&
             ancestorOwnVariables.indexOf(variable.get("id")) === -1) {
             ownVariables.push(variable.get("id"))
         }
     }
     // Entry and key are own variables too
-    if (node.get("entryId")) {
-        ownVariables.push(node.get("entryId"))
+    if (plItNode.get("entryId")) {
+        ownVariables.push(plItNode.get("entryId"))
     }
-    if (node.get("keyId")) {
-        ownVariables.push(node.get("keyId"))
+    if (plItNode.get("keyId")) {
+        ownVariables.push(plItNode.get("keyId"))
     }
     
     // Store ownVariables
@@ -262,7 +236,7 @@
     let ownRenames = {}
     for (let i = 0; i < ownVariables.length; i++) {
         let ownVariable = ownVariables[i]
-        let newId = "temp" + bindingObj.vars.tempCounter.getNext()
+        let newId = "temp" + viewDataBinding.vars.tempCounter.getNext()
         ownRenames[ownVariable] = newId
         // the own variable will be renamed and this is reflected already
         ownVariables[i] = newId
@@ -272,7 +246,7 @@
     for (let i = 0; i < variables.length; i++) {
         let variable = variables[i]
         for (let oldId in ownRenames) {
-            if (variable.get("ns") === bindingObj.bindingScopePrefix() &&
+            if (variable.get("ns") === viewDataBinding.bindingScopePrefix() &&
                 variable.get("id") === oldId) {
                     variable.set("id", ownRenames[oldId]) 
             }
@@ -281,18 +255,18 @@
     // The source id can never be an own variable, so it is not included
     
     // Since entry and key id are always ownVariables, they need to be renamed in the result
-    let oldEntryId = node.get("entryId")
+    let oldEntryId = plItNode.get("entryId")
     if (oldEntryId) {
         result.set("entryId", ownRenames[oldEntryId])
     }
-    let oldKeyId = node.get("keyId")
+    let oldKeyId = plItNode.get("keyId")
     if (oldKeyId) {
         result.set("keyId", ownRenames[oldKeyId])
     }
     
-    // The final set of renames for this node is both, parentRenames and ownRenames
+    // The final set of renames for this plItNode is both, parentRenames and ownRenames
     // Copy parentRenames
-    let bindingRenames = $api.$().extend({}, parentRenames)
+    let bindingRenames = _api.util.object.clone(parentRenames)
     // Add entries from ownRenames
     for (let oldId in ownRenames) {
         bindingRenames[oldId] = ownRenames[oldId]
@@ -301,11 +275,3 @@
     
     return result
  }
- 
- _api.preprocessor.iterator.shutdownExpandedIterationNode = (/*binding, newLink*/) => {
-    // Do the opposite of _api.preprocessor.iterator.initExpandedIterationNode in reverse order
-    
-    // Nothing to do yet
-    // Adapt if necessary
- }
- 

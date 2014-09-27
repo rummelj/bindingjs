@@ -7,55 +7,44 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.preprocessor.validate.checkIterationIds = (binding, bindingScopePrefix) => {
-    _api.preprocessor.validate.checkIterationIdsRec(binding, bindingScopePrefix, [])
+_api.preprocessor.validate.checkIterationIds = (ast, bindingScopePrefix) => {
+    _api.preprocessor.validate.checkIterationIdsRec(ast, bindingScopePrefix, [])
 }
 
-_api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, ids) => {
-    if (binding.isA("Scope")) {
+_api.preprocessor.validate.checkIterationIdsRec = (ast, bindingScopePrefix, ids) => {
+    if (ast.isA("Scope")) {
         // Check if the scope has an 'Iterator' child
-        let iterator = null
-        for (let i = 0; i < binding.childs().length; i++) {
-            if (binding.childs()[i].isA("Iterator")) {
-                iterator = binding.childs()[i]
-                break;
-            }
-        }
+        let iterator = _api.util.array.findFirst(ast.childs(), (child) => {
+            return child.isA("Iterator")
+        })
         
         if (iterator) {
             // Check if the variables are contained in ids
-            if (iterator.childs().length === 0) {
-                throw _api.util.exception("Found Iterator element in AST without children")
-            }
+            _api.util.assume(iterator.childs().length !== 0)
             let variablesNode = iterator.childs()[0]
-            if (!variablesNode.isA("Variables")) {
-                throw _api.util.exception("Expected first child of Iterator to always " + 
-                                          "be Variables, but it was not")
-            }
-            
+            _api.util.assume(variablesNode.isA("Variables"))
             let variables = variablesNode.getAll("Variable", "Scope")
-            // TODO: Check if all start with @
-            for (let i = 0; i < variables.length; i++) {
+            _api.util.array.each(variables, (variable) => {
                 // Check if all start with correct prefix
-                if (variables[i].get("ns") !== bindingScopePrefix) {
+                if (variable.get("ns") !== bindingScopePrefix) {
                     throw _api.util.exception("You can only use the binding scope adapter as the " +
-                                              "variable for an iteration. Instead " + variables[i].get("text") + " " +
+                                              "variable for an iteration. Instead " + variable.get("text") + " " +
                                               "was used")
                 }
                 
                 // $.inArray(value, array) returns index or -1 if not found
-                if ($api.$().inArray(variables[i].get("id"), ids) >= 0) {
-                    throw _api.util.exception("Variable " + variables[i].get("text") +
+                // indexOf is not enough here because objects have to be deeply compared
+                if ($api.$().inArray(variable.get("id"), ids) >= 0) {
+                    throw _api.util.exception("Variable " + variable.get("text") +
                                               " was used as an iteration variable " +
                                               " but was also declared in an ancestor scope")
                 }
-            }
+            })
         }
         
-        let variables = binding.getAll("Variable", "Scope")
+        let variables = ast.getAll("Variable", "Scope")
         let variableIdsToAdd = []
-        for (let i = 0; i < variables.length; i++) {
-            let variable = variables[i]
+        _api.util.array.each(variables, (variable) => {
             // Only add those ids that are refs to the binding scope and that are neither
             // - in the ids already found (happens if same name used on multiple levels)
             // - in the variableNamesToAdd already (happens if occuring multiple times in scope)
@@ -64,63 +53,49 @@ _api.preprocessor.validate.checkIterationIdsRec = (binding, bindingScopePrefix, 
                 $api.$().inArray(variable.get("id"), variableIdsToAdd) === -1) {
                 variableIdsToAdd.push(variable.get("id"))
             }
-        }
+        })
         // Add new variables (creates copy)
         ids = ids.concat(variableIdsToAdd)
     }
     
     // Recursion
-    for (let i = 0; i < binding.childs().length; i++) {
-        _api.preprocessor.validate.checkIterationIdsRec(binding.childs()[i], bindingScopePrefix, ids)
-    }
+    _api.util.array.each(ast.childs(), (child) => {
+        _api.preprocessor.validate.checkIterationIdsRec(child, bindingScopePrefix, ids)
+    })
 }
 
-_api.preprocessor.validate.preventMultiIteration = (binding) => {
-    let iterators = binding.getAll("Iterator")
+_api.preprocessor.validate.preventMultiIteration = (ast) => {
     let elements = []
-    for (let i = 0; i < iterators.length; i++) {
-        let iterator = iterators[i]
+    _api.util.array.each(ast.getAll("Iterator"), (iterator) => {
         let scope = iterator.getParent()
-        if (!scope.isA("Scope")) {
-            throw _api.util.exception("Expected the parent of an Iterator to always be a Scope")
-        }
+        _api.util.assume(scope.isA("Scope"))
         let element = scope.get("element")
-        if (!element) {
-            throw _api.util.exception("Expected a Scope to have an element after preprocessing")
-        }
-        if (elements.indexOf(element) !== -1) {
+        _api.util.assume(element)
+        if (_api.util.array.contains(elements, element)) {
             throw _api.util.exception("It is not allowed to iterate the same template element multiple times as in\n" + 
                 scope.get("text"))
         }
         elements.push(element)
-    }
+    })
 }
 
-_api.preprocessor.validate.checkSockets = (binding) => {
-    // Since we do this after expandSelectors, it is very simple to check
+_api.preprocessor.validate.checkSockets = (ast) => {   
     let elements = []
-    let scopes = binding.getAll("Scope")
-    for (let i = 0; i < scopes.length; i++) {
-        elements.push(scopes[i].get("element"))
-    }
+    _api.util.array.each(ast.getAll("Scope"), (scope) => {
+        elements.push(scope.get("element"))
+    })
     
-    let labels = binding.getAll("Label")
-    for (let i = 0; i < labels.length; i++) {
-        let scope = labels[i].getParent()
-        if (!scope.isA("Scope")) {
-            throw _api.util.exception("Assumed, that the parent of a Label always is a Scope, but it was not")
-        }
+    _api.util.array.each(ast.getAll("Label"), (label) => {
+        let scope = label.getParent()
+        _api.util.assume(scope.isA("Scope"))
         let element = scope.get("element")
-        let count = 0
-        for (let j = 0; j < elements.length; j++) {
-            if ($api.$()(elements[j]).is(element)) {
-                count++
-            }
-        }
+        let count = _api.util.array.count(elements, (otherElement) => {
+            return $api.$()(otherElement).is(element)
+        })
         if (count > 1) {
-            throw _api.util.exception("The selector of Socket " + labels[i].get("id") +
+            throw _api.util.exception("The selector of Socket " + label.get("id") +
                 " either does not match a single element or the element is matched  " +
                 "by the selectors of other scopes")
         }
-    }
+    })
 }
