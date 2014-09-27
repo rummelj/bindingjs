@@ -96,7 +96,7 @@ _api.preprocessor.validate.preventMultiIteration = (binding) => {
     }
 }
 
-_api.preprocessor.validate.checkSlots = (binding) => {
+_api.preprocessor.validate.checkSockets = (binding) => {
     // Since we do this after expandSelectors, it is very simple to check
     let elements = []
     let scopes = binding.getAll("Scope")
@@ -118,7 +118,7 @@ _api.preprocessor.validate.checkSlots = (binding) => {
             }
         }
         if (count > 1) {
-            throw _api.util.exception("The selector of Slot " + labels[i].get("id") +
+            throw _api.util.exception("The selector of Socket " + labels[i].get("id") +
                 " either does not match a single element or the element is matched  " +
                 "by the selectors of other scopes")
         }

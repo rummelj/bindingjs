@@ -134,7 +134,7 @@
         binding: rootLink.get("binding"),
         bindingRenames: rootLink.get("bindingRenames"),
         placeholder: rootLink.get("placeholder"),
-        slots: rootLink.get("slots")
+        sockets: rootLink.get("sockets")
     }
     rootLink.set("instances", [rootInstance])
     
@@ -180,15 +180,15 @@
         result.get("placeholder").push(newPlaceholder)
     }
     
-    // Update slots
-    let slots = node.get("slots")
-    result.set("slots", [])
-    for (let i = 0; i < slots.length; i++) {
-        let slot = slots[i]
-        let element = slot.element
+    // Update sockets
+    let sockets = node.get("sockets")
+    result.set("sockets", [])
+    for (let i = 0; i < sockets.length; i++) {
+        let socket = sockets[i]
+        let element = socket.element
         let selector = _api.util.getPath(oldTemplate, element)
         let newElement = selector === "" ? template : $api.$()(selector,  template)
-        result.get("slots").push({ element: newElement, id: slot.id })
+        result.get("sockets").push({ element: newElement, id: socket.id })
     }
     
     // The references inside binding still refer to the template before it was cloned

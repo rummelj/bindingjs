@@ -162,7 +162,7 @@
             .binding($("script[type='text/binding']"))
             .model(model)
           
-        binding.slot("TodoMVC.todoSocket").onInsert(function (keys, element) {
+        binding.socket("TodoMVC.todoSocket").onInsert(function (keys, element) {
             var li = element.parent()
             var index = keys[0]
             var value = model.todos[index]

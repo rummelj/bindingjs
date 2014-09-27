@@ -8,9 +8,11 @@
  */
 
 _api.util = {}
+_api.util.array = {}
 _api.util.dom = {}
 _api.util.tree = {}
 
+include("array.js")
 include("common.js")
 include("counter.js")
 include("dom.js")

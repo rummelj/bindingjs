@@ -7,7 +7,7 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-_api.preprocessor.transform.renameSlots = (binding) => {
+_api.preprocessor.transform.renameSockets = (binding) => {
     let labels = binding.getAll("Label")
     for (let i = 0; i < labels.length; i++) {
         let label = labels[i]
@@ -343,8 +343,8 @@ _api.preprocessor.transform.nestIteratedBindings = (binding) => {
     }
 }
 
-_api.preprocessor.transform.markSlots = (iterationTree) => {
-    iterationTree.set("slots", [])
+_api.preprocessor.transform.markSockets = (iterationTree) => {
+    iterationTree.set("sockets", [])
     
     let binding = iterationTree.get("binding")
     let labels = binding.getAll("Label")
@@ -357,14 +357,14 @@ _api.preprocessor.transform.markSlots = (iterationTree) => {
         }
         let element = scope.get("element")
         let labelId = label.get("id")
-        iterationTree.get("slots").push( {element: element, id: labelId} )
+        iterationTree.get("sockets").push( {element: element, id: labelId} )
     }
     
     for (let i = 0; i < iterationTree.childs().length; i++) {
-        _api.preprocessor.transform.markSlots(iterationTree.childs()[i])
+        _api.preprocessor.transform.markSockets(iterationTree.childs()[i])
     }
     
-    // Remove the scopes with the slots
+    // Remove the scopes with the sockets
     for (let i = 0; i < labels.length; i++) {
         let label = labels[i]
         let scope = label.getParent()

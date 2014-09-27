@@ -22,8 +22,8 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     // }
     _api.preprocessor.validate.checkIterationIds(bind, bindingScopePrefix)
     
-    // Step 2: Rename slots, so that they include their ancestor group names
-    _api.preprocessor.transform.renameSlots(bind)
+    // Step 2: Rename sockets, so that they include their ancestor group names
+    _api.preprocessor.transform.renameSockets(bind)
     
     // Step 3: Replace selectors with their elements in the template
     // Scopes might be duplicated because of
@@ -40,9 +40,9 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     //  is then replaced by four new scopes with these elements
     _api.preprocessor.transform.expandSelectors(template, bind)
     
-    // Step 4: Check that one slot always exactly matches only one element
+    // Step 4: Check that one socket always exactly matches only one element
     // from the template
-    _api.preprocessor.validate.checkSlots(bind)
+    _api.preprocessor.validate.checkSockets(bind)
     
     // Step 5: Make all references to the binding scope unique
     // This way we do not have to deal with scoping later (except if new items
@@ -94,8 +94,8 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     // Step 9: Setup iteration tree
     let iterationTree = _api.preprocessor.iterator.setupIterationTree(bind, template)
     
-    // Step 10: Mark the slots in the iteration tree
-    _api.preprocessor.transform.markSlots(iterationTree)
+    // Step 10: Mark the sockets in the iteration tree
+    _api.preprocessor.transform.markSockets(iterationTree)
     
     // Step 11: Setup expanded iteration tree
     _api.preprocessor.iterator.setupExpandedIterationTree(viewDataBinding, iterationTree)

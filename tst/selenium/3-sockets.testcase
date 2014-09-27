@@ -13,13 +13,13 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>${baseUrl}/tst/selenium/3-slots.html</td>
+	<td>${baseUrl}/tst/selenium/3-sockets.html</td>
 	<td></td>
 </tr>
 <tr>
 	<td>assertText</td>
 	<td>css=span</td>
-	<td>PlainSlot</td>
+	<td>PlainSocket</td>
 </tr>
 <tr>
 	<td>assertText</td>

@@ -9,38 +9,38 @@
 
  _api.engine.iterator.mount = (binding, mountPoint) => {
     let template = binding.vars.iterationTree.get("links")[0].get("instances")[0].template[0]
-    // Check if template was mounted before and call destroy observer for slots
+    // Check if template was mounted before and call destroy observer for sockets
     if (template.parentElement) {
-        _api.engine.iterator.callSlotRemovalObserver(binding, binding.vars.iterationTree.get("links")[0])
+        _api.engine.iterator.callSocketRemovalObserver(binding, binding.vars.iterationTree.get("links")[0])
     }
     mountPoint.replaceWith(template)
-    _api.engine.iterator.callSlotInsertionObserver(binding, binding.vars.iterationTree.get("links")[0])
+    _api.engine.iterator.callSocketInsertionObserver(binding, binding.vars.iterationTree.get("links")[0])
  }
  
- _api.engine.iterator.callSlotRemovalObserver = (binding, node) => {
+ _api.engine.iterator.callSocketRemovalObserver = (binding, node) => {
     for (let i = 0; i < node.get("instances").length; i++) {
         let instance = node.get("instances")[i]
-        _api.engine.iterator.callSlotRemovalObserverInstance(binding, node, instance)
+        _api.engine.iterator.callSocketRemovalObserverInstance(binding, node, instance)
     }
     
     for (let i = 0; i < node.childs().length; i++) {
-        _api.engine.iterator.callSlotRemovalObserver(binding, node.childs()[i])
+        _api.engine.iterator.callSocketRemovalObserver(binding, node.childs()[i])
     }
  }
  
- _api.engine.iterator.callSlotInsertionObserver = (binding, node) => {
+ _api.engine.iterator.callSocketInsertionObserver = (binding, node) => {
     for (let i = 0; i < node.get("instances").length; i++) {
         let instance = node.get("instances")[i]
-        _api.engine.iterator.callSlotInsertionObserverInstance(binding, node, instance)
+        _api.engine.iterator.callSocketInsertionObserverInstance(binding, node, instance)
     }
     
     for (let i = 0; i < node.childs().length; i++) {
-        _api.engine.iterator.callSlotInsertionObserver(binding, node.childs()[i])
+        _api.engine.iterator.callSocketInsertionObserver(binding, node.childs()[i])
     }
  }
  
- _api.engine.iterator.callSlotRemovalObserverInstance = (binding, node, instance) => {
-    if (instance.slots.length > 0) {
+ _api.engine.iterator.callSocketRemovalObserverInstance = (binding, node, instance) => {
+    if (instance.sockets.length > 0) {
         let keys = []
         // Do not add key, if this is the root node
         if (node.getParent()) {
@@ -51,11 +51,11 @@
             keys.push(node.get("instance").key)
             node = node.getParent()
         }
-        for (let i = 0; i < instance.slots.length; i++) {
-            let slot = instance.slots[i]
-            let id = slot.id
-            let element = slot.element
-            let callbacks = binding.vars.slotRemovalObserver[id]
+        for (let i = 0; i < instance.sockets.length; i++) {
+            let socket = instance.sockets[i]
+            let id = socket.id
+            let element = socket.element
+            let callbacks = binding.vars.socketRemovalObserver[id]
             if (callbacks) {
                 for (let j = 0; j < callbacks.length; j++) {
                     let callback = callbacks[j]
@@ -66,8 +66,8 @@
     }
  }
  
- _api.engine.iterator.callSlotInsertionObserverInstance = (binding, node, instance) => {
-    if (instance.slots.length > 0) {
+ _api.engine.iterator.callSocketInsertionObserverInstance = (binding, node, instance) => {
+    if (instance.sockets.length > 0) {
         let keys = []
         // Do not add key, if this is the root node
         if (node.getParent()) {
@@ -78,11 +78,11 @@
             keys.push(node.get("instance").key)
             node = node.getParent()
         }
-        for (let i = 0; i < instance.slots.length; i++) {
-            let slot = instance.slots[i]
-            let id = slot.id
-            let element = slot.element
-            let callbacks = binding.vars.slotInsertionObserver[id]
+        for (let i = 0; i < instance.sockets.length; i++) {
+            let socket = instance.sockets[i]
+            let id = socket.id
+            let element = socket.element
+            let callbacks = binding.vars.socketInsertionObserver[id]
             if (callbacks) {
                 for (let j = 0; j < callbacks.length; j++) {
                     let callback = callbacks[j]
@@ -277,15 +277,15 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         newTemplatePlaceholder.push(comment)
     }
     
-    // Update slots
-    let slots = link.get("slots")
-    let newSlots = []
-    for (let i = 0; i < slots.length; i++) {
-        let slot = slots[i]
-        let element = slot.element
+    // Update sockets
+    let sockets = link.get("sockets")
+    let newSockets = []
+    for (let i = 0; i < sockets.length; i++) {
+        let socket = sockets[i]
+        let element = socket.element
         let selector = _api.util.getPath(oldTemplate, element)
         let newElement = selector === "" ? newTemplate : $api.$()(selector,  newTemplate)
-        newSlots.push({ element: newElement, id: slot.id })
+        newSockets.push({ element: newElement, id: socket.id })
     }
     
     // Binding
@@ -366,7 +366,7 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
         binding: newBinding,
         bindingRenames: bindingRenames,
         placeholder: newTemplatePlaceholder,
-        slots: newSlots
+        sockets: newSockets
     }
     
     let instances = link.get("instances")
@@ -391,8 +391,8 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     // Add to instances
     instances.push(newInstance)
     
-    // Call slots
-    _api.engine.iterator.callSlotInsertionObserverInstance(binding, link, newInstance)
+    // Call sockets
+    _api.engine.iterator.callSocketInsertionObserverInstance(binding, link, newInstance)
     
     return newInstance
  }
@@ -463,8 +463,8 @@ _api.engine.iterator.shutdownInternal = (binding, node) => {
     $api.debug(8, "Removing instance, key: " + key)
     // Do the opposite of everything relevant from _api.engine.iterator.addInstance in reverse order
     
-    // Call slots
-    _api.engine.iterator.callSlotRemovalObserverInstance(binding, link, instance)
+    // Call sockets
+    _api.engine.iterator.callSocketRemovalObserverInstance(binding, link, instance)
     
     // Remove from instances
     link.get("instances").splice(link.get("instances").indexOf(instance), 1)
