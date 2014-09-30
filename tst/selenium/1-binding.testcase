@@ -78,6 +78,67 @@
 	<td>window.model.otv2mcText</td>
 	<td>OTV2MC</td>
 </tr>
+<!--Two-Way-->
+<tr>
+	<td>getEval</td>
+	<td>window.model.twowayValue = &quot;twoway&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertValue</td>
+	<td>css=#twoway</td>
+	<td>twoway</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=#twoway</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.twowayValue</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.twowaycValue = &quot;twoway&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertValue</td>
+	<td>css=#twowayc</td>
+	<td>TWOWAY</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=#twowayc</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.twowaycValue</td>
+	<td>FOO</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.twowayccValue = &quot;twoway&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertValue</td>
+	<td>css=#twowaycc</td>
+	<td>YAWOWT</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=#twowaycc</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.twowayccValue</td>
+	<td>OOF</td>
+</tr>
 </tbody></table>
 </body>
 </html>

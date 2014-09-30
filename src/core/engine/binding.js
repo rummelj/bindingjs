@@ -10,17 +10,13 @@
  // Initializes the Bindings of an Iteration Instance
  _api.engine.binding.init = (viewDataBinding, instance) => {
     let spec = instance.binding
-    let scopes = spec.getAll("Scope")
     
     //Remember what was observed to be able to shut it down later
-    let bindingObserver = [] 
-    for (let i = 0; i < scopes.length; i++) {
-        let scope = scopes[i]
+    let bindingObserver = []
+    _api.util.array.each(spec.getAll("Scope"), (scope) => {
         let element = scope.get("element")
-        let bindings = scope.getAll("Binding", "Scope")
         let allParts = []
-        for (let j = 0; j < bindings.length; j++) {
-            let binding = bindings[j]
+        _api.util.array.each(scope.getAll("Binding", "Scope"), (binding) => {
             let parts = _api.engine.binding.getParts(viewDataBinding, binding, element)
             allParts.push(parts)
 
@@ -47,28 +43,25 @@
                 })
                 bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
             }
-        }
+        })
         
         // Trigger bindings once in order: First model, then temp, then view
-        for (let j = 0; j < allParts.length; j++) {
-            let parts = allParts[j]
+        _api.util.array.each(allParts, (parts) => {
             if (parts.source.adapter.type && parts.source.adapter.type() === "model") {
                 _api.engine.binding.propagate(viewDataBinding, parts)
             }
-        }
-        for (let j = 0; j < allParts.length; j++) {
-            let parts = allParts[j]
+        })
+        _api.util.array.each(allParts, (parts) => {
             if (!parts.source.adapter.type && parts.source.adapter === "binding") {
                 _api.engine.binding.propagate(viewDataBinding, parts)
             }
-        }
-        for (let j = 0; j < allParts.length; j++) {
-            let parts = allParts[j]
+        })
+        _api.util.array.each(allParts, (parts) => {
             if (parts.source.adapter.type && parts.source.adapter.type() === "view") {
                 _api.engine.binding.propagate(viewDataBinding, parts)
             }
-        }
-    }
+        })
+    })
     
     // Set bindingObserver ids in Iteration Instance
     instance.bindingObserver = bindingObserver

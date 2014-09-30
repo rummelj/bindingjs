@@ -11,8 +11,10 @@
  _api.preprocessor.iterator = {}
  _api.preprocessor.transform = {}
  _api.preprocessor.validate = {}
+ _api.preprocessor.convenience = {}
 
 include("iterator.js")
 include("preprocessor.js")
 include("transform.js")
 include("validate.js")
+include("convenience.js")

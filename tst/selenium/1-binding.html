@@ -13,7 +13,7 @@
                 input#v2m { value -> $v2mValue }
 
                 // Two-way binding
-                //input#twoway { value <-> $twowayValue }
+                input#twoway { value <-> $twowayValue }
 
                 // One-time binding
                 span#otm2v { text <~ $otm2vText }
@@ -26,15 +26,12 @@
                 input#v2mcc { value -> trim -> uppercase -> $v2mccValue }
 
                 // Two-way binding with Connectors
-                //input#twowayc { value <-> uppercase <-> $twowaycValue }
-                //input#twowaycc { value <-> reverse <-> uppercase <-> $twowayccValue }
+                input#twowayc { value <-> uppercase <-> $twowaycValue }
+                input#twowaycc { value <-> reverse <-> uppercase <-> $twowayccValue }
 
                 // One-time binding with Connectors
                 span#otm2vc { text <~ uppercase <~ $otm2vText }
                 input#otv2mc { value ~> uppercase ~> $otv2mcText }
-
-                // Connector with different logic in each direction
-                //input#c { value <-> format <-> $cValue }
             }
         </script>
         <script type="text/javascript">
@@ -49,8 +46,7 @@
                 "v2mccValue" : "",
                 "twowaycValue" : "",
                 "twowayccValue" : "",
-                "otv2mcText" : "",
-                "cValue" : ""
+                "otv2mcText" : ""
             }
             
             $(function() {
@@ -70,6 +66,14 @@
                         }
                     }
                 })
+                BindingJS.plugin("reverse", function($api, _api) {
+                    return {
+                        process: function(input) {
+                            input = _api.util.convertIfReference(input)
+                            return (input + "").split("").reverse().join("")
+                        }
+                    }
+                })
                 
                 BindingJS
                     .create()
@@ -83,20 +87,19 @@
     </head>
     <body>
         <div id="template">
-            <span id="m2v"></span>
-            <input id="v2m" type="text" />
-            <input id="twoway" type="text" />
-            <span id="otm2v"></span>
-            <span id="otv2m">otv2m</span>
-            <span id="m2vc"></span>
-            <span id="m2vcc"></span>
-            <input id="v2mc" type="text" />
-            <input id="v2mcc" type="text" />
-            <input id="twowayc" type="text" />
-            <input id="twowaycc" type="text" />
-            <span id="otm2vc"></span>
+            <span id="m2v"></span><br />
+            <input id="v2m" type="text" /><br />
+            <input id="twoway" type="text" /><br />
+            <span id="otm2v"></span><br />
+            <span id="otv2m">otv2m</span><br />
+            <span id="m2vc"></span><br />
+            <span id="m2vcc"></span><br />
+            <input id="v2mc" type="text" /><br />
+            <input id="v2mcc" type="text" /><br />
+            <input id="twowayc" type="text" /><br />
+            <input id="twowaycc" type="text" /><br />
+            <span id="otm2vc"></span><br />
             <input id="otv2mc" type="text" value="otv2mc" />
-            <input id="c" type="text" />
         </div>
     </body>
 </html>
