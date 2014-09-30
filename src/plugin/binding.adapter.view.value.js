@@ -13,73 +13,41 @@ let factory = ($api, _api) => {
     class ValueAdapter {
 
         constructor () {
-            // Keys for this.observer
-            this.observedElements = []
-            // Values for this.observedElements
-            // Each entry is a list of {observerId: Number, callback: function()}
-            this.observer = []
-            // Used to generate new observerIds
+            this.observer = new _api.util.Map()
             this.observerCounter = new _api.util.Counter()
         }
         
         notify (element) {
-            if (this.observedElements.indexOf(element) === -1) {
-                return
-            }
-            
-            let observer = this.observer[this.observedElements.indexOf(element)]
-            for (let i = 0; i < observer.length; i++) {
-                observer[i].callback()
-            }
+            _api.util.array.each(this.observer.get(element), (observer) => {
+                observer.callback()
+            })
         }
         
         observe (element, path, callback) {
-            if (path.length > 0) {
-                throw _api.util.exception("value can not process paths")
-            }
-            
-            if (this.observedElements.indexOf(element) === -1) {
-                this.observedElements.push(element)
-                this.observer.push([])
+            _api.util.assume(path.length === 0)
+            if (!this.observer.hasKey(element)) {
+                this.observer.set(element, [])
                 let self = this
                 element.on("change input propertychange paste", function () { self.notify(element) })
             }
-            
             let observerId = this.observerCounter.getNext()
-            this.observer[this.observedElements.indexOf(element)].push({ observerId: observerId, callback: callback })
+            this.observer.get(element).push({ observerId: observerId, callback: callback })
             return observerId
         }
         
         unobserve (observerId) {
-            let elementIndex
-            let observerIndex
-            let found = false
-            for (let i = 0; i < this.observer.length; i++) {
-                let elementObserver = this.observer[i]
-                for (let j = 0; j < elementObserver.length; j++) {
-                    if (elementObserver[j].observerId === observerId) {
-                        elementIndex = i
-                        observerIndex = j
-                        found = true
-                        break
-                    }
-                }
-                if (found) {
-                    break
-                }
-            }
-            
-            if (!found) {
-                $api.debug(1, "Internal WARN: Tried to unobserve, but no such observer!")
-                return
-            }
-            
-            if (this.observer[observerIndex].length === 1) {
-                this.observedElements[elementIndex].off("change input propertychange paste")
-                this.observedElements.splice(elementIndex, 1)
-                this.observer.splice(elementIndex, 1)
-            } else {
-                this.observer[observerIndex].splice(observerIndex, 1)
+            let element = _api.util.array.findFirst(this.observer.getKeys(), (key) => {
+                return _api.util.array.ifAny(this.observer.get(key), (observer) => {
+                    return observer.observerId === observerId
+                })
+            })
+            let observer = _api.util.array.findFirst(this.observer.get(element), (observer) => {
+                return observer.observerId === observerId
+            })
+            _api.util.array.remove(this.observer.get(element), observer)
+            if (this.observer.get(element).length === 0) {
+                element.off("change input propertychange paste")
+                this.observer.remove(element)
             }
         }
         
@@ -115,3 +83,4 @@ let factory = ($api, _api) => {
 }
 
 BindingJS.plugin("value", factory)
+
