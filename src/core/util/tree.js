@@ -314,5 +314,4 @@ class Tree {
     }
 }
 
-/*  export class  */
 _api.util.Tree = Tree

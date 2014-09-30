@@ -8,7 +8,7 @@
 <body>
 <table id="suiteTable" cellpadding="1" cellspacing="1" border="1" class="selenium"><tbody>
 <tr><td><b>Test Suite</b></td></tr>
-<tr><td><a href="setEnv.html">setEnv</a></td></tr>
+<tr><td><a href="setEnv.testcase">setEnv</a></td></tr>
 <tr><td><a href="1-binding.testcase">1-binding</a></td></tr>
 <tr><td><a href="2-iteration-1.testcase">2-iteration-1</a></td></tr>
 <tr><td><a href="2-iteration-2.testcase">2-iteration-2</a></td></tr>

@@ -26,10 +26,7 @@ module.exports = function (grunt) {
         jshint: {
             "stage1-src": [
                 "src/core/**/*.js",
-                "!src/core/util/ducky.js",
-                // TODO: Remove this line together with Watch.JS
-                "!src/core/util/watch.js",
-                "src/plugin/**/*.js"
+                "src/plugin/*.js"
             ],
             "stage1-tst": [
                 "tst/**/*.js",

@@ -7,6 +7,8 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+/* global WatchJS */
+
 let factory = ($api, _api) => {
 
     class JsonAdapter {
@@ -65,9 +67,9 @@ let factory = ($api, _api) => {
             
             if (!pathObserved) {
                 $api.debug(9, "Watching " + JSON.stringify(path))
-                _api.util.WatchJS.watch(elem,
-                                        path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
-                                        watchJsCallback)
+                WatchJS.watch(elem,
+                              path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
+                              watchJsCallback)
             }
 
             return observerId
@@ -120,9 +122,9 @@ let factory = ($api, _api) => {
                     elem = elem[path[i]]
                 }
                 $api.debug(9, "Unwatching " + JSON.stringify(path))
-                _api.util.WatchJS.unwatch(elem,
-                                          path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
-                                          watchJsObserver)
+                WatchJS.unwatch(elem,
+                                path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
+                                watchJsObserver)
                 // Workaround for WatchJS which pushes the watcher to all descendants, manually remove these watchers
                 // delete elem.watchers[path[path.length - 1]]
             }

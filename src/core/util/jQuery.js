@@ -37,6 +37,9 @@ _api.util.jQuery.getPath = (context, element) => {
     return realpath;
 }
 
+/*
+** Returns the outer HTML as a string of a jQuery element without changing it
+*/
 _api.util.jQuery.outerHtml = (jQuery) => {
     return $api.$()(jQuery).clone().wrap("<div>").parent().html()
 }

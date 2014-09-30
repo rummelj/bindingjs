@@ -16,6 +16,9 @@ _api.util.object.isDefined = (obj) => {
     return typeof obj !== "undefined"
 }
 
+/*
+** Returns obj if defined and defaultObj is obj is undefined
+*/
 _api.util.object.ifUndefined = (obj, defaultObj) => {
     if (typeof obj === "undefined") {
         return defaultObj
@@ -24,11 +27,17 @@ _api.util.object.ifUndefined = (obj, defaultObj) => {
     }
 }
 
+/*
+** Clones an object with the help of jQuery
+*/
 _api.util.object.clone = (obj) => {
     return $api.$().extend({}, obj)
 }
 
-// Does not check inheritance
+/*
+** Deeply compares two objects by recursively enumerating their nested
+** objects and arrays. It does not consider inheritance.
+*/
 _api.util.object.equals = (a, b) => {
     if (typeof a !== typeof b) {
         return false
@@ -74,6 +83,9 @@ _api.util.object.equals = (a, b) => {
     }
 }
 
+/*
+** Returns the set of keys of an obj
+*/
 _api.util.object.getKeys = (obj) => {
     let result = []
     for (let key in obj) {

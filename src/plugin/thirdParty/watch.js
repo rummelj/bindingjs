@@ -1,17 +1,3 @@
-/*
-**  BindingJS -- View Data Binding for JavaScript <http://bindingjs.com>
-**  Copyright (c) 2014 Ralf S. Engelschall <http://engelschall.com>
-**
-**  This Source Code Form is subject to the terms of the Mozilla Public
-**  License (MPL), version 2.0. If a copy of the MPL was not distributed
-**  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
-*/
-// TODO: Remove from framework: This is only a dependency of the JSON Adapter at the moment
-
-_api.util.WatchJS = function () {
-    /* jshint -W062 */
-    /* --- START VERBATIM EMBEDDING ---- */
-
 /**
  * DEVELOPED BY
  * GIL LOPES BUENO
@@ -25,6 +11,23 @@ _api.util.WatchJS = function () {
  */
 
 "use strict";
+(function (factory) {
+    if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like enviroments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define(factory);
+    } else {
+        // Browser globals
+        window.WatchJS = factory();
+        window.watch = window.WatchJS.watch;
+        window.unwatch = window.WatchJS.unwatch;
+        window.callWatchers = window.WatchJS.callWatchers;
+    }
+}(function () {
 
     var WatchJS = {
         noMore: false
@@ -464,5 +467,4 @@ _api.util.WatchJS = function () {
 
     return WatchJS;
 
-    /* --- END VERBATIM EMBEDDING ---- */
-}()
+}));
