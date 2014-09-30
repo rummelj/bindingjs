@@ -63,12 +63,12 @@ _api.dsl.parser.parser = (txt, rule) => {
     }
     catch (e) {
         result.error = {
-            line:     _api.util.definedOrElse(e.line, 0),
-            column:   _api.util.definedOrElse(e.column, 0),
+            line:     _api.util.object.ifUndefined(e.line, 0),
+            column:   _api.util.object.ifUndefined(e.column, 0),
             message:  e.message,
-            found:    _api.util.definedOrElse(e.found, ""),
-            expected: _api.util.definedOrElse(e.expected, ""),
-            location: excerpt(txt, _api.util.definedOrElse(e.offset, 0))
+            found:    _api.util.object.ifUndefined(e.found, ""),
+            expected: _api.util.object.ifUndefined(e.expected, ""),
+            location: excerpt(txt, _api.util.object.ifUndefined(e.offset, 0))
         }
     }
     return result

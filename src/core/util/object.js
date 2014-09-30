@@ -27,3 +27,59 @@ _api.util.object.ifUndefined = (obj, defaultObj) => {
 _api.util.object.clone = (obj) => {
     return $api.$().extend({}, obj)
 }
+
+// Does not check inheritance
+_api.util.object.equals = (a, b) => {
+    if (typeof a !== typeof b) {
+        return false
+    } else {
+        if (a instanceof Array && !(b instanceof Array) ||
+            b instanceof Array && !(a instanceof Array)) {
+                return false
+        } else if (a instanceof Array && b instanceof Array) {
+            if (a.length !== b.length) {
+                return false
+            } else {
+                for (let i = 0; i < a.length; i++) {
+                    if (!_api.util.object.equals(a[i], b[i])) {
+                        return false
+                    }
+                }
+                return true
+            }
+        } else if (typeof a === "object") {
+            // Check if every key of a is in b and vice versa
+            let aKeys = _api.util.object.getKeys(a)
+            for (let i = 0; i < aKeys.length; i++) {
+                if (!(aKeys[i] in b)) {
+                    return false
+                }
+            }
+            let bKeys = _api.util.object.getKeys(b)
+            for (let i = 0; i < bKeys.length; i++) {
+                if (!(bKeys[i] in a)) {
+                    return false
+                }
+            }
+            // Both keysets are equal
+            for (let i = 0; i < aKeys.length; i++) {
+                if (!_api.util.object.equals(a[aKeys[i]], b[bKeys[i]])) {
+                    return false
+                }
+            }
+            return true
+        } else {
+            return a === b
+        }
+    }
+}
+
+_api.util.object.getKeys = (obj) => {
+    let result = []
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            result.push(key)
+        }
+    }
+    return result
+}

@@ -149,7 +149,7 @@
     let templatePlList = plItNode.get("placeholder")
     for (let i = 0; i < templatePlList.length; i++) {
         let templatePl = templatePlList[i]
-        let selector = _api.util.getPath(oldTemplate, templatePl)
+        let selector = _api.util.jQuery.getPath(oldTemplate, templatePl)
         let newPlaceholder = selector === "" ? template : $api.$()(selector, template)
         result.get("placeholder").push(newPlaceholder)
     }
@@ -160,7 +160,7 @@
     for (let i = 0; i < sockets.length; i++) {
         let socket = sockets[i]
         let element = socket.element
-        let selector = _api.util.getPath(oldTemplate, element)
+        let selector = _api.util.jQuery.getPath(oldTemplate, element)
         let newElement = selector === "" ? template : $api.$()(selector,  template)
         result.get("sockets").push({ element: newElement, id: socket.id })
     }
@@ -170,7 +170,7 @@
     for (let i = 0; i < scopes.length; i++) {
         let scope =  scopes[i]
         let element = scope.get("element")
-        let selector = _api.util.getPath(oldTemplate, element)
+        let selector = _api.util.jQuery.getPath(oldTemplate, element)
         let newElement = selector === "" ? template : $api.$()(selector, template)
         if (newElement.length !== 1) {
             throw _api.util.exception("Could not locate element in template clone")

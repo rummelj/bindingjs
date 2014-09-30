@@ -7,23 +7,50 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+/*
+** Removes the given element from the array if its present
+*/
 _api.util.array.remove = (array, element) => {
+    if (!_api.util.array.contains(array, element)) {
+        throw _api.util.exception("element not in array")
+    }
     _api.util.array.removeAt(array, array.indexOf(element))
 }
 
+/*
+** Removes the element at the given index from the array
+*/
 _api.util.array.removeAt = (array, index) => {
+    if (index < 0 || index >= array.length) {
+        throw _api.util.exception("index not in array")
+    }
     array.splice(index, 1)
 }
 
+/*
+** Decides, whether element is in array
+*/
 _api.util.array.contains = (array, element) => {
     return array.indexOf(element) > -1
 }
 
+/*
+** Returns a clone of array by leaving out all indices after to inclusively
+*/
 _api.util.array.subArray = (array, to) => {
     return _api.util.array.subArray(array, 0, to)
 }
 
+/*
+** Returns a clone of array, that contains all elements with indices in [from, to)
+** (from: inclusively, to: exclusively)
+*/
 _api.util.array.subArray = (array, from, to) => {
+    if (from < 0 || from >= array.length ||
+        to < 0 || to >= array.length ||
+        from > to) {
+            throw _api.util.exception("Illegal parameters")
+    }
     let result = []
     for (let i = from; i < to; i++) {
         result.push(array[i])
@@ -31,6 +58,9 @@ _api.util.array.subArray = (array, from, to) => {
     return result
 }
 
+/*
+** Returns a new array, where each entry is mapped by fn
+*/
 _api.util.array.map = (array, fn) => {
     let result = []
     for (let i = 0; i < array.length; i++) {
@@ -39,12 +69,18 @@ _api.util.array.map = (array, fn) => {
     return result
 }
 
+/*
+** Adds all elements in array to addTo
+*/
 _api.util.array.addAll = (addTo, array) => {
     for (let i = 0; i < array.length; i++) {
         addTo.push(array[i])
     }
 }
 
+/*
+** Checks, if all elements in array meet the given condition
+*/
 _api.util.array.ifAll = (array, condition) => {
     let result = true
     for (let key in array) {
@@ -56,6 +92,9 @@ _api.util.array.ifAll = (array, condition) => {
     return result
 }
 
+/*
+** Checks, if at least one element in array meets the given condition
+*/
 _api.util.array.ifAny = (array, condition) => {
     for (let key in array) {
         if (condition(array[key], key)) {
@@ -65,6 +104,10 @@ _api.util.array.ifAny = (array, condition) => {
     return false
 }
 
+/*
+** Returns the minimum and maximum number in array. The return type
+** is an object having "min" and "max" as its keys
+*/
 _api.util.array.getMinAndMax = (array) => {
     let min = _api.util.number.maxValue()
     let max = _api.util.number.minValue()
@@ -82,6 +125,9 @@ _api.util.array.getMinAndMax = (array) => {
     return { min: min, max: max }
 }
 
+/*
+** Executes fn for each item of the array
+*/
 _api.util.array.each = (array, fn) => {
     if (array) {
         for (var i = 0; i < array.length; i++) {
@@ -90,6 +136,10 @@ _api.util.array.each = (array, fn) => {
     }
 }
 
+/*
+** Returns the first element in array that meets the condition or
+** undefined, if there is no such element
+*/
 _api.util.array.findFirst = (array, condition) => {
     let result
     if (array) {
@@ -103,6 +153,9 @@ _api.util.array.findFirst = (array, condition) => {
     return result
 }
 
+/*
+** Returns all elements from array as a list that meet the condition
+*/
 _api.util.array.findAll = (array, condition) => {
     let result = []
     if (array) {
@@ -115,17 +168,26 @@ _api.util.array.findAll = (array, condition) => {
     return result
 }
 
+/*
+** Returns a shallow copy of array
+*/
 _api.util.array.clone = (array) => {
     return array.slice(0)
 }
 
+/*
+** Removes the given element from array
+*/
 _api.util.array.remove = (array, element) => {
-    if (array.indexOf(element) === -1) {
-        _api.util.assume(false)
+    if (!_api.util.array.contains(array, element)) {
+        throw _api.util.exception("element not in array")
     }
     array.splice(array.indexOf(element), 1)
 }
 
+/*
+** Returns the number of elements in array, that meet the condition
+*/
 _api.util.array.count = (array, condition) => {
     let result = 0
     if (array) {

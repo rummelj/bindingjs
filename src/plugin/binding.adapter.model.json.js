@@ -28,7 +28,7 @@ let factory = ($api, _api) => {
             
             let observer = this.observer[this.observedModels.indexOf(model)]
             for (let i = 0; i < observer.length; i++) {
-                if (_api.util.objectEquals(path, observer[i].path)) {
+                if (_api.util.object.equals(path, observer[i].path)) {
                     observer[i].callback()
                 }
             }
@@ -52,7 +52,7 @@ let factory = ($api, _api) => {
             let modelObserver = this.observer[this.observedModels.indexOf(model)]
             let pathObserved = false
             for (let i = 0; i < modelObserver.length; i++) {
-                if (_api.util.objectEquals(modelObserver[i].path, path)) {
+                if (_api.util.object.equals(modelObserver[i].path, path)) {
                     pathObserved = true
                     break
                 }
@@ -104,7 +104,7 @@ let factory = ($api, _api) => {
                 if (i === observerIndex) {
                     continue
                 }
-                if (_api.util.objectEquals(modelObserver[i].path, modelObserver[observerIndex].path)) {
+                if (_api.util.object.equals(modelObserver[i].path, modelObserver[observerIndex].path)) {
                     otherPresent = true
                     break
                 }

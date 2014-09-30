@@ -164,7 +164,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     let newTemplatePlaceholder = []
     for (let i = 0; i < oldTemplatePlaceholder.length; i++) {
         let oldPlaceholder = oldTemplatePlaceholder[i]
-        let selector = _api.util.getPath(oldTemplate, oldPlaceholder)
+        let selector = _api.util.jQuery.getPath(oldTemplate, oldPlaceholder)
         let newPlaceholder = selector === "" ? newTemplate : $api.$()(selector, newTemplate)
         let comment = $api.$()("<!-- -->")
         newPlaceholder.replaceWith(comment)
@@ -177,7 +177,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     for (let i = 0; i < sockets.length; i++) {
         let socket = sockets[i]
         let element = socket.element
-        let selector = _api.util.getPath(oldTemplate, element)
+        let selector = _api.util.jQuery.getPath(oldTemplate, element)
         let newElement = selector === "" ? newTemplate : $api.$()(selector,  newTemplate)
         newSockets.push({ element: newElement, id: socket.id })
     }
@@ -188,7 +188,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     for (let i = 0; i < scopes.length; i++) {
         let scope =  scopes[i]
         let element = scope.get("element")
-        let selector = _api.util.getPath(oldTemplate, element)
+        let selector = _api.util.jQuery.getPath(oldTemplate, element)
         let newElement = selector === "" ? newTemplate : $api.$()(selector, newTemplate)
         if (newElement.length !== 1) {
             throw _api.util.exception("Could not locate element in template clone")
@@ -511,7 +511,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
         // Fill in the rest of the matrix
         for (let i = 1; i <= newCollection.length; i++) {
             for (let j = 1; j <= oldCollection.length; j++) {
-                if (_api.util.objectEquals(newValues[i-1], oldCollection[j-1])) {
+                if (_api.util.object.equals(newValues[i-1], oldCollection[j-1])) {
                     matrix[i][j] = matrix[i-1][j-1];
                 } else {
                     matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
@@ -588,7 +588,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
             if (oldCollection.hasOwnProperty(key) && !newCollection.hasOwnProperty(key)) {
                 result.push({ action: "remove", key: key })
             } else if (oldCollection.hasOwnProperty(key) && newCollection.hasOwnProperty(key) &&
-                       !_api.util.objectEquals(oldCollection[key], newCollection[key])) {
+                       !_api.util.object.equals(oldCollection[key], newCollection[key])) {
                 result.push({ action: "replace", key: key, newValue: newCollection[key] })
             }
         }

@@ -282,7 +282,7 @@ class Tree {
             while (template.parentElement) {
                 template = template.parentElement
             }
-            result += _api.util.getPath(template, element)
+            result += _api.util.jQuery.getPath(template, element)
             result += element.id ? "#" + element.id : (element.class ? "." + element.class : "")
             result += " {\r\n"
             level++

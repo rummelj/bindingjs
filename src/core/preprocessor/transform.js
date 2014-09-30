@@ -55,7 +55,7 @@ _api.preprocessor.transform.expandSelectorsRec = (template, ast) => {
             let elements = $api.$()(selector, template)
             if (elements.length === 0) {
                 $api.debug(5, "Found no element for selector " + selector + " in\n" +
-                              _api.util.jQueryOuterHtml(template))
+                              _api.util.jQuery.outerHtml(template))
             }
             
             // Note. If the selector did not match any elements, the scope disappears

@@ -276,15 +276,12 @@ class ViewDataBinding {
         }
     }
     
-    bindingScopePrefix () {
+    bindingScopePrefix (newPrefix) {
         methods.checkDestroyed(this)
-        let params = _api.util.Ducky.params("bindingScopePrefix", arguments, {
-            newPrefix: { pos: 0, req: false, valid: "string" }
-        })
-        if (typeof params.newPrefix === "undefined") {
+        if (!_api.util.object.isDefined(newPrefix)) {
             return this.vars.bindingScopePrefix
-        } else /* if (params.newPrefix) */ {
-            this.vars.bindingScopePrefix = params.newPrefix
+        } else /* if (newPrefix) */ {
+            this.vars.bindingScopePrefix = newPrefix
             return this
         }
     }

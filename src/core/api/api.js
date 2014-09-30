@@ -22,12 +22,8 @@ $api.create = () => {
 */
 $api.$ = (() => {
     let internaljQuery
-    return () => {
-        let params = _api.util.Ducky.params("$", arguments, {
-            jQuery: { pos: 0, req: false, valid: "function" }
-        })
-        
-        if (!params.jQuery) {
+    return (jQueryParam) => {
+        if (!jQueryParam) {
             // Return jQuery
             if (typeof internaljQuery !== "undefined") {
                 return internaljQuery
@@ -43,9 +39,9 @@ $api.$ = (() => {
                                              "reference to jQuery first by calling BindingJS.$(jQuery)")
                 }
             }
-        } else /* if (params.jQuery) */ {
+        } else /* if (jQueryParam) */ {
             // Set jQuery
-            internaljQuery = params.jQuery
+            internaljQuery = jQueryParam
             return $api
         }
     }
@@ -59,29 +55,28 @@ $api.$ = (() => {
 */
 $api.debug = (() => {
     let debugLevel = 9
-    return () => {
-        let params = _api.util.Ducky.params("debug", arguments, {
-            level: { pos: 0, req: false, valid: "number" },
-            msg:   { pos: 1, req: false, valid: "string" }
-        })
-        if (arguments.length === 0) {
+    return (level, msg) => {
+        if (!_api.util.object.isDefined(level)) {
             /*  return old debug level  */
             return debugLevel
-        } else if (arguments.length === 1) {
+        } else if (!_api.util.object.isDefined(msg)) {
             /*  configure new debug level  */
-            debugLevel = params.level
+            debugLevel = level
             return $api
         } else {
             /*  perform runtime logging  */
-            if (params.level <= debugLevel) {
+            if (level <= debugLevel) {
                 /*  determine indentation based on debug level  */
                 let indent = ""
-                for (let i = 1; i < params.level; i++) {
+                for (let i = 1; i < level; i++) {
                     indent += " "
                 }
 
                 /*  display debug message  */
-                _api.util.log("DEBUG[" + params.level + "]: " + indent + params.msg)
+                if (typeof root.console !== "undefined" &&
+                    typeof root.console.log !== "undefined") {
+                      root.console.log("DEBUG[" + level + "]: " + indent + msg)
+                }
             }
             return $api
         }
@@ -112,18 +107,13 @@ $api.debug = (() => {
 ** second parameter is emitted. If a Connector is registered under the
 ** same name as an Adapter, only the Adapter is returned
 */
-$api.plugin = () => {
-    let params = _api.util.Ducky.params("plugin", arguments, {
-        name:    { pos: 0, req: true, valid: "string" },
-        factory: { pos: 1, req: false, valid: "function" }
-    })
-    
-    if (arguments.length === 2) {
+$api.plugin = (name, factory) => {    
+    if (_api.util.object.isDefined(factory)) {
         // Register component
-        let component = params.factory($api, _api)   
+        let component = factory($api, _api)   
         if (typeof component.process === "function") {
-            $api.debug(3, "Registering " + params.name + " as a Connector")
-            _api.repository.connector.register(params.name, component)
+            $api.debug(3, "Registering " + name + " as a Connector")
+            _api.repository.connector.register(name, component)
         } else {
             if (!(typeof component.getValue === "function" &&
                   typeof component.getPaths === "function" &&
@@ -134,15 +124,15 @@ $api.plugin = () => {
                 throw _api.util.exception("The method type() of an Adapter must " +
                     "either return 'model' or 'view'")
             }
-            $api.debug(3, "Registering " + params.name + " as an Adapter")
-            _api.repository.adapter.register(params.name, component)
+            $api.debug(3, "Registering " + name + " as an Adapter")
+            _api.repository.adapter.register(name, component)
         }
     } else /* if (arguments.length === 1) */ {
         // Retrieve component
-        if (_api.repository.adapter.has(params.name)) {
-            return _api.repository.adapter.get(params.name)
-        } else if (_api.repository.connector.has(params.name)) {
-            return _api.repository.connector.get(params.name)
+        if (_api.repository.adapter.has(name)) {
+            return _api.repository.adapter.get(name)
+        } else if (_api.repository.connector.has(name)) {
+            return _api.repository.connector.get(name)
         } else {
             return
         }

@@ -294,7 +294,7 @@
  // This level is converted into an array
  _api.engine.binding.recognizeArrays = (result) => {
     if (typeof result === "object") {
-        let keySet = _api.util.getObjectKeys(result)
+        let keySet = _api.util.object.getKeys(result)
         if (_api.util.array.ifAll(keySet, (item) => {
             return _api.util.number.isWholePositiveNumber(item)
         })) {

@@ -13,14 +13,15 @@ _api.util.object = {}
 _api.util.dom = {}
 _api.util.tree = {}
 _api.util.number = {}
+_api.util.jQuery = {}
 
 include("array.js")
 include("object.js")
 include("common.js")
 include("counter.js")
-include("dom.js")
 include("ducky.js")
 include("tree.js")
 include("watch.js")
 include("number.js")
 include("map.js")
+include("jQuery.js")
