@@ -25,29 +25,27 @@
             allParts.push(parts)
 
             // Check if source observation possible
-            if (parts.source.adapter !== "binding" && !parts.source.adapter.observe) {
+            if (parts.source.adapter !== "binding" && !parts.source.adapter.observe && !parts.oneTime) {
                 throw _api.util.exception("Used the adapter " + parts.source.name + " as the source " +
                     "of a binding, but it does not implement an observe method")
             }
                 
             // Observe source
-            if (parts.source.adapter === "binding") {
+            if (parts.source.adapter === "binding" && !parts.oneTime) {
                 let observerId = viewDataBinding.vars.bindingScope.observe(parts.source.path[0], () => {
                     _api.engine.binding.observerCallback(viewDataBinding, parts)
                 })
                 bindingObserver.push({ adapter: "binding", observerId: observerId })
-            } else if (parts.source.adapter.type() === "view") {
+            } else if (parts.source.adapter.type() === "view" && !parts.oneTime) {
                 let observerId = parts.source.adapter.observe(element, parts.source.path, () => {
                     _api.engine.binding.observerCallback(viewDataBinding, parts)
                 })
                 bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
-            } else if (parts.source.adapter.type() === "model") {
+            } else if (parts.source.adapter.type() === "model" && !parts.oneTime) {
                 let observerId = parts.source.adapter.observe(viewDataBinding.vars.model, parts.source.path, () => {
                     _api.engine.binding.observerCallback(viewDataBinding, parts)
                 })
                 bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
-            } else {
-                throw _api.util.exception("Unknown adapter type: " + parts.source.adapter.type())
             }
         }
         
@@ -338,6 +336,7 @@
  *      + path: String[]
  *    }
  *    + element: jQuery
+ *    + oneTime: boolean
  *  }
  */
  _api.engine.binding.getParts = (viewDataBinding, binding, element) => {
@@ -347,12 +346,12 @@
     let firstAdapter = binding.childs()[0]
     let lastAdapter = binding.childs()[binding.childs().length - 1]
     
-    let sourceAdapter = direction === "right" ? firstAdapter : lastAdapter
+    let sourceAdapter = direction.value === "right" ? firstAdapter : lastAdapter
     let sourceName = _api.engine.binding.getName(sourceAdapter)
     let source = sourceName === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sourceName)
     let sourcePath = _api.engine.binding.getPath(sourceAdapter)
     
-    let sinkAdapter = direction === "right" ? lastAdapter : firstAdapter
+    let sinkAdapter = direction.value === "right" ? lastAdapter : firstAdapter
     let sinkName = _api.engine.binding.getName(sinkAdapter)
     let sink = sinkName === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sinkName)
     let sinkPath = _api.engine.binding.getPath(sinkAdapter)
@@ -361,9 +360,9 @@
     _api.util.assume(connector.isA("Connector"))
     let funcCalls = connector.getAll("FuncCall")
     let connectorChain = []
-    for (let i = direction === "right" ? 0 : funcCalls.length - 1;
-         direction === "right" ? (i < funcCalls.length) : (i >= 0);
-         direction === "right" ? i++ : i--) {
+    for (let i = direction.value === "right" ? 0 : funcCalls.length - 1;
+         direction.value === "right" ? (i < funcCalls.length) : (i >= 0);
+         direction.value === "right" ? i++ : i--) {
          let funcCall = funcCalls[i]
          connectorChain.push(_api.repository.connector.get(funcCall.get("id")))
     }
@@ -380,13 +379,18 @@
             adapter: sink,
             path: sinkPath
         },
-        element: element
+        element: element,
+        oneTime: direction.oneTime
     }
  }
  
  /*
- *  "left": ... <- ... <- ... <- ...
- *  "right": ... -> ... -> ... -> ...
+ * { 
+ *   value: string
+ *      "left": ... <- ... <- ... <- ...
+ *          / "right": ... -> ... -> ... -> ...,
+ *   oneTime: boolean
+ * }
  */
  _api.engine.binding.getDirection = (binding) => {
     let connectors = binding.getAll("Connector")
@@ -397,10 +401,10 @@
     _api.util.assume(bindingOperator.isA("BindingOperator"))
     
     let value = bindingOperator.get("value")
-    if (value === "<-") {
-        return "left"
-    } else if (value === "->") {
-        return "right"
+    if (value === "<-" || value === "<~") {
+        return { value: "left", oneTime: value === "<~" }
+    } else if (value === "->" || value === "~>") {
+        return { value: "right", oneTime: value === "~>" }
     } else {
         throw _api.util.exception("Could not interpret direction for bindingoperator " + value)
     }

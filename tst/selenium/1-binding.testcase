@@ -16,6 +16,7 @@
 	<td>${baseUrl}/tst/selenium/1-binding.html</td>
 	<td></td>
 </tr>
+<!--One-Way-->
 <tr>
 	<td>getEval</td>
 	<td>window.model.m2vText = &quot;val1&quot;</td>
@@ -35,6 +36,47 @@
 	<td>verifyEval</td>
 	<td>window.model.v2mValue</td>
 	<td>val2</td>
+</tr>
+<!--One-Time-->
+<tr>
+	<td>assertText</td>
+	<td>css=#otm2v</td>
+	<td>otm2vText</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.otm2vText = &quot;foo&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=#otm2v</td>
+	<td>otm2vText</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.otv2mText</td>
+	<td>otv2m</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=#otm2vc</td>
+	<td>OTM2VTEXT</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.otv2mcText</td>
+	<td>OTV2MC</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=#otv2mc</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.otv2mcText</td>
+	<td>OTV2MC</td>
 </tr>
 </tbody></table>
 </body>

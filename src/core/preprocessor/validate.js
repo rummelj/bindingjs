@@ -99,3 +99,17 @@ _api.preprocessor.validate.checkSockets = (ast) => {
         }
     })
 }
+
+_api.preprocessor.validate.checkDirections = (ast) => {
+    _api.util.array.each(ast.getAll("Binding"), (binding) => {
+        let operators = binding.getAll("BindingOperator")
+        _api.util.assume(operators.length > 0)
+        let firstOperator = operators[0].get("value")
+        for (var i = 1; i < operators.length; i++) {
+            if (operators[i].get("value") !== firstOperator) {
+                throw _api.util.exception("One Binding may only use one Binding Operator at the same " +
+                    "time unlike: " + binding.asBindingSpec())
+            }
+        }
+    })
+}
