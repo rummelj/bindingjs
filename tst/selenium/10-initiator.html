@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.model.json.js"></script>
+        <script src="../../bld/stage3/src/plugin/watch.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.view.value.js"></script>
+        <script type="text/binding">
+            @binding view {
+                #foo {
+                    @t1 <- $t1
+                    @t4 <- $t4
+                    @t1, $t2 +> value <-> $foo <+ $t3, @t4
+                }
+                #bar {
+                    $t1 +> value -> $bar <+ $t3
+                    $t3 +> $bar -> value <+ $t1 
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                foo: "",
+                bar: "",
+                t1: false,
+                t2: false,
+                t3: false,
+                t4: false
+            }
+            
+            var binding
+            $(function() {
+                binding = BindingJS
+                            .create()
+                            .template("#template")
+                            .binding($("script[type='text/binding']"))
+                            .model(model)
+                            .mount("#template")
+                            .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <input type="text" id="foo"></input>
+            <input type="text" id="bar"></input>
+        </div>
+    </body>
+</html>

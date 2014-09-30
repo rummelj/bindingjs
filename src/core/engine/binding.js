@@ -19,29 +19,34 @@
         _api.util.array.each(scope.getAll("Binding", "Scope"), (binding) => {
             let parts = _api.engine.binding.getParts(viewDataBinding, binding, element)
             allParts.push(parts)
-
-            // Check if source observation possible
-            if (parts.source.adapter !== "binding" && !parts.source.adapter.observe && !parts.oneTime) {
-                throw _api.util.exception("Used the adapter " + parts.source.name + " as the source " +
-                    "of a binding, but it does not implement an observe method")
-            }
-                
-            // Observe source
-            if (parts.source.adapter === "binding" && !parts.oneTime) {
-                let observerId = viewDataBinding.vars.bindingScope.observe(parts.source.path[0], () => {
-                    _api.engine.binding.observerCallback(viewDataBinding, parts)
+            
+            if (!parts.oneTime) {
+                let toObserve = parts.initiators.length > 0 ? parts.initiators : [parts.source]
+                _api.util.array.each(toObserve, (item) => {
+                    // Check if source observation possible
+                    if (item.adapter !== "binding" && !item.adapter.observe) {
+                        throw _api.util.exception("Used the adapter " + item.name + " as the source " +
+                            "or initiator of a binding, but it does not implement an observe method")
+                    }
+                        
+                    // Observe source
+                    if (item.adapter === "binding") {
+                        let observerId = viewDataBinding.vars.bindingScope.observe(item.path[0], () => {
+                            _api.engine.binding.observerCallback(viewDataBinding, parts)
+                        })
+                        bindingObserver.push({ adapter: "binding", observerId: observerId })
+                    } else if (item.adapter.type() === "view") {
+                        let observerId = item.adapter.observe(element, item.path, () => {
+                            _api.engine.binding.observerCallback(viewDataBinding, parts)
+                        })
+                        bindingObserver.push({ adapter: item.adapter, observerId: observerId })
+                    } else if (item.adapter.type() === "model") {
+                        let observerId = item.adapter.observe(viewDataBinding.vars.model, item.path, () => {
+                            _api.engine.binding.observerCallback(viewDataBinding, parts)
+                        })
+                        bindingObserver.push({ adapter: item.adapter, observerId: observerId })
+                    }
                 })
-                bindingObserver.push({ adapter: "binding", observerId: observerId })
-            } else if (parts.source.adapter.type() === "view" && !parts.oneTime) {
-                let observerId = parts.source.adapter.observe(element, parts.source.path, () => {
-                    _api.engine.binding.observerCallback(viewDataBinding, parts)
-                })
-                bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
-            } else if (parts.source.adapter.type() === "model" && !parts.oneTime) {
-                let observerId = parts.source.adapter.observe(viewDataBinding.vars.model, parts.source.path, () => {
-                    _api.engine.binding.observerCallback(viewDataBinding, parts)
-                })
-                bindingObserver.push({ adapter: parts.source.adapter, observerId: observerId })
             }
         })
         
@@ -317,8 +322,13 @@
  
  /*
  *  {
+ *    + initiators: [] of {
+ *      + name: String
+ *      + adapter: Adapter / "binding"
+ *      + path: String[]
+ *    }
  *    + source: {
-*       + name: String
+ *      + name: String
  *      + adapter: Adapter / "binding"
  *      + path: String[]
  *    }
@@ -344,6 +354,11 @@
     let source = sourceName === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sourceName)
     let sourcePath = _api.engine.binding.getPath(sourceAdapter)
     
+    let initiators = _api.engine.binding.getInitiators(sourceAdapter)
+    _api.util.array.each(initiators, (initiator) => {
+        initiator.adapter = initiator.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(initiator.name)
+    })
+    
     let sinkAdapter = direction.value === "right" ? lastAdapter : firstAdapter
     let sinkName = _api.engine.binding.getName(sinkAdapter)
     let sink = sinkName === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sinkName)
@@ -361,6 +376,7 @@
     }
     
     return {
+        initiators: initiators,
         source: {
             name: sourceName,
             adapter: source,
@@ -426,6 +442,29 @@
     _api.util.assume(variable.isA("Variable"))
     if (variable.get("ns") !== "") {
         return [variable.get("id")]
+    } else {
+        return []
+    }
+ }
+ 
+ _api.engine.binding.getInitiators = (adapter) => {
+    _api.util.assume(adapter.isA("Adapter"))
+    _api.util.assume(adapter.childs().length !== 0)
+    _api.util.assume(adapter.childs()[0].isA("ExprSeq"))
+    if (adapter.childs().length > 1 && adapter.childs()[1].isA("Initiator")) {
+        let initiatorElem = adapter.childs()[1]
+        _api.util.assume(initiatorElem.childs().length !== 0)
+        let initiatorExprSeq = initiatorElem.childs()[0]
+        _api.util.assume(initiatorExprSeq.isA("ExprSeq"))
+        
+        let result = []
+        _api.util.array.each(initiatorExprSeq.getAll("Variable"), (variable) => {
+            result.push({
+                name: variable.get("ns") !== "" ? variable.get("ns") : variable.get("id"),
+                path: variable.get("ns") !== "" ? [variable.get("id")] : []
+            })
+        })
+        return result
     } else {
         return []
     }
