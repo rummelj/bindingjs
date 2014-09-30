@@ -21,7 +21,7 @@
             allParts.push(parts)
             
             if (!parts.oneTime) {
-                let toObserve = parts.initiators.length > 0 ? parts.initiators : [parts.source]
+                let toObserve = parts.initiators.length > 0 ? parts.initiators : parts.sources
                 _api.util.array.each(toObserve, (item) => {
                     // Check if source observation possible
                     if (item.adapter !== "binding" && !item.adapter.observe) {
@@ -36,7 +36,7 @@
                         })
                         bindingObserver.push({ adapter: "binding", observerId: observerId })
                     } else if (item.adapter.type() === "view") {
-                        let observerId = item.adapter.observe(element, item.path, () => {
+                        let observerId = item.adapter.observe(parts.element, item.path, () => {
                             _api.engine.binding.observerCallback(viewDataBinding, parts)
                         })
                         bindingObserver.push({ adapter: item.adapter, observerId: observerId })
@@ -50,21 +50,55 @@
             }
         })
         
-        // Trigger bindings once in order: First model, then temp, then view
+        // Trigger bindings once in order:
+        // - All that have only model adapters as their sources
+        // - All that have only binding adapters as their sources
+        // - All that have only view adapters as their sources
+        // - All that have both model and binding adapters as their sources
+        // - Rest
         _api.util.array.each(allParts, (parts) => {
-            if (parts.source.adapter.type && parts.source.adapter.type() === "model") {
+            if (_api.util.array.ifAll(parts.sources, (source) => {
+                return source.adapter !== "binding" && source.adapter.type() === "model"
+            })) {
                 _api.engine.binding.propagate(viewDataBinding, parts)
+                parts.init = true
             }
         })
         _api.util.array.each(allParts, (parts) => {
-            if (!parts.source.adapter.type && parts.source.adapter === "binding") {
+            if (_api.util.array.ifAll(parts.sources, (source) => {
+                return source.adapter === "binding"
+            })) {
                 _api.engine.binding.propagate(viewDataBinding, parts)
+                parts.init = true
             }
         })
         _api.util.array.each(allParts, (parts) => {
-            if (parts.source.adapter.type && parts.source.adapter.type() === "view") {
+            if (_api.util.array.ifAll(parts.sources, (source) => {
+                return source.adapter !== "binding" && source.adapter.type() === "view"
+            })) {
+                _api.engine.binding.propagate(viewDataBinding, parts)
+                parts.init = true
+            }
+        })
+        _api.util.array.each(allParts, (parts) => {
+            let sawModelAdapter = false
+            let sawBindingAdapter = false
+            let sawViewAdapter = false
+            _api.util.array.each(parts.sources, (source) => {
+                sawModelAdapter = sawModelAdapter || (source.adapter !== "binding" && source.adapter.type() === "model")
+                sawBindingAdapter = sawBindingAdapter || source.adapter === "binding"
+                sawViewAdapter = sawViewAdapter || (source.adapter !== "binding" && source.adapter.type() === "view")
+            })
+            if (sawModelAdapter && sawBindingAdapter && !sawViewAdapter) {
+                _api.engine.binding.propagate(viewDataBinding, parts)
+                parts.init = true
+            }
+        })
+        _api.util.array.each(allParts, (parts) => {
+            if (!parts.init) {
                 _api.engine.binding.propagate(viewDataBinding, parts)
             }
+            delete parts.init
         })
     })
     
@@ -96,39 +130,52 @@
  
  // Propagates a Binding (represented by parts)
  _api.engine.binding.propagate = (viewDataBinding, parts) => {
-    // Read value from source
-    let source = parts.source
-    let value = ""
-    if (source.adapter === "binding") {
-        value = viewDataBinding.vars.bindingScope.get(source.path[0])
-    } else if (source.adapter.type() === "view") {
-        value = source.adapter.getPaths(parts.element, source.path)
-    } else if (source.adapter.type() === "model") {
-        value = source.adapter.getPaths(viewDataBinding.vars.model, source.path)
-    } else {
-        throw _api.util.exception("Unknown adapter type: " + source.adapter.type())
-    }
+    // Read values from source
+    let values = []
+    _api.util.array.each(parts.sources, (source) => {
+        if (source.adapter === "binding") {
+            values.push(viewDataBinding.vars.bindingScope.get(source.path[0]))
+        } else if (source.adapter.type() === "view") {
+            let value = source.adapter.getPaths(parts.element, source.path)
+            value = _api.engine.binding.convertToReferences(source.adapter, source.path, value, 
+                                                            viewDataBinding.vars.model, parts.element)
+            values.push(value)
+        } else if (source.adapter.type() === "model") {
+            let value = source.adapter.getPaths(viewDataBinding.vars.model, source.path)
+            value = _api.engine.binding.convertToReferences(source.adapter, source.path, value, 
+                                                            viewDataBinding.vars.model, parts.element)
+            values.push(value)
+        }
+    })
     
-    // Convert to references, if not from binding adapter
-    if (source.adapter !== "binding" &&
-        (source.adapter.type() === "view"
-         || source.adapter.type() === "model")) {
-        value = _api.engine.binding.convertToReferences(source.adapter, source.path, value, 
-                                                        viewDataBinding.vars.model, parts.element)
-    }
+    _api.util.assume(values.length > 0)
+    // Only use list if more than one
+    values = values.length === 1 ? values[0] : values
     
     // Propagate through connectors
     let connectorChain = parts.connectors
     for (let i = 0; i < connectorChain.length; i++) {
-        value = connectorChain[i].process(value)
+        values = connectorChain[i].process(values)
         // Abort if necessary
-        if (value === $api.abortSymbol) {
+        if (values === $api.abortSymbol) {
             return
         }
     }
     
+    _api.util.assume(parts.sinks.length > 0)
+    if (parts.sinks.length === 1) {
+        _api.engine.binding.propagateWriteToSink(viewDataBinding, parts, parts.sinks[0], values)
+    } else {
+        _api.util.array.each(parts.sinks, (sink, index) => {
+            if (index < values.length) {
+                _api.engine.binding.propagateWriteToSink(viewDataBinding, parts, sink, values[index])
+            }
+        })
+    }
+ }
+ 
+ _api.engine.binding.propagateWriteToSink = (viewDataBinding, parts, sink, value) => {
     // Convert to values if sink is not binding adapter
-    let sink = parts.sink
     if (sink.adapter !== "binding" &&
         (sink.adapter.type() === "view"
          || sink.adapter.type() === "model")) {
@@ -186,8 +233,6 @@
         sink.adapter.set(parts.element, sink.path, value)
     } else if (sink.adapter.type() === "model") {
         sink.adapter.set(viewDataBinding.vars.model, sink.path, value)
-    } else {
-        throw _api.util.exception("Unknown adapter type: " + sink.adapter.type())
     }
  }
  
@@ -327,13 +372,13 @@
  *      + adapter: Adapter / "binding"
  *      + path: String[]
  *    }
- *    + source: {
+ *    + sources: [] of {
  *      + name: String
  *      + adapter: Adapter / "binding"
  *      + path: String[]
  *    }
  *    + connectors: Connector[]
- *    + sink: {
+ *    + sinks: [] {
  *      + name: String
  *      + adapter: Adapter / "binding"
  *      + path: String[]
@@ -346,23 +391,25 @@
     let direction = _api.engine.binding.getDirection(binding)
     _api.util.assume(binding.childs().length >= 3)
     
-    let firstAdapter = binding.childs()[0]
-    let lastAdapter = binding.childs()[binding.childs().length - 1]
+    let firstAdapters = binding.childs()[0]
+    let lastAdapters = binding.childs()[binding.childs().length - 1]
     
-    let sourceAdapter = direction.value === "right" ? firstAdapter : lastAdapter
-    let sourceName = _api.engine.binding.getName(sourceAdapter)
-    let source = sourceName === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sourceName)
-    let sourcePath = _api.engine.binding.getPath(sourceAdapter)
+    let sourceAdapters = direction.value === "right" ? firstAdapters : lastAdapters
+    let sources = _api.engine.binding.getNamesAndPaths(sourceAdapters)
+    _api.util.array.each(sources, (source) => {
+        source.adapter = source.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(source.name)
+    })
     
-    let initiators = _api.engine.binding.getInitiators(sourceAdapter)
+    let initiators = _api.engine.binding.getInitiators(sourceAdapters)
     _api.util.array.each(initiators, (initiator) => {
         initiator.adapter = initiator.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(initiator.name)
     })
     
-    let sinkAdapter = direction.value === "right" ? lastAdapter : firstAdapter
-    let sinkName = _api.engine.binding.getName(sinkAdapter)
-    let sink = sinkName === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sinkName)
-    let sinkPath = _api.engine.binding.getPath(sinkAdapter)
+    let sinkAdapters = direction.value === "right" ? lastAdapters : firstAdapters
+    let sinks = _api.engine.binding.getNamesAndPaths(sinkAdapters)
+    _api.util.array.each(sinks, (sink) => {
+        sink.adapter = sink.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sink.name)
+    })
     
     let connector = binding.childs()[1]
     _api.util.assume(connector.isA("Connector"))
@@ -377,17 +424,9 @@
     
     return {
         initiators: initiators,
-        source: {
-            name: sourceName,
-            adapter: source,
-            path: sourcePath
-        },
+        sources: sources,
         connectors: connectorChain,
-        sink: {
-            name: sinkName,
-            adapter: sink,
-            path: sinkPath
-        },
+        sinks: sinks,
         element: element,
         oneTime: direction.oneTime
     }
@@ -419,40 +458,29 @@
     }
  }
  
- _api.engine.binding.getName = (adapter) => {
-    _api.util.assume(adapter.childs().length !== 0)
-    let exprSeq = adapter.childs()[0]
+ _api.engine.binding.getNamesAndPaths = (ast) => {
+    _api.util.assume(ast.isA("Adapter"))
+    _api.util.assume(ast.childs().length !== 0)
+    let exprSeq = ast.childs()[0]
     _api.util.assume(exprSeq.isA("ExprSeq"))
     _api.util.assume(exprSeq.childs().length !== 0)
-    let variable = exprSeq.childs()[0]
-    _api.util.assume(variable.isA("Variable"))
-    if (variable.get("ns") !== "") {
-        return variable.get("ns")
-    } else {
-        return variable.get("id")
-    }
+    
+    let result = []
+    _api.util.array.each(exprSeq.getAll("Variable"), (variable) => {
+        result.push({
+            name: variable.get("ns") !== "" ? variable.get("ns") : variable.get("id"),
+            path: variable.get("ns") !== "" ? [variable.get("id")] : []
+        })
+    })
+    return result
  }
  
- _api.engine.binding.getPath = (adapter) => {
-    _api.util.assume(adapter.childs().length !== 0)
-    let exprSeq = adapter.childs()[0]
-    _api.util.assume(exprSeq.isA("ExprSeq"))
-    _api.util.assume(exprSeq.childs().length !== 0)
-    let variable = exprSeq.childs()[0]
-    _api.util.assume(variable.isA("Variable"))
-    if (variable.get("ns") !== "") {
-        return [variable.get("id")]
-    } else {
-        return []
-    }
- }
- 
- _api.engine.binding.getInitiators = (adapter) => {
-    _api.util.assume(adapter.isA("Adapter"))
-    _api.util.assume(adapter.childs().length !== 0)
-    _api.util.assume(adapter.childs()[0].isA("ExprSeq"))
-    if (adapter.childs().length > 1 && adapter.childs()[1].isA("Initiator")) {
-        let initiatorElem = adapter.childs()[1]
+ _api.engine.binding.getInitiators = (ast) => {
+    _api.util.assume(ast.isA("Adapter"))
+    _api.util.assume(ast.childs().length !== 0)
+    _api.util.assume(ast.childs()[0].isA("ExprSeq"))
+    if (ast.childs().length > 1 && ast.childs()[1].isA("Initiator")) {
+        let initiatorElem = ast.childs()[1]
         _api.util.assume(initiatorElem.childs().length !== 0)
         let initiatorExprSeq = initiatorElem.childs()[0]
         _api.util.assume(initiatorExprSeq.isA("ExprSeq"))

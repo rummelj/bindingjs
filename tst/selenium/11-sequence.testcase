@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="http://stackoverflow.com/" />
+<title>11-sequence</title>
+</head>
+<body>
+<table cellpadding="1" cellspacing="1" border="1">
+<thead>
+<tr><td rowspan="1" colspan="3">11-sequence</td></tr>
+</thead><tbody>
+<tr>
+	<td>open</td>
+	<td>${baseUrl}/tst/selenium/11-sequence.html</td>
+	<td></td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=#i1</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.i1First</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.model.i1Second</td>
+	<td>foo</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.i2 = &quot;foo&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.i3 = &quot;bar&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.i4 = &quot;baz&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=#s2</td>
+	<td>[&quot;foo&quot;,&quot;bar&quot;,&quot;baz&quot;]</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=#s3</td>
+	<td>foobarbaz</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.i3 = &quot;quux&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=#s3</td>
+	<td>fooquuxbaz</td>
+</tr>
+<tr>
+	<td>assertValue</td>
+	<td>css=#i4</td>
+	<td>baz</td>
+</tr>
+<tr>
+	<td>assertAttribute</td>
+	<td>css=#i4@data-hash</td>
+	<td>8</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.i4 = &quot;longString&quot;</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertValue</td>
+	<td>css=#i4</td>
+	<td>longString</td>
+</tr>
+<tr>
+	<td>assertAttribute</td>
+	<td>css=#i4@data-hash</td>
+	<td>108</td>
+</tr>
+<tr>
+	<td>assertValue</td>
+	<td>css=#i5</td>
+	<td>6</td>
+</tr>
+<tr>
+	<td>assertAttribute</td>
+	<td>css=#i5@data-min</td>
+	<td>3</td>
+</tr>
+<tr>
+	<td>assertAttribute</td>
+	<td>css=#i5@data-max</td>
+	<td>10</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.num3 = 1</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertValue</td>
+	<td>css=#i5</td>
+	<td>3</td>
+</tr>
+<tr>
+	<td>assertAttribute</td>
+	<td>css=#i5@data-min</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>assertAttribute</td>
+	<td>css=#i5@data-max</td>
+	<td>5</td>
+</tr>
+
+</tbody></table>
+</body>
+</html>

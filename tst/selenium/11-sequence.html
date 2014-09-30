@@ -1,0 +1,101 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.model.json.js"></script>
+        <script src="../../bld/stage3/src/plugin/watch.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.view.value.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.view.text.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.view.attr.js"></script>
+        <script type="text/binding">
+            @binding view {
+                #i1 {
+                    value, value -> $i1First, $i1Second
+                }
+                #s2 {
+                    text <- $i2, $i3, $i4
+                }
+                #s3 {
+                    text <- concat <- $i2, $i3, $i4
+                }
+                #i4 {
+                    value, attr:data-hash <- hash <- $i4
+                }
+                #i5 {
+                    value, attr:data-min, attr:data-max <- stats <- $num1, $num2, $num3
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                i1First: "",
+                i1Second: "",
+                i2: "",
+                i3: "",
+                i4: "",
+                num1: 3,
+                num2: 5,
+                num3: 10
+            }
+            
+            $(function() {
+                BindingJS.plugin("concat", function($api, _api) {
+                    return {
+                        process: function(input) {
+                            var result = ""
+                            for (var i = 0; i < input.length; i++) {
+                                input[i] = _api.util.convertIfReference(input[i])
+                                result += input[i]
+                            }
+                            return result
+                        }
+                    }
+                })
+                BindingJS.plugin("hash", function($api, _api) {
+                    return {
+                        process: function(input) {
+                            var hash = 17
+                            var string = _api.util.convertIfReference(input)
+                            for (var i = 0; i < string.length; i++) {
+                                hash *= string.charCodeAt(i)
+                                hash %= 117
+                            }
+                            return [input, hash]
+                        }
+                    }
+                })
+                BindingJS.plugin("stats", function($api, _api) {
+                    return {
+                        process: function(input) {
+                            // Av, min, max
+                            var av = 0.
+                            for (var i = 0; i < input.length; i++) {
+                                input[i] = _api.util.convertIfReference(input[i])
+                                av += (input[i] + 0.) / input.length
+                            }
+                            var minMax = _api.util.array.getMinAndMax(input)
+                            return [parseInt(av), minMax.min, minMax.max]
+                        }
+                    }
+                })
+                
+                BindingJS
+                    .create()
+                    .template("#template")
+                    .binding($("script[type='text/binding']"))
+                    .model(model)
+                    .mount("#template")
+                    .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <input type="text" id="i1"></input>
+            <span id="s2"></span>
+            <span id="s3"></span>
+            <input type="text" id="i4"></input>
+            <input type="text" id="i5"></input>
+        </div>
+    </body>
+</html>
