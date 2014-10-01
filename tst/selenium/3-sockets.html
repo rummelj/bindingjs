@@ -21,14 +21,15 @@
                 data: [[0, 1], [2, 3]],
             }
             
+            var binding
             $(function() {
-                var binding = BindingJS.create()
+                binding = BindingJS.create()
                                        .template("#template")
                                        .binding($("script[type='text/binding']"))
                                        .model(model)
                 
                 binding.socket("view.plainSocket").onInsert(function (keys, element) {
-                    element.replaceWith("<span>PlainSocket</span>")
+                    element.append("<span>PlainSocket</span>")
                 })
                 
                 binding.socket("view.iteratedSocket").onInsert(function (keys, element) {
@@ -40,7 +41,7 @@
                             keysString += " - "
                         }
                     }
-                    element.replaceWith("<div class='iteratedSocketInstance'><span class='keys'>" + 
+                    element.append("<div class='iteratedSocketInstance'><span class='keys'>" + 
                         keysString + "</span></div>")
                 })
                 

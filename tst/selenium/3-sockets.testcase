@@ -28,18 +28,98 @@
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//div[@id='template']/div/div/div[2]/div/span</td>
+	<td>//div[@id='template']/div[2]/div/div[2]/div/div/span</td>
 	<td>1 - 0</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//div[@id='template']/div/div[2]/div/div/span</td>
+	<td>//div[@id='template']/div[2]/div[2]/div/div/div/span</td>
 	<td>0 - 1</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//div[@id='template']/div/div[2]/div[2]/div/span</td>
+	<td>//div[@id='template']/div[2]/div[2]/div[2]/div/div/span</td>
 	<td>1 - 1</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.binding.socket(&quot;view.plainSocket&quot;).instances()</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.binding.socket(&quot;view.iteratedSocket&quot;).instances()</td>
+	<td>4</td>
+</tr>
+<tr>
+	<td>getEval</td>
+	<td>window.model.data[0].push(2)</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.binding.socket(&quot;view.iteratedSocket&quot;).instances()</td>
+	<td>5</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.binding.socket(&quot;view.plainSocket&quot;).instance(0).keys.length === 0</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>typeof window.binding.socket(&quot;view.plainSocket&quot;).instance(0).element !== &quot;undefined&quot;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.binding.socket(&quot;view.iteratedSocket&quot;).instance(0).keys.length === 2</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>typeof window.binding.socket(&quot;view.iteratedSocket&quot;).instance(0).element !== &quot;undefined&quot;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.binding.socket(&quot;view.iteratedSocket&quot;).instance(1).keys.length === 2</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>typeof window.binding.socket(&quot;view.iteratedSocket&quot;).instance(1).element !== &quot;undefined&quot;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.binding.socket(&quot;view.iteratedSocket&quot;).instance(2).keys.length === 2</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>typeof window.binding.socket(&quot;view.iteratedSocket&quot;).instance(2).element !== &quot;undefined&quot;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.binding.socket(&quot;view.iteratedSocket&quot;).instance(3).keys.length === 2</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>typeof window.binding.socket(&quot;view.iteratedSocket&quot;).instance(3).element !== &quot;undefined&quot;</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>window.binding.socket(&quot;view.iteratedSocket&quot;).instance(4).keys.length === 2</td>
+	<td>true</td>
+</tr>
+<tr>
+	<td>verifyEval</td>
+	<td>typeof window.binding.socket(&quot;view.iteratedSocket&quot;).instance(4).element !== &quot;undefined&quot;</td>
+	<td>true</td>
 </tr>
 </tbody></table>
 </body>

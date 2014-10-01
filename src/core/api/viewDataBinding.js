@@ -59,6 +59,7 @@ let methods = {
         if (ready) {
             _api.preprocessor.preprocess(viewDataBinding)
             viewDataBinding.vars.initialized = true
+            methods.setupSocketObserver(viewDataBinding)
         }
     },
     
@@ -86,6 +87,30 @@ let methods = {
             _api.util.array.addAll(result, methods.getAllSocketIds(iterationTree.childs()[i]))
         }
         return result
+    },
+    
+    setupSocketObserver: (viewDataBinding) => {
+        // Observe every socket and fill instances array for efficient access through socket api
+        viewDataBinding.vars.socketInstances = new _api.util.Map()
+        let iterationTree = viewDataBinding.vars.iterationTree
+        _api.util.array.each(methods.getAllSocketIds(iterationTree), (socketId) => {
+            viewDataBinding.socket(socketId).onInsert((keys, element) => {
+                if (!viewDataBinding.vars.socketInstances.hasKey(socketId)) {
+                    viewDataBinding.vars.socketInstances.set(socketId, [])
+                }
+                viewDataBinding.vars.socketInstances.get(socketId).push({ keys: keys, element: element })
+            })
+            viewDataBinding.socket(socketId).onRemove((keys, element) => {
+                let instances = viewDataBinding.vars.socketInstances.get(socketId)
+                let instance = _api.util.array.findFirst(instances, (item) => {
+                    return $api.$()(item.element).is(element)
+                })
+                _api.util.array.remove(instances, instance)
+                if (instances.length === 0) {
+                    viewDataBinding.vars.socketInstances.remove(socketId)
+                }
+            })
+        })
     },
     
     checkDestroyed: (viewDataBinding) => {
@@ -234,12 +259,19 @@ class ViewDataBinding {
         methods.checkIfSocketExists(this, id)
         return {
             instances: () => {
-                // TODO
-                throw _api.util.exception("Not implemented yet")
+                let list = this.vars.socketInstances.get(id)
+                if (_api.util.object.isDefined(list)) {
+                    return list.length
+                } else {
+                    return 0
+                }
             },
             instance: (number) => {
-                // TODO
-                throw _api.util.exception("Not implemented yet " + number)
+                let list = this.vars.socketInstances.get(id)
+                if (!_api.util.object.isDefined(list) || number < 0 || number >= list.length) {
+                    throw _api.util.exception("There is no instance with number " + number)
+                }
+                return { keys: _api.util.array.clone(list[number].keys), element: list[number].element }
             },
             onInsert: (callback) => {
                 if (typeof callback !== "function") {
