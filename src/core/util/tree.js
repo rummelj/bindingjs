@@ -292,6 +292,8 @@ class Tree {
             for (let i = 0; i < level + 1; i++) {
                 result += "    "
             }
+        } else if (this.isA("Parameters")) {
+            result += "("
         }
         
         // Recursion
@@ -308,6 +310,8 @@ class Tree {
             result += "}\r\n"
         } else if (this.isA("Binding")) {
             result += "\r\n"
+        } else if (this.isA("Parameters")) {
+            result += ")"
         }
         
         return result

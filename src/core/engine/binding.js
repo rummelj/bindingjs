@@ -155,7 +155,7 @@
     // Propagate through connectors
     let connectorChain = parts.connectors
     for (let i = 0; i < connectorChain.length; i++) {
-        values = connectorChain[i].process(values)
+        values = connectorChain[i].connector.process(values)
         // Abort if necessary
         if (values === $api.abortSymbol) {
             return
@@ -366,23 +366,22 @@
  }
  
  /*
- *  {
- *    + initiators: [] of {
+ *  Adapter: {
  *      + name: String
  *      + adapter: Adapter / "binding"
  *      + path: String[]
- *    }
- *    + sources: [] of {
- *      + name: String
- *      + adapter: Adapter / "binding"
- *      + path: String[]
- *    }
- *    + connectors: Connector[]
- *    + sinks: [] {
- *      + name: String
- *      + adapter: Adapter / "binding"
- *      + path: String[]
- *    }
+ *      + parameters: Adapter[] / {} where value: Adapter and these Adapter
+ *              cannot have parameters (was prevented in preprocessing step)
+ *  }
+ *  Connector: {
+ *      + connector: Connetor(Implementation)
+ *      + parameters: Adapter[] / {} where value: Adapter
+ *  }
+ *  Result: {
+ *    + initiators: Adapter[]
+ *    + sources: Adapter[]
+ *    + connectors: connectorImp[]
+ *    + sinks: Adapter[]
  *    + element: jQuery
  *    + oneTime: boolean
  *  }
@@ -398,34 +397,52 @@
     let sources = _api.engine.binding.getNamesAndPaths(sourceAdapters)
     _api.util.array.each(sources, (source) => {
         source.adapter = source.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(source.name)
+        _api.util.array.each(source.parameters, (parameter) => {
+            parameter.adapter = parameter.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(parameter.name)
+        })
     })
     
     let initiators = _api.engine.binding.getInitiators(sourceAdapters)
     _api.util.array.each(initiators, (initiator) => {
         initiator.adapter = initiator.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(initiator.name)
+        _api.util.array.each(initiator.parameters, (parameter) => {
+            parameter.adapter = parameter.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(parameter.name)
+        })
     })
     
     let sinkAdapters = direction.value === "right" ? lastAdapters : firstAdapters
     let sinks = _api.engine.binding.getNamesAndPaths(sinkAdapters)
     _api.util.array.each(sinks, (sink) => {
         sink.adapter = sink.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sink.name)
+        _api.util.array.each(sink.parameters, (parameter) => {
+            parameter.adapter = parameter.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(parameter.name)
+        })
     })
     
-    let connector = binding.childs()[1]
-    _api.util.assume(connector.isA("Connector"))
-    let funcCalls = connector.getAll("FuncCall")
-    let connectorChain = []
-    for (let i = direction.value === "right" ? 0 : funcCalls.length - 1;
-         direction.value === "right" ? (i < funcCalls.length) : (i >= 0);
+    let connectorChain = binding.childs()[1]
+    _api.util.assume(connectorChain.isA("ConnectorChain"))
+    let connectorAsts = connectorChain.getAll("Connector")
+    let connectors = []
+    for (let i = direction.value === "right" ? 0 : connectorAsts.length - 1;
+         direction.value === "right" ? (i < connectorAsts.length) : (i >= 0);
          direction.value === "right" ? i++ : i--) {
-         let funcCall = funcCalls[i]
-         connectorChain.push(_api.repository.connector.get(funcCall.get("id")))
+         let connectorAst = connectorAsts[i]
+         connectors.push({
+            connector: _api.repository.connector.get(connectorAst.get("id")),
+            parameters: _api.engine.binding.getParameters(connectorAst)
+         })
     }
+    
+    _api.util.array.each(connectors, (connector) => {
+        _api.util.array.each(connector.parameters, (parameter) => {
+            parameter.adapter = parameter.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(parameter.name)
+        })
+    })
     
     return {
         initiators: initiators,
         sources: sources,
-        connectors: connectorChain,
+        connectors: connectors,
         sinks: sinks,
         element: element,
         oneTime: direction.oneTime
@@ -441,9 +458,9 @@
  * }
  */
  _api.engine.binding.getDirection = (binding) => {
-    let connectors = binding.getAll("Connector")
-    _api.util.assume(connectors.length === 1)
-    let connector = connectors[0]
+    let connectorChain = binding.getAll("ConnectorChain")
+    _api.util.assume(connectorChain.length === 1)
+    let connector = connectorChain[0]
     _api.util.assume(connector.childs().length !== 0)
     let bindingOperator = connector.childs()[0]
     _api.util.assume(bindingOperator.isA("BindingOperator"))
@@ -466,10 +483,11 @@
     _api.util.assume(exprSeq.childs().length !== 0)
     
     let result = []
-    _api.util.array.each(exprSeq.getAll("Variable"), (variable) => {
+    _api.util.array.each(exprSeq.getAll("Variable", "Parameters"), (variable) => {
         result.push({
             name: variable.get("ns") !== "" ? variable.get("ns") : variable.get("id"),
-            path: variable.get("ns") !== "" ? [variable.get("id")] : []
+            path: variable.get("ns") !== "" ? [variable.get("id")] : [],
+            parameters: _api.engine.binding.getParameters(variable)
         })
     })
     return result
@@ -486,10 +504,11 @@
         _api.util.assume(initiatorExprSeq.isA("ExprSeq"))
         
         let result = []
-        _api.util.array.each(initiatorExprSeq.getAll("Variable"), (variable) => {
+        _api.util.array.each(initiatorExprSeq.getAll("Variable", "Parameters"), (variable) => {
             result.push({
                 name: variable.get("ns") !== "" ? variable.get("ns") : variable.get("id"),
-                path: variable.get("ns") !== "" ? [variable.get("id")] : []
+                path: variable.get("ns") !== "" ? [variable.get("id")] : [],
+                parameters: _api.engine.binding.getParameters(variable)
             })
         })
         return result
@@ -498,3 +517,39 @@
     }
  }
  
+ _api.engine.binding.getParameters = (ast) => {
+    let result
+    _api.util.array.each(ast.getAll("Parameters"), (parameters) => {
+        // This should never be executed more than once
+        _api.util.assume(parameters.childs().length > 0)
+        if (/* positional */ parameters.childs()[0].isA("ParamPositional")) {
+            result = []
+            _api.util.array.each(parameters.childs(), (param) => {
+                _api.util.assume(param.childs().length === 1)
+                let variable = param.childs()[0]
+                _api.util.assume(variable.isA("Variable"))
+                let element = {
+                    name: variable.get("ns") !== "" ? variable.get("ns") : variable.get("id"),
+                    path: variable.get("ns") !== "" ? [variable.get("id")] : []
+                }
+                result.push(element)
+            })
+        } else if (/* name based */ parameters.childs()[0].isA("ParamNamed")) {
+            result = {}
+            _api.util.array.each(parameters.childs(), (param) => {
+                _api.util.assume(param.childs().length === 1)
+                let variable = param.childs()[0]
+                _api.util.assume(variable.isA("Variable"))
+                let element = {
+                    name: variable.get("ns") !== "" ? variable.get("ns") : variable.get("id"),
+                    path: variable.get("ns") !== "" ? [variable.get("id")] : []
+                }
+                result[param.get("id")] = element
+            })
+        } else {
+            // Should never happen
+            _api.util.assume(false)
+        }
+    })
+    return result
+ }

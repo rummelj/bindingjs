@@ -1,0 +1,56 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.model.json.js"></script>
+        <script src="../../bld/stage3/src/plugin/watch.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.view.value.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.view.text.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.view.attr.js"></script>
+        <script type="text/binding">
+            @binding view {
+                input {
+                    value(typeKeys = $typeKeys, delay = $delay) <-> concat($concatSymbol) <-> $firstname, $lastname
+                    attr:data-hash <- hash(value(escape = $escape)) <- $firstname, $lastname
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                firstname: "",
+                lastname: "",
+                concatSymbol: " ",
+                typeKeys: true,
+                delay: 50
+            }
+            
+            $(function() {
+                BindingJS.plugin("concat", function($api, _api) {
+                    return {
+                        process: function(input) {
+                            var result = ""
+                            for (var i = 0; i < input.length; i++) {
+                                input[i] = _api.util.convertIfReference(input[i])
+                                result += input[i]
+                            }
+                            return result
+                        }
+                    }
+                })
+                
+                BindingJS
+                    .create()
+                    .template("#template")
+                    .binding($("script[type='text/binding']"))
+                    .model(model)
+                    .mount("#template")
+                    .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <input type="text"></input>
+        </div>
+    </body>
+</html>

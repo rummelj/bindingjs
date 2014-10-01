@@ -25,3 +25,55 @@ _api.preprocessor.convenience.twoWayBindings = (ast) => {
         }
     })
 }
+
+_api.preprocessor.convenience.parameter = (ast, bindingScopePrefix, counter) => {
+    _api.util.array.each(ast.getAll("Parameters"), (parameters) => {
+        // Validate, that positional and named parameters are never mixed
+        let allNamed = _api.util.array.ifAll(parameters.childs(), (child) => {
+            return child.isA("ParamNamed")
+        })
+        let allPositional = _api.util.array.ifAll(parameters.childs(), (child) => {
+            return child.isA("ParamPositional")
+        })
+        if (!allNamed && !allPositional) {
+            let binding = parameters
+            while (binding && !binding.isA("Binding")) {
+                binding = binding.getParent()
+            }
+            throw _api.util.exception("It is not allowed to mix positional and name " +
+                "based parameters as in " + binding.asBindingSpec())
+        }
+        // Denest all Parameters
+        let directChildParameters = parameters.getAll("Parameters", "Parameters")
+        _api.util.array.remove(directChildParameters, parameters)
+        _api.util.array.each(directChildParameters, (directChildParameter) => {
+            let variable = directChildParameter.getParent()
+            let variableHook = variable.getParent()
+            let variableIndex = variableHook.childs().indexOf(variable)
+            _api.util.assume(variable.isA("Variable"))
+            let newTempId = "temp" + counter.getNext()
+            let newTempRef = bindingScopePrefix + newTempId
+            let newBinding = _api.dsl.parser.safeParser(newTempRef + " <- foo", "binding")
+            // Replace foo by variable
+            let foo = _api.util.array.findFirst(newBinding.getAll("Variable"), (variable) => {
+                return variable.get("ns") === "" && variable.get("id") === "foo"
+            })
+            _api.util.assume(foo)
+            variable.getParent().del(variable)
+            foo.replace(variable)
+            // Replace place of variable by newTempId
+            let newTempRefAst = _api.util.array.findFirst(newBinding.getAll("Variable"), (variable) => {
+                return variable.get("ns") === bindingScopePrefix && variable.get("id") === newTempId
+            })
+            _api.util.assume(newTempRefAst)
+            variableHook.addAt(variableIndex, newTempRefAst.clone())
+            // Add newBinding
+            let binding = parameters
+            while (binding && !binding.isA("Binding")) {
+                binding = binding.getParent()
+            }
+            _api.util.assume(binding)
+            binding.getParent().addAt(binding.getParent().childs().indexOf(binding), newBinding)
+        })
+    })
+}

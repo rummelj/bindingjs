@@ -209,13 +209,13 @@ bindingAdaptionR
 
 bindingConnection
     =   f:bindingOp l:(_ connector _ bindingOp)* {
-            return AST("Connector").add(unroll(f, l, [ 1, 3 ]))
+            return AST("ConnectorChain").add(unroll(f, l, [ 1, 3 ]))
         }
 
-// TODO: Change according to thesis
 connector
-    = exprFunctionCall
-    / exprFunctionCallBare
+    =   i:id p:parameters? {
+            return AST("Connector").set({ id: i.get("id") }).add(p)
+        }
 
 bindingOp "binding operator"
     =   op:$("<->" / "<-" / "->" / "<~" / "~>") {
@@ -304,7 +304,6 @@ exprOther
     =   exprArray
     /   exprHash
     /   exprLiteral
-    /   exprFunctionCall
     /   exprVariable
     /   exprParenthesis
 
@@ -314,38 +313,10 @@ exprLiteral
     /   number
     /   value
 
-// Only relevant for connector
-exprFunctionCallBare
-    =   v:variable {
-            return AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") })
-        }
-
-// TODO: Remove
-exprFunctionCall
-    =   v:variable b:exprFunctionCallBraces {
-            return AST("FuncCall").set({ ns: v.get("ns"), id: v.get("id") }).add(b)
-        }
-
-exprFunctionCallBraces
-    =   "(" _ p:exprFunctionCallParams? _ ")" {
-            return p
-        }
-        
-exprFunctionCallParams
-    =   f:exprFunctionCallParam l:(_ "," _ exprFunctionCallParam)* {
-            return unroll(f, l, 3)
-        }
-
-exprFunctionCallParam
-    =   id:id _ "=" _ e:expr {  /* RECURSION */
-            return AST("FuncParamNamed").set({ id: id.get("id") }).add(e)
-        }
-    /   e:expr {  /* RECURSION */
-            return AST("FuncParamPositional").add(e)
-        }
-
 exprVariable
-    =   variable
+    =   v:variable p:parameters? {
+            return v.add(p)
+        }
 
 exprParenthesis
     =   "(" _ e:expr _ ")" {  /* RECURSION */
@@ -367,6 +338,23 @@ exprHashKV
             return AST("KeyVal").add(k, v)
         }
 
+parameters
+    =   "(" _ p:params? _ ")" {
+            return AST("Parameters").add(p)
+        }
+        
+params
+    =   f:param l:(_ "," _ param)* {
+            return unroll(f, l, 3)
+        }
+
+param
+    =   id:id _ "=" _ e:expr {  /* RECURSION */
+            return AST("ParamNamed").set({ id: id.get("id") }).add(e)
+        }
+    /   e:expr {  /* RECURSION */
+            return AST("ParamPositional").add(e)
+        }
 
 /*
 **  ==== GENERIC ====
