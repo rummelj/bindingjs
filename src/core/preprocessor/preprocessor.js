@@ -27,16 +27,10 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     // Step 3: Check, if all bindings only use one of the symbols <-, ->, <~, ~> or <->
     _api.preprocessor.validate.checkDirections(bind)
     
-    // Step 4: Change parameters, so that each parameter is a single adapter without parameter
-    // Example: @foo(@bar(@baz)) nests parameter, which is changed to the following set of bindings
-    // @temp <- @bar(@baz)
-    // .. @foo(@temp) ...
-    _api.preprocessor.convenience.parameter(bind, bindingScopePrefix, tempCounter)
-    
-    // Step 5: Transform two-way bindings into two one way bindings
+    // Step 4: Transform two-way bindings into two one way bindings
     _api.preprocessor.convenience.twoWayBindings(bind)
     
-    // Step 6: Replace selectors with their elements in the template
+    // Step 5: Replace selectors with their elements in the template
     // Scopes might be duplicated because of
     // - Multiple matches for one selector
     // - CombinationLists (e.g. '.foo, #bar')
@@ -51,11 +45,11 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     //  is then replaced by four new scopes with these elements
     _api.preprocessor.transform.expandSelectors(template, bind)
     
-    // Step 7: Check that one socket always exactly matches only one element
+    // Step 6: Check that one socket always exactly matches only one element
     // from the template
     _api.preprocessor.validate.checkSockets(bind)
     
-    // Step 8: Make all references to the binding scope unique
+    // Step 7: Make all references to the binding scope unique
     // This way we do not have to deal with scoping later (except if new items
     // in iterations are added
     // Example (Brackets are scopes and elements inside the brackets are ids):
@@ -75,7 +69,7 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     _api.preprocessor.transform.makeTempRefsUnique(bind, bindingScopePrefix, tempCounter)
     
     
-    // Step 9: Make every iteration read out of the temp scope.
+    // Step 8: Make every iteration read out of the temp scope.
     // This makes it easier to implement the iteration since it has
     // to only observe the temp scope
     // Example
@@ -93,6 +87,12 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     // inside however may be references or values, and a back-propagation
     // always happens through references and never through the binding
     _api.preprocessor.transform.extractIterationCollections(bind, bindingScopePrefix, tempCounter)
+    
+    // Step 9: Change parameters, so that each parameter is a single adapter without parameter
+    // Example: @foo(@bar(@baz)) nests parameter, which is changed to the following set of bindings
+    // @temp <- @bar(@baz)
+    // .. @foo(@temp) ...
+    _api.preprocessor.convenience.parameter(bind, bindingScopePrefix, tempCounter)
     
     // Step 10: Prevent iterating over the same element more than once
     // This would lead to confusion and the order in which the binding is written would affect the template

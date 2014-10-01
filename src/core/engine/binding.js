@@ -30,23 +30,31 @@
                     }
                         
                     // Observe source
-                    if (item.adapter === "binding") {
-                        let observerId = viewDataBinding.vars.bindingScope.observe(item.path[0], () => {
-                            _api.engine.binding.observerCallback(viewDataBinding, parts)
+                    _api.engine.binding.observe(viewDataBinding, parts, item, bindingObserver)
+                    
+                    // Observe all parameters of source
+                    // The Binding Scope adapter does not support parameters, so we do not need
+                    // to observe them. Anyway, there shouldn't be parameters
+                    if (item.adapter !== "binding") {
+                        _api.util.array.each(item.parameters, (parameter) => {
+                            _api.engine.binding.observe(viewDataBinding, parts, parameter, bindingObserver)
                         })
-                        bindingObserver.push({ adapter: "binding", observerId: observerId })
-                    } else if (item.adapter.type() === "view") {
-                        let observerId = item.adapter.observe(parts.element, item.path, () => {
-                            _api.engine.binding.observerCallback(viewDataBinding, parts)
-                        })
-                        bindingObserver.push({ adapter: item.adapter, observerId: observerId })
-                    } else if (item.adapter.type() === "model") {
-                        let observerId = item.adapter.observe(viewDataBinding.vars.model, item.path, () => {
-                            _api.engine.binding.observerCallback(viewDataBinding, parts)
-                        })
-                        bindingObserver.push({ adapter: item.adapter, observerId: observerId })
                     }
                 })
+                
+                // Observe all parameters of connectors and sink if there is no initiator
+                if (parts.initiators.length === 0) {
+                    _api.util.array.each(parts.connectors, (connector) => {
+                        _api.util.array.each(connector.parameters, (parameter) => {
+                            _api.engine.binding.observe(viewDataBinding, parts, parameter, bindingObserver)
+                        })
+                    })
+                    _api.util.array.each(parts.sinks, (sink) => {
+                        _api.util.array.each(sink.parameters, (parameter) => {
+                            _api.engine.binding.observe(viewDataBinding, parts, parameter, bindingObserver)
+                        })
+                    })
+                }
             }
         })
         
@@ -106,6 +114,25 @@
     instance.bindingObserver = bindingObserver
  }
  
+ _api.engine.binding.observe = (viewDataBinding, parts, item, bindingObserver) => {
+    if (item.adapter === "binding") {
+        let observerId = viewDataBinding.vars.bindingScope.observe(item.path[0], () => {
+            _api.engine.binding.observerCallback(viewDataBinding, parts)
+        })
+        bindingObserver.push({ adapter: "binding", observerId: observerId })
+    } else if (item.adapter.type() === "view") {
+        let observerId = item.adapter.observe(parts.element, item.path, () => {
+            _api.engine.binding.observerCallback(viewDataBinding, parts)
+        })
+        bindingObserver.push({ adapter: item.adapter, observerId: observerId })
+    } else if (item.adapter.type() === "model") {
+        let observerId = item.adapter.observe(viewDataBinding.vars.model, item.path, () => {
+            _api.engine.binding.observerCallback(viewDataBinding, parts)
+        })
+        bindingObserver.push({ adapter: item.adapter, observerId: observerId })
+    }
+ }
+ 
  // Shuts down the binding of an Iteration Instance
  _api.engine.binding.shutdown = (viewDataBinding, instance) => {
     let observer = instance.bindingObserver
@@ -135,15 +162,13 @@
     _api.util.array.each(parts.sources, (source) => {
         if (source.adapter === "binding") {
             values.push(viewDataBinding.vars.bindingScope.get(source.path[0]))
-        } else if (source.adapter.type() === "view") {
-            let value = source.adapter.getPaths(parts.element, source.path)
+        } else {
+            let parameters = _api.engine.binding.getParameterValues(viewDataBinding, parts, source.parameters)
+            let value = source.adapter.type() === "view" ? source.adapter.getPaths(parts.element, source.path, parameters)
+                                                         : source.adapter.getPaths(viewDataBinding.vars.model, source.path, parameters)
             value = _api.engine.binding.convertToReferences(source.adapter, source.path, value, 
-                                                            viewDataBinding.vars.model, parts.element)
-            values.push(value)
-        } else if (source.adapter.type() === "model") {
-            let value = source.adapter.getPaths(viewDataBinding.vars.model, source.path)
-            value = _api.engine.binding.convertToReferences(source.adapter, source.path, value, 
-                                                            viewDataBinding.vars.model, parts.element)
+                                                            viewDataBinding.vars.model, parts.element,
+                                                            parameters)
             values.push(value)
         }
     })
@@ -155,7 +180,9 @@
     // Propagate through connectors
     let connectorChain = parts.connectors
     for (let i = 0; i < connectorChain.length; i++) {
-        values = connectorChain[i].connector.process(values)
+        let connector = connectorChain[i]
+        let parameters = _api.engine.binding.getParameterValues(viewDataBinding, parts, connector.parameters)
+        values = connector.connector.process(values, parameters)
         // Abort if necessary
         if (values === $api.abortSymbol) {
             return
@@ -172,6 +199,44 @@
             }
         })
     }
+ }
+ 
+ _api.engine.binding.getParameterValues = (viewDataBinding, parts, parameters) => {
+    let result
+    if (parameters instanceof Array) {
+        result = []
+        _api.util.array.each(parameters, (parameter) => {
+            // Leaving out parameter to getValue intentionally
+            let value
+            if (parameter.adapter === "binding") {
+                value = viewDataBinding.vars.bindingScope.get(parameter.path[0])
+            } else if (parameter.adapter.type() === "view") {
+                value = parameter.adapter.getValue(parts.element, parameter.path) 
+            } else if (parameter.adapter.type() === "model") {
+                value = parameter.adapter.getValue(viewDataBinding.vars.model, parameter.path)
+            }
+            result.push(value)
+        })
+    } else if (typeof parameters === "object") {
+        result = {}
+        for (let key in parameters) {
+            if (parameters.hasOwnProperty(key)) {
+                let param = parameters[key]
+                // Leaving out parameter to getValue intentionally
+                let value
+                if (param.adapter === "binding") {
+                    value = viewDataBinding.vars.bindingScope.get(param.path[0])
+                } else if (param.adapter.type() === "view") {
+                    value = param.adapter.getValue(parts.element, param.path) 
+                } else if (param.adapter.type() === "model") {
+                    value = param.adapter.getValue(viewDataBinding.vars.model, param.path)
+                }
+                result[key] = value
+            }
+        }
+    }
+    // Might return undefined which is fine
+    return result
  }
  
  _api.engine.binding.propagateWriteToSink = (viewDataBinding, parts, sink, value) => {
@@ -230,9 +295,11 @@
             }
         }
     } else if (sink.adapter.type() === "view") {
-        sink.adapter.set(parts.element, sink.path, value)
+        let parameters = _api.engine.binding.getParameterValues(viewDataBinding, parts, sink.parameters)
+        sink.adapter.set(parts.element, sink.path, value, parameters)
     } else if (sink.adapter.type() === "model") {
-        sink.adapter.set(viewDataBinding.vars.model, sink.path, value)
+        let parameters = _api.engine.binding.getParameterValues(viewDataBinding, parts, sink.parameters)
+        sink.adapter.set(viewDataBinding.vars.model, sink.path, value, parameters)
     }
  }
  
@@ -276,7 +343,7 @@
  **                 }
  **             ]
  */
- _api.engine.binding.convertToReferences = (adapter, originalPath, paths, model, element) => {
+ _api.engine.binding.convertToReferences = (adapter, originalPath, paths, model, element, parameters) => {
     let result = {}
     
     // Build the basic structure
@@ -303,8 +370,8 @@
         }
         
         // Helper function
-        let initReference = (ada, pat, elem, mod) => {
-            let newReference = new _api.engine.binding.Reference(ada, pat)
+        let initReference = (ada, pat, elem, mod, params) => {
+            let newReference = new _api.engine.binding.Reference(ada, pat, params)
             if (ada.type() === "view") {
                 newReference.setElement(elem)
             } else if (adapter.type() === "model") {
@@ -315,11 +382,11 @@
         
         if (path.length - originalPath.length > 0) {
             if ($api.$().isEmptyObject(current[path[path.length - 1]])) {
-                current[path[path.length - 1]] = initReference(adapter, path, element, model)
+                current[path[path.length - 1]] = initReference(adapter, path, element, model, parameters)
             }
         } else {
             if ($api.$().isEmptyObject(result)) {
-                result = initReference(adapter, path, element, model)
+                result = initReference(adapter, path, element, model, parameters)
             }
         }
     }

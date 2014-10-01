@@ -9,9 +9,10 @@
     
 class Reference {
 
-    constructor (adapter, path) {
+    constructor (adapter, path, parameters) {
         this.adapter = adapter
         this.path = path
+        this.parameters = parameters
     }
     
     getElement () {
@@ -60,21 +61,17 @@ class Reference {
     
     getValue() {
         if (this.adapter.type() === "model") {
-            return this.adapter.getValue(this.model, this.path)
+            return this.adapter.getValue(this.model, this.path, this.parameters)
         } else if (this.adapter.type() === "view") {
-            return this.adapter.getValue(this.element, this.path)
-        } else {
-            throw _api.util.exception("Unknown adapter type: " + this.adapter.type())
+            return this.adapter.getValue(this.element, this.path, this.parameters)
         }
     }
     
     set (value) {
         if (this.adapter.type() === "model") {
-            this.adapter.set(this.model, this.path, value)
+            this.adapter.set(this.model, this.path, value, this.parameters)
         } else if (this.adapter.type() === "view") {
-            this.adapter.set(this.element, this.path, value)
-        } else {
-            throw _api.util.exception("Unknown adapter type: " + this.adapter.type())
+            this.adapter.set(this.element, this.path, value, this.parameters)
         }
     }
     
@@ -83,7 +80,7 @@ class Reference {
     }
     
     clone () {
-        let result = new Reference(this.adapter, this.path.slice(0))
+        let result = new Reference(this.adapter, this.path.slice(0), this.parameters)
         result.setModel(this.model)
         result.setElement(this.element)
         return result
@@ -98,7 +95,7 @@ class Reference {
         } else {
             newPath.push(elem)
         }
-        let result = new Reference(this.adapter, newPath)
+        let result = new Reference(this.adapter, newPath, this.parameters)
         result.setModel(this.model)
         result.setElement(this.element)
         return result

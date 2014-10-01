@@ -130,8 +130,16 @@ _api.util.array.getMinAndMax = (array) => {
 */
 _api.util.array.each = (array, fn) => {
     if (array) {
-        for (var i = 0; i < array.length; i++) {
-            fn(array[i], i, array)
+        if (array instanceof Array) {
+            for (var i = 0; i < array.length; i++) {
+                fn(array[i], i, array)
+            }
+        } else if (typeof array === "object") {
+            for (let key in array) {
+                if (array.hasOwnProperty(key)) {
+                    fn(array[key], key, array)
+                }
+            }
         }
     }
 }

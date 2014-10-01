@@ -11,7 +11,7 @@
             @binding view {
                 input {
                     value(typeKeys = $typeKeys, delay = $delay) <-> concat($concatSymbol) <-> $firstname, $lastname
-                    attr:data-hash <- hash(value(escape = $escape)) <- $firstname, $lastname
+                    attr:data-hash <- hash(value(trim = $trim)) <- $firstname, $lastname
                 }
             }
         </script>
@@ -21,19 +21,47 @@
                 lastname: "",
                 concatSymbol: " ",
                 typeKeys: true,
-                delay: 50
+                delay: 50,
+                trim: false
             }
             
             $(function() {
                 BindingJS.plugin("concat", function($api, _api) {
                     return {
-                        process: function(input) {
+                        process: function(input, params) {
                             var result = ""
                             for (var i = 0; i < input.length; i++) {
                                 input[i] = _api.util.convertIfReference(input[i])
                                 result += input[i]
+                                if (i < input.length - 1 && params) {
+                                    result += params[0]
+                                }
                             }
                             return result
+                        }
+                    }
+                })
+                BindingJS.plugin("hash", function($api, _api) {
+                    return {
+                        process: function(input, params) {
+                            var hash = 17
+                            for (var k = 0; k < input.length; k++) {
+                                var string = _api.util.convertIfReference(input[k])
+                                for (var i = 0; i < string.length; i++) {
+                                    hash *= string.charCodeAt(i)
+                                    hash++
+                                    hash %= 117
+                                }
+                            }
+                            for (var i = 0; i < params.length; i++) {
+                                var paramAsString = _api.util.convertIfReference(params[i]) + ""
+                                for (var j = 0; j < paramAsString.length; j++) {
+                                    hash *= paramAsString.charCodeAt(j)
+                                    hash++
+                                    hash %= 117
+                                }
+                            }
+                            return hash
                         }
                     }
                 })

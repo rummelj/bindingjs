@@ -55,19 +55,36 @@ let factory = ($api, _api) => {
             return [path]
         }
         
-        getValue (element, path) {
+        getValue (element, path, params) {
             if (path.length > 0) {
                 throw _api.util.exception("value can not process paths")
             }
-            return element.val()
+            let value = element.val()
+            if (params && params.trim) {
+                value = value.trim()
+            }
+            return value
         }
         
-        set (element, path, value) {
+        set (element, path, value, params) {
             if (path.length > 0) {
                 throw _api.util.exception("value can not process paths")
             }
             let oldValue = element.val()
-            element.val(value)
+            
+            if (params && params.typeKeys) {
+                params.delay = params.delay ? params.delay : 50
+                for (let i = 0; i < value.length; i++) {
+                    let j = i
+                    /* global setTimeout */
+                    setTimeout(() => {
+                        element.val(value.substr(0, j + 1))
+                    }, params.delay * j)
+                }
+            } else {
+                element.val(value)
+            }
+            
             if (value !== oldValue) {
                 element.trigger("change")
             }
