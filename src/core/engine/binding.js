@@ -181,16 +181,21 @@
     let connectorChain = parts.connectors
     for (let i = 0; i < connectorChain.length; i++) {
         let connector = connectorChain[i]
-        let parameters = _api.engine.binding.getParameterValues(viewDataBinding, parts, connector.parameters)
-        values = connector.connector.process(values, parameters)
-        // Abort if necessary
-        if (values === $api.abortSymbol) {
-            return
+        if (!connector.virtual) {
+            let parameters = _api.engine.binding.getParameterValues(viewDataBinding, parts, connector.parameters)
+            values = connector.connector.process(values, parameters)
+            // Abort if necessary
+            if (values === $api.abortSymbol) {
+                return
+            }
+        } else {
+            // Expression, always propagate as list
+            values = connector.connector.process(!_api.util.object.isDefined(values) || !(values instanceof Array) ? [values]: values)
         }
     }
     
     _api.util.assume(parts.sinks.length > 0)
-    if (parts.sinks.length === 1) {
+    if (parts.sinks.length === 1 || !_api.util.object.isDefined(values) || !values instanceof Array) {
         _api.engine.binding.propagateWriteToSink(viewDataBinding, parts, parts.sinks[0], values)
     } else {
         _api.util.array.each(parts.sinks, (sink, index) => {
@@ -494,10 +499,18 @@
          direction.value === "right" ? (i < connectorAsts.length) : (i >= 0);
          direction.value === "right" ? i++ : i--) {
          let connectorAst = connectorAsts[i]
-         connectors.push({
-            connector: _api.repository.connector.get(connectorAst.get("id")),
-            parameters: _api.engine.binding.getParameters(connectorAst)
-         })
+         if (!connectorAst.get("virtual")) {
+             connectors.push({
+                connector: _api.repository.connector.get(connectorAst.get("id")),
+                parameters: _api.engine.binding.getParameters(connectorAst),
+                virtual: false
+             })
+         } else {
+            connectors.push({
+                connector: connectorAst.get("fn"),
+                virtual: true
+            })
+         }
     }
     
     _api.util.array.each(connectors, (connector) => {

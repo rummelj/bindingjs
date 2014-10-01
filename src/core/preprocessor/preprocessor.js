@@ -94,21 +94,24 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     // .. @foo(@temp) ...
     _api.preprocessor.convenience.parameter(bind, bindingScopePrefix, tempCounter)
     
-    // Step 10: Prevent iterating over the same element more than once
+    // Step 10: Transform expressions
+    _api.preprocessor.convenience.expression(bind, bindingScopePrefix, tempCounter)
+    
+    // Step 11: Prevent iterating over the same element more than once
     // This would lead to confusion and the order in which the binding is written would affect the template
     // It is however always possible to define the same element multiple times in the template
     _api.preprocessor.validate.preventMultiIteration(bind)
     
-    // Step 11: Move Bindings that affect iterated elements into the iteration
+    // Step 12: Move Bindings that affect iterated elements into the iteration
     _api.preprocessor.transform.nestIteratedBindings(bind)
     
-    // Step 12: Setup iteration tree
+    // Step 13: Setup iteration tree
     let iterationTree = _api.preprocessor.iterator.setupIterationTree(bind, template)
     
-    // Step 13: Mark the sockets in the iteration tree
+    // Step 14: Mark the sockets in the iteration tree
     _api.preprocessor.transform.markSockets(iterationTree)
     
-    // Step 14: Setup expanded iteration tree
+    // Step 15: Setup expanded iteration tree
     _api.preprocessor.iterator.setupExpandedIterationTree(viewDataBinding, iterationTree)
     
     viewDataBinding.vars.iterationTree = iterationTree

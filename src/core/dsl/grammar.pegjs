@@ -248,7 +248,7 @@ exprLogical
     =   "!" _ e:expr {  /* RECURSION */
             return AST("LogicalNot").add(e)
         }
-    /   e1:exprRelational e2:(_ exprLogicalOp _ expr)+ {  /* RECURSION */
+    /   e1:exprRelational e2:(_ exprLogicalOp _ exprRelational)+ {  /* RECURSION */
             return AST("Logical").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprRelational
@@ -259,36 +259,36 @@ exprLogicalOp "boolean logical operator"
         }
 
 exprRelational
-    =   e1:exprAdditive e2:(_ exprRelationalOp _ expr)+ {  /* RECURSION */
+    =   e1:exprAdditive e2:(_ exprRelationalOp _ exprAdditive)+ {  /* RECURSION */
             return AST("Relational").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprAdditive
 
 exprRelationalOp "relational operator"
-    =   op:$("==" / "!=" / "<=" / ">=" / "<" / ">" / "=~" / "!~") {
+    =   op:$("===" / "==" / "!==" / "!=" / "<=" / ">=" / "<" / ">") {
             return AST("RelationalOp").set({ op: op })
         }
 
 exprAdditive
-    =   e1:exprMultiplicative e2:(_ exprAdditiveOp _ expr)+ {  /* RECURSION */
-            return AST("Arith").add(unroll(e1, e2, [ 1, 3 ]))
+    =   e1:exprMultiplicative e2:(_ exprAdditiveOp _ exprMultiplicative)+ {  /* RECURSION */
+            return AST("Additive").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprMultiplicative
 
 exprAdditiveOp "additive arithmetic operator"
     =   op:$("+" / "-") {
-            return AST("ArithOp").set({ op: op })
+            return AST("AdditiveOp").set({ op: op })
         }
 
 exprMultiplicative
-    =   e1:exprDereference e2:(_ exprMultiplicativeOp _ expr)+ {  /* RECURSION */
-            return AST("Arith").add(unroll(e1, e2, [ 1, 3 ]))
+    =   e1:exprDereference e2:(_ exprMultiplicativeOp _ exprDereference)+ {  /* RECURSION */
+            return AST("Multiplicative").add(unroll(e1, e2, [ 1, 3 ]))
         }
     /   exprDereference
 
 exprMultiplicativeOp "multiplicative arithmetic operator"
     =   op:$("*" / "/" / "%") {
-            return AST("ArithOp").set({ op: op })
+            return AST("MultiplicativeOp").set({ op: op })
         }
 
 exprDereference

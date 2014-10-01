@@ -1,0 +1,138 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../bld/stage3/src/core/binding.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.model.json.js"></script>
+        <script src="../../bld/stage3/src/plugin/watch.js"></script>
+        <script src="../../bld/stage3/src/plugin/binding.adapter.view.text.js"></script>
+        <script type="text/binding">
+            @binding view {
+                #s1 {
+                    text <- concat(".") <- "foo", "bar." + $baz + ".quux." + $qux
+                }
+                #s2 {
+                    text <- 9 + $aHalf + $three + $three + $aHalf
+                }
+                #s3 {
+                    text <- $three * 8 / $aHalf % 17
+                }
+                #s4 {
+                    text <- true ? $aHalf : $baz
+                }
+                #s5 {
+                    text <- undefined ?: "yadda"
+                }
+                #s6 {
+                    text <- (!true) ? $baz : $qux
+                }
+                #s7 {
+                    text <- (true || false) && (false || true)
+                }
+                #s8 {
+                    text <- 3 <= $three < 4
+                }
+                #s9 {
+                    text <- $three == "3"
+                }
+                #s10 {
+                    text <- $three === "3"
+                }
+                #s11 {
+                    text <- (3 > 1) && (7 < 8 < 9 < 10 > 1)
+                }
+                #s12 {
+                    text <- $a.b
+                }
+                #s13 {
+                    text <- $b["c"][$d]["e"]
+                }
+                #s14 {
+                    text <- ["foo", "bar", "baz"][1]
+                }
+                #s15 {
+                    text <- { foo : { bar: $a.b, baz: "quux" } }.foo.bar
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                baz: "baz",
+                qux: "qux",
+                aHalf: 0.5,
+                three: 3,
+                d: "d",
+                a: { b: "found" },
+                b: { c: { d: { e: "foundToo" }}}
+            }
+            
+            $(function() {
+                BindingJS.plugin("concat", function($api, _api) {
+                    return {
+                        process: function(input, params) {
+                            var result = ""
+                            for (var i = 0; i < input.length; i++) {
+                                input[i] = _api.util.convertIfReference(input[i])
+                                result += input[i]
+                                if (i < input.length - 1 && params) {
+                                    result += params[0]
+                                }
+                            }
+                            return result
+                        }
+                    }
+                })
+                BindingJS.plugin("hash", function($api, _api) {
+                    return {
+                        process: function(input, params) {
+                            var hash = 17
+                            for (var k = 0; k < input.length; k++) {
+                                var string = _api.util.convertIfReference(input[k])
+                                for (var i = 0; i < string.length; i++) {
+                                    hash *= string.charCodeAt(i)
+                                    hash++
+                                    hash %= 117
+                                }
+                            }
+                            for (var i = 0; i < params.length; i++) {
+                                var paramAsString = _api.util.convertIfReference(params[i]) + ""
+                                for (var j = 0; j < paramAsString.length; j++) {
+                                    hash *= paramAsString.charCodeAt(j)
+                                    hash++
+                                    hash %= 117
+                                }
+                            }
+                            return hash
+                        }
+                    }
+                })
+                
+                BindingJS
+                    .create()
+                    .template("#template")
+                    .binding($("script[type='text/binding']"))
+                    .model(model)
+                    .mount("#template")
+                    .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <span id="s1"></span><br />
+            <span id="s2"></span><br />
+            <span id="s3"></span><br />
+            <span id="s4"></span><br />
+            <span id="s5"></span><br />
+            <span id="s6"></span><br />
+            <span id="s7"></span><br />
+            <span id="s8"></span><br />
+            <span id="s9"></span><br />
+            <span id="s10"></span><br />
+            <span id="s11"></span><br />
+            <span id="s12"></span><br />
+            <span id="s13"></span><br />
+            <span id="s14"></span><br />
+            <span id="s15"></span><br />
+        </div>
+    </body>
+</html>

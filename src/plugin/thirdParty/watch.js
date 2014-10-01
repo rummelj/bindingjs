@@ -109,11 +109,18 @@
 
             
             Object.observe(obj, function(changes) {
-                changes.forEach(function(change) {
-                    if (change.name === propName) {
-                        setter(change.object[change.name]);
-                    }
-                });
+                // Object.observe catches errors, this is bad, nothing we can do
+                try {
+                    changes.forEach(function(change) {
+                        if (change.name === propName) {
+                            setter(change.object[change.name]);
+                        }
+                    });
+                 } catch (e) {
+                    console.log("An error inside Object.observe occured, since it does catch, this is the error:")
+                    console.log(e)
+                    throw e
+                 }
             });
             
         } catch(e) {
