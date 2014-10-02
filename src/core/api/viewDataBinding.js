@@ -317,6 +317,9 @@ class ViewDataBinding {
         if (this.vars.active) {
             this.deactivate()
         }
+        if (this.vars.mounted) {
+            this.unmount()
+        }
         this.vars = null
         this.vars = {
             destroyed: true
