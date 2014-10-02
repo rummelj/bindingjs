@@ -56,7 +56,7 @@
     let iterators = ast.getAll("Iterator")
     let newIterators = []
     // Filter out all, that are nested in other iterators
-    _api.util.array.each(iterators, (iterator) => {
+    _api.util.each(iterators, (iterator) => {
         let scope = iterator.getParent()
         _api.util.assume(scope.isA("Scope"))
         
@@ -80,7 +80,7 @@
     iterators = newIterators
     
     // Recursion
-    _api.util.array.each(iterators, (iterator) => {
+    _api.util.each(iterators, (iterator) => {
         let scope = iterator.getParent()
         let child = _api.preprocessor.iterator.setupIterationTree(scope, scope.get("element"))
         
@@ -118,7 +118,7 @@
     root.set("links", [rootLink])
     
     // Each child iteration of root is initially present without instances
-    _api.util.array.each(root.childs(), (child) => {
+    _api.util.each(root.childs(), (child) => {
         let newChildLink =  _api.preprocessor.iterator.initExpandedIterationNode(viewDataBinding, child, rootLink)
         newChildLink.set("instance", rootInstance)       
         child.set("links", [newChildLink])

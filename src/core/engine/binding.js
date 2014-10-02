@@ -13,16 +13,16 @@
     
     //Remember what was observed to be able to shut it down later
     let bindingObserver = []
-    _api.util.array.each(spec.getAll("Scope"), (scope) => {
+    _api.util.each(spec.getAll("Scope"), (scope) => {
         let element = scope.get("element")
         let allParts = []
-        _api.util.array.each(scope.getAll("Binding", "Scope"), (binding) => {
+        _api.util.each(scope.getAll("Binding", "Scope"), (binding) => {
             let parts = _api.engine.binding.getParts(viewDataBinding, binding, element)
             allParts.push(parts)
             
             if (!parts.oneTime) {
                 let toObserve = parts.initiators.length > 0 ? parts.initiators : parts.sources
-                _api.util.array.each(toObserve, (item) => {
+                _api.util.each(toObserve, (item) => {
                     // Check if source observation possible
                     if (item.adapter !== "binding" && !item.adapter.observe) {
                         throw _api.util.exception("Used the adapter " + item.name + " as the source " +
@@ -36,7 +36,7 @@
                     // The Binding Scope adapter does not support parameters, so we do not need
                     // to observe them. Anyway, there shouldn't be parameters
                     if (item.adapter !== "binding") {
-                        _api.util.array.each(item.parameters, (parameter) => {
+                        _api.util.each(item.parameters, (parameter) => {
                             _api.engine.binding.observe(viewDataBinding, parts, parameter, bindingObserver)
                         })
                     }
@@ -44,13 +44,13 @@
                 
                 // Observe all parameters of connectors and sink if there is no initiator
                 if (parts.initiators.length === 0) {
-                    _api.util.array.each(parts.connectors, (connector) => {
-                        _api.util.array.each(connector.parameters, (parameter) => {
+                    _api.util.each(parts.connectors, (connector) => {
+                        _api.util.each(connector.parameters, (parameter) => {
                             _api.engine.binding.observe(viewDataBinding, parts, parameter, bindingObserver)
                         })
                     })
-                    _api.util.array.each(parts.sinks, (sink) => {
-                        _api.util.array.each(sink.parameters, (parameter) => {
+                    _api.util.each(parts.sinks, (sink) => {
+                        _api.util.each(sink.parameters, (parameter) => {
                             _api.engine.binding.observe(viewDataBinding, parts, parameter, bindingObserver)
                         })
                     })
@@ -64,7 +64,7 @@
         // - All that have only view adapters as their sources
         // - All that have both model and binding adapters as their sources
         // - Rest
-        _api.util.array.each(allParts, (parts) => {
+        _api.util.each(allParts, (parts) => {
             if (_api.util.array.ifAll(parts.sources, (source) => {
                 return source.adapter !== "binding" && source.adapter.type() === "model"
             })) {
@@ -72,7 +72,7 @@
                 parts.init = true
             }
         })
-        _api.util.array.each(allParts, (parts) => {
+        _api.util.each(allParts, (parts) => {
             if (_api.util.array.ifAll(parts.sources, (source) => {
                 return source.adapter === "binding"
             })) {
@@ -80,7 +80,7 @@
                 parts.init = true
             }
         })
-        _api.util.array.each(allParts, (parts) => {
+        _api.util.each(allParts, (parts) => {
             if (_api.util.array.ifAll(parts.sources, (source) => {
                 return source.adapter !== "binding" && source.adapter.type() === "view"
             })) {
@@ -88,11 +88,11 @@
                 parts.init = true
             }
         })
-        _api.util.array.each(allParts, (parts) => {
+        _api.util.each(allParts, (parts) => {
             let sawModelAdapter = false
             let sawBindingAdapter = false
             let sawViewAdapter = false
-            _api.util.array.each(parts.sources, (source) => {
+            _api.util.each(parts.sources, (source) => {
                 sawModelAdapter = sawModelAdapter || (source.adapter !== "binding" && source.adapter.type() === "model")
                 sawBindingAdapter = sawBindingAdapter || source.adapter === "binding"
                 sawViewAdapter = sawViewAdapter || (source.adapter !== "binding" && source.adapter.type() === "view")
@@ -102,7 +102,7 @@
                 parts.init = true
             }
         })
-        _api.util.array.each(allParts, (parts) => {
+        _api.util.each(allParts, (parts) => {
             if (!parts.init) {
                 _api.engine.binding.propagate(viewDataBinding, parts)
             }
@@ -159,7 +159,7 @@
  _api.engine.binding.propagate = (viewDataBinding, parts) => {
     // Read values from source
     let values = []
-    _api.util.array.each(parts.sources, (source) => {
+    _api.util.each(parts.sources, (source) => {
         if (source.adapter === "binding") {
             values.push(viewDataBinding.vars.bindingScope.get(source.path[0]))
         } else {
@@ -198,7 +198,7 @@
     if (parts.sinks.length === 1 || !_api.util.object.isDefined(values) || !values instanceof Array) {
         _api.engine.binding.propagateWriteToSink(viewDataBinding, parts, parts.sinks[0], values)
     } else {
-        _api.util.array.each(parts.sinks, (sink, index) => {
+        _api.util.each(parts.sinks, (sink, index) => {
             if (index < values.length) {
                 _api.engine.binding.propagateWriteToSink(viewDataBinding, parts, sink, values[index])
             }
@@ -210,7 +210,7 @@
     let result
     if (parameters instanceof Array) {
         result = []
-        _api.util.array.each(parameters, (parameter) => {
+        _api.util.each(parameters, (parameter) => {
             // Leaving out parameter to getValue intentionally
             let value
             if (parameter.adapter === "binding") {
@@ -467,26 +467,26 @@
     
     let sourceAdapters = direction.value === "right" ? firstAdapters : lastAdapters
     let sources = _api.engine.binding.getNamesAndPaths(sourceAdapters)
-    _api.util.array.each(sources, (source) => {
+    _api.util.each(sources, (source) => {
         source.adapter = source.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(source.name)
-        _api.util.array.each(source.parameters, (parameter) => {
+        _api.util.each(source.parameters, (parameter) => {
             parameter.adapter = parameter.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(parameter.name)
         })
     })
     
     let initiators = _api.engine.binding.getInitiators(sourceAdapters)
-    _api.util.array.each(initiators, (initiator) => {
+    _api.util.each(initiators, (initiator) => {
         initiator.adapter = initiator.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(initiator.name)
-        _api.util.array.each(initiator.parameters, (parameter) => {
+        _api.util.each(initiator.parameters, (parameter) => {
             parameter.adapter = parameter.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(parameter.name)
         })
     })
     
     let sinkAdapters = direction.value === "right" ? lastAdapters : firstAdapters
     let sinks = _api.engine.binding.getNamesAndPaths(sinkAdapters)
-    _api.util.array.each(sinks, (sink) => {
+    _api.util.each(sinks, (sink) => {
         sink.adapter = sink.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(sink.name)
-        _api.util.array.each(sink.parameters, (parameter) => {
+        _api.util.each(sink.parameters, (parameter) => {
             parameter.adapter = parameter.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(parameter.name)
         })
     })
@@ -513,8 +513,8 @@
          }
     }
     
-    _api.util.array.each(connectors, (connector) => {
-        _api.util.array.each(connector.parameters, (parameter) => {
+    _api.util.each(connectors, (connector) => {
+        _api.util.each(connector.parameters, (parameter) => {
             parameter.adapter = parameter.name === viewDataBinding.bindingScopePrefix() ? "binding" : _api.repository.adapter.get(parameter.name)
         })
     })
@@ -563,7 +563,7 @@
     _api.util.assume(exprSeq.childs().length !== 0)
     
     let result = []
-    _api.util.array.each(exprSeq.getAll("Variable", "Parameters"), (variable) => {
+    _api.util.each(exprSeq.getAll("Variable", "Parameters"), (variable) => {
         result.push({
             name: variable.get("ns") !== "" ? variable.get("ns") : variable.get("id"),
             path: variable.get("ns") !== "" ? [variable.get("id")] : [],
@@ -584,7 +584,7 @@
         _api.util.assume(initiatorExprSeq.isA("ExprSeq"))
         
         let result = []
-        _api.util.array.each(initiatorExprSeq.getAll("Variable", "Parameters"), (variable) => {
+        _api.util.each(initiatorExprSeq.getAll("Variable", "Parameters"), (variable) => {
             result.push({
                 name: variable.get("ns") !== "" ? variable.get("ns") : variable.get("id"),
                 path: variable.get("ns") !== "" ? [variable.get("id")] : [],
@@ -599,12 +599,12 @@
  
  _api.engine.binding.getParameters = (ast) => {
     let result
-    _api.util.array.each(ast.getAll("Parameters"), (parameters) => {
+    _api.util.each(ast.getAll("Parameters"), (parameters) => {
         // This should never be executed more than once
         _api.util.assume(parameters.childs().length > 0)
         if (/* positional */ parameters.childs()[0].isA("ParamPositional")) {
             result = []
-            _api.util.array.each(parameters.childs(), (param) => {
+            _api.util.each(parameters.childs(), (param) => {
                 _api.util.assume(param.childs().length === 1)
                 let variable = param.childs()[0]
                 _api.util.assume(variable.isA("Variable"))
@@ -616,7 +616,7 @@
             })
         } else if (/* name based */ parameters.childs()[0].isA("ParamNamed")) {
             result = {}
-            _api.util.array.each(parameters.childs(), (param) => {
+            _api.util.each(parameters.childs(), (param) => {
                 _api.util.assume(param.childs().length === 1)
                 let variable = param.childs()[0]
                 _api.util.assume(variable.isA("Variable"))

@@ -24,7 +24,7 @@
     // Init binding of root instance
     _api.engine.binding.init(viewDataBinding, root.get("links")[0].get("instances")[0])
     viewDataBinding.vars.firstLevelIterationObserverIds = []
-    _api.util.array.each(root.childs(), (plItNode) => {
+    _api.util.each(root.childs(), (plItNode) => {
         let observerId = viewDataBinding.vars.bindingScope.observe(plItNode.get("links")[0].get("sourceId"), () => {
             _api.engine.iterator.changeListener(viewDataBinding, plItNode.get("links")[0])
         })
@@ -37,12 +37,12 @@
     // Opposite of _api.engine.iterator.init in reverse order
     let root = viewDataBinding.vars.iterationTree
     
-    _api.util.array.each(viewDataBinding.vars.firstLevelIterationObserverIds, (observerId) => {
+    _api.util.each(viewDataBinding.vars.firstLevelIterationObserverIds, (observerId) => {
         viewDataBinding.vars.bindingScope.unobserve(observerId)
         // Destroy is not necessary, since in shutdownInternal the values (which might be references for when)
         // will be overwritten and the unobserve is done in bindingScope
     })
-    _api.util.array.each(root.childs(), (child) => {
+    _api.util.each(root.childs(), (child) => {
         _api.engine.iterator.shutdownInternal(viewDataBinding, child)
     })
     _api.engine.binding.shutdown(viewDataBinding, root.get("links")[0].get("instances")[0])
@@ -113,7 +113,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     let newInstance = _api.engine.iterator.addInstance(viewDataBinding, expItNode, property)
     
     // Initialize new children in expanded iteration tree
-    _api.util.array.each(expItNode.get("origin").childs(), (child) => {
+    _api.util.each(expItNode.get("origin").childs(), (child) => {
         let newChildLink = _api.engine.iterator.initChild(viewDataBinding, expItNode, child, newInstance)
         expItNode.add(newChildLink)
     })
@@ -134,7 +134,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     
     _api.engine.binding.shutdown(viewDataBinding, oldInstance)
     
-    _api.util.array.each(expItNode.childs(), (child) => {
+    _api.util.each(expItNode.childs(), (child) => {
         if (child.get("instance") === oldInstance) {
             expItNode.del(child)
             _api.engine.iterator.destroyChild(viewDataBinding, child)
@@ -149,7 +149,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     let childrenWithKey = _api.util.array.findAll(expItNode.childs(), (child) => {
         return child.get("instance").key === key
     })
-    _api.util.array.each(childrenWithKey, (child) => {
+    _api.util.each(childrenWithKey, (child) => {
         viewDataBinding.vars.bindingScope.set(child.get("sourceId"), newValue)
     })
  }
@@ -299,7 +299,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     // Check if collection is array
     if (expItNode.get("collection") instanceof Array) {
         // Increase key of all instances greater than keyAdded by one
-        _api.util.array.each(expItNode.get("instances"), (instance) => {
+        _api.util.each(expItNode.get("instances"), (instance) => {
             if (instance !== newInstance && instance.key >= keyAdded) {
                 // Update key
                 instance.key = parseInt(instance.key) + 1
@@ -379,7 +379,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     // Check if collection is array
     if (expItNode.get("collection") instanceof Array) {
         // Reduce key of all instances greater than keyRemoved by one
-        _api.util.array.each(expItNode.get("instances"), (instance) => {
+        _api.util.each(expItNode.get("instances"), (instance) => {
             if (instance.key > keyRemoved) {
                 // Update key
                 instance.key = parseInt(instance.key) - 1

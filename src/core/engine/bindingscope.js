@@ -111,7 +111,7 @@ class BindingScope {
     }
     
     notify(id) {
-        _api.util.array.each(this.observer[id], (observer) => {
+        _api.util.each(this.observer[id], (observer) => {
             observer.callback()
         })
     }

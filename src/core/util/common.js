@@ -62,6 +62,32 @@ _api.util.convertIfReference = (value) => {
 }
 
 /*
+** Executes fn for each item of the array or for each key of the object
+*/
+_api.util.each = (array, fn) => {
+    if (array) {
+        let breaK = {}
+        if (array instanceof Array) {
+            for (var i = 0; i < array.length; i++) {
+                let result = fn(array[i], i, array, breaK)
+                if (result === breaK) {
+                    break
+                }
+            }
+        } else if (typeof array === "object") {
+            for (let key in array) {
+                if (array.hasOwnProperty(key)) {
+                    let result = fn(array[key], key, array, breaK)
+                    if (result === breaK) {
+                        break
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*
 ** Recursively calls callback for each item of value, which is neither an object
 ** nor an array. Callback may return a value which replaces the old
 */

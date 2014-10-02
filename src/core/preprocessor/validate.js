@@ -24,7 +24,7 @@ _api.preprocessor.validate.checkIterationIdsRec = (ast, bindingScopePrefix, ids)
             let variablesNode = iterator.childs()[0]
             _api.util.assume(variablesNode.isA("Variables"))
             let variables = variablesNode.getAll("Variable", "Scope")
-            _api.util.array.each(variables, (variable) => {
+            _api.util.each(variables, (variable) => {
                 // Check if all start with correct prefix
                 if (variable.get("ns") !== bindingScopePrefix) {
                     throw _api.util.exception("You can only use the binding scope adapter as the " +
@@ -44,7 +44,7 @@ _api.preprocessor.validate.checkIterationIdsRec = (ast, bindingScopePrefix, ids)
         
         let variables = ast.getAll("Variable", "Scope")
         let variableIdsToAdd = []
-        _api.util.array.each(variables, (variable) => {
+        _api.util.each(variables, (variable) => {
             // Only add those ids that are refs to the binding scope and that are neither
             // - in the ids already found (happens if same name used on multiple levels)
             // - in the variableNamesToAdd already (happens if occuring multiple times in scope)
@@ -59,14 +59,14 @@ _api.preprocessor.validate.checkIterationIdsRec = (ast, bindingScopePrefix, ids)
     }
     
     // Recursion
-    _api.util.array.each(ast.childs(), (child) => {
+    _api.util.each(ast.childs(), (child) => {
         _api.preprocessor.validate.checkIterationIdsRec(child, bindingScopePrefix, ids)
     })
 }
 
 _api.preprocessor.validate.preventMultiIteration = (ast) => {
     let elements = []
-    _api.util.array.each(ast.getAll("Iterator"), (iterator) => {
+    _api.util.each(ast.getAll("Iterator"), (iterator) => {
         let scope = iterator.getParent()
         _api.util.assume(scope.isA("Scope"))
         let element = scope.get("element")
@@ -81,11 +81,11 @@ _api.preprocessor.validate.preventMultiIteration = (ast) => {
 
 _api.preprocessor.validate.checkSockets = (ast) => {   
     let elements = []
-    _api.util.array.each(ast.getAll("Scope"), (scope) => {
+    _api.util.each(ast.getAll("Scope"), (scope) => {
         elements.push(scope.get("element"))
     })
     
-    _api.util.array.each(ast.getAll("Label"), (label) => {
+    _api.util.each(ast.getAll("Label"), (label) => {
         let scope = label.getParent()
         _api.util.assume(scope.isA("Scope"))
         let element = scope.get("element")
@@ -101,7 +101,7 @@ _api.preprocessor.validate.checkSockets = (ast) => {
 }
 
 _api.preprocessor.validate.checkDirections = (ast) => {
-    _api.util.array.each(ast.getAll("Binding"), (binding) => {
+    _api.util.each(ast.getAll("Binding"), (binding) => {
         let operators = binding.getAll("BindingOperator")
         _api.util.assume(operators.length > 0)
         let firstOperator = operators[0].get("value")

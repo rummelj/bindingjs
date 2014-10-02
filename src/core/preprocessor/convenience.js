@@ -8,15 +8,15 @@
 */
 
 _api.preprocessor.convenience.twoWayBindings = (ast) => {
-    _api.util.array.each(ast.getAll("Binding"), (binding) => {
+    _api.util.each(ast.getAll("Binding"), (binding) => {
         let operators = binding.getAll("BindingOperator")
         _api.util.assume(operators.length > 0)
         if (/* is Two-Way Binding*/ operators[0].get("value") === "<->") {
-            _api.util.array.each(operators, (operator) => {
+            _api.util.each(operators, (operator) => {
                 operator.set("value", "->")
             })
             let newBinding = binding.clone()
-            _api.util.array.each(newBinding.getAll("BindingOperator"), (operator) => {
+            _api.util.each(newBinding.getAll("BindingOperator"), (operator) => {
                 operator.set("value", "<-")
             })
             // Add newBinding after old one
@@ -27,7 +27,7 @@ _api.preprocessor.convenience.twoWayBindings = (ast) => {
 }
 
 _api.preprocessor.convenience.parameter = (ast, bindingScopePrefix, counter) => {
-    _api.util.array.each(ast.getAll("Parameters"), (parameters) => {
+    _api.util.each(ast.getAll("Parameters"), (parameters) => {
         // Validate, that positional and named parameters are never mixed
         let allNamed = _api.util.array.ifAll(parameters.childs(), (child) => {
             return child.isA("ParamNamed")
@@ -46,7 +46,7 @@ _api.preprocessor.convenience.parameter = (ast, bindingScopePrefix, counter) => 
         // Denest all Parameters
         let directChildParameters = parameters.getAll("Parameters", "Parameters")
         _api.util.array.remove(directChildParameters, parameters)
-        _api.util.array.each(directChildParameters, (directChildParameter) => {
+        _api.util.each(directChildParameters, (directChildParameter) => {
             let variable = directChildParameter.getParent()
             let variableHook = variable.getParent()
             let variableIndex = variableHook.childs().indexOf(variable)
@@ -78,14 +78,15 @@ _api.preprocessor.convenience.parameter = (ast, bindingScopePrefix, counter) => 
     })
 }
 
+// TODO: Comment
 _api.preprocessor.convenience.expression = (ast, bindingScopePrefix, counter) => {
-    _api.util.array.each(ast.getAll("ExprSeq"), (exprSeq) => {
-        _api.util.array.each(exprSeq.childs(), (child) => {
+    _api.util.each(ast.getAll("ExprSeq"), (exprSeq) => {
+        _api.util.each(exprSeq.childs(), (child) => {
             _api.preprocessor.convenience.convertExpression(child, bindingScopePrefix, counter)
         })
     })
-    _api.util.array.each(ast.getAll("Parameters"), (parameters) => {
-        _api.util.array.each(parameters.childs(), (child) => {
+    _api.util.each(ast.getAll("Parameters"), (parameters) => {
+        _api.util.each(parameters.childs(), (child) => {
             // child is now either a NamedParam or PositionalParam element
             // its first child is the actual parameter
             _api.util.assume(child.childs()[0])
@@ -94,6 +95,7 @@ _api.preprocessor.convenience.expression = (ast, bindingScopePrefix, counter) =>
     })
 }
 
+// TODO: Comment and explain idea
 _api.preprocessor.convenience.convertExpression = (ast, bindingScopePrefix, counter) => {
     if (!ast.isA("Variable")) {
         console.log(ast.dump())
@@ -143,6 +145,7 @@ _api.preprocessor.convenience.convertExpression = (ast, bindingScopePrefix, coun
     }
 }
 
+// TODO: Comment and explain idea
 _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counter, /* out */ variables) => {
     let fn
     if (ast.isA("Variable")) {
@@ -169,7 +172,7 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
         fn = (() => {
             let summands = []
             let operands = []
-            _api.util.array.each(ast.childs(), (child, index) => {
+            _api.util.each(ast.childs(), (child, index) => {
                 if (index % 2 === 0) {
                     // Recursion
                     summands.push(_api.preprocessor.convenience.getExpressionFn(child, bindingScopePrefix, counter, variables))
@@ -196,7 +199,7 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
         fn = (() => {
             let factors = []
             let operands = []
-            _api.util.array.each(ast.childs(), (child, index) => {
+            _api.util.each(ast.childs(), (child, index) => {
                 if (index % 2 === 0) {
                     // Recursion
                     factors.push(_api.preprocessor.convenience.getExpressionFn(child, bindingScopePrefix, counter, variables))
@@ -247,7 +250,7 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
         fn = (() => {
             let facts = []
             let operands = []
-            _api.util.array.each(ast.childs(), (child, index) => {
+            _api.util.each(ast.childs(), (child, index) => {
                 if (index % 2 === 0) {
                     // Recursion
                     facts.push(_api.preprocessor.convenience.getExpressionFn(child, bindingScopePrefix, counter, variables))
@@ -274,7 +277,7 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
         fn = (() => {
             let facts = []
             let operands = []
-            _api.util.array.each(ast.childs(), (child, index) => {
+            _api.util.each(ast.childs(), (child, index) => {
                 if (index % 2 === 0) {
                     // Recursion
                     facts.push(_api.preprocessor.convenience.getExpressionFn(child, bindingScopePrefix, counter, variables))
@@ -342,7 +345,7 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
             return (input) => {
                 /* global JSON */
                 let baseValue = base(input)
-                _api.util.array.each(derefs, (deref) => {
+                _api.util.each(derefs, (deref) => {
                     let derefValue = _api.util.convertIfReference(deref(input))
                     if (baseValue instanceof Array) {
                         if (derefValue < 0 || derefValue >= baseValue.length) {
@@ -367,12 +370,12 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
         fn = (() => {
             // Recursion
             let elements = []
-            _api.util.array.each(ast.childs(), (child) => {
+            _api.util.each(ast.childs(), (child) => {
                 elements.push(_api.preprocessor.convenience.getExpressionFn(child, bindingScopePrefix, counter, variables))
             })
             return (input) => {
                 let result = []
-                _api.util.array.each(elements, (element) => {
+                _api.util.each(elements, (element) => {
                     result.push(element(input))
                 })
                 return result
@@ -381,7 +384,7 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
     } else if (ast.isA("Hash")) {
         fn = (() => {
             let hash = {}
-            _api.util.array.each(ast.childs(), (keyVal) => {
+            _api.util.each(ast.childs(), (keyVal) => {
                 _api.util.assume(keyVal.isA("KeyVal"))
                 _api.util.assume(keyVal.childs().length === 2)
                 let idAst = keyVal.childs()[0]
@@ -393,7 +396,7 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
             })
             return (input) => {
                 let result = {}
-                _api.util.array.each(hash, (valueFn, key) => {
+                _api.util.each(hash, (valueFn, key) => {
                     result[key] = valueFn(input)
                 })
                 return result

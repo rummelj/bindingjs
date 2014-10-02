@@ -8,8 +8,9 @@
 */
 
 
-let factory = ($api, _api) => {
 
+
+BindingJS.plugin("value", ($api, _api) => {
     class ValueAdapter {
 
         constructor () {
@@ -18,7 +19,7 @@ let factory = ($api, _api) => {
         }
         
         notify (element) {
-            _api.util.array.each(this.observer.get(element), (observer) => {
+            _api.util.each(this.observer.get(element), (observer) => {
                 observer.callback()
             })
         }
@@ -28,7 +29,7 @@ let factory = ($api, _api) => {
             if (!this.observer.hasKey(element)) {
                 this.observer.set(element, [])
                 let self = this
-                element.on("change input propertychange paste", function () { self.notify(element) })
+                element.on("change input propertychange paste", () => { self.notify(element) })
             }
             let observerId = this.observerCounter.getNext()
             this.observer.get(element).push({ observerId: observerId, callback: callback })
@@ -56,9 +57,6 @@ let factory = ($api, _api) => {
         }
         
         getValue (element, path, params) {
-            if (path.length > 0) {
-                throw _api.util.exception("value can not process paths")
-            }
             let value = element.val()
             if (params && params.trim) {
                 value = value.trim()
@@ -67,9 +65,6 @@ let factory = ($api, _api) => {
         }
         
         set (element, path, value, params) {
-            if (path.length > 0) {
-                throw _api.util.exception("value can not process paths")
-            }
             let oldValue = element.val()
             
             if (params && params.typeKeys) {
@@ -95,9 +90,5 @@ let factory = ($api, _api) => {
         }
     }
     
-    return new ValueAdapter()
-    
-}
-
-BindingJS.plugin("value", factory)
-
+    return new ValueAdapter()    
+})

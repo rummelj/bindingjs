@@ -93,7 +93,7 @@ let methods = {
         // Observe every socket and fill instances array for efficient access through socket api
         viewDataBinding.vars.socketInstances = new _api.util.Map()
         let iterationTree = viewDataBinding.vars.iterationTree
-        _api.util.array.each(methods.getAllSocketIds(iterationTree), (socketId) => {
+        _api.util.each(methods.getAllSocketIds(iterationTree), (socketId) => {
             viewDataBinding.socket(socketId).onInsert((keys, element) => {
                 if (!viewDataBinding.vars.socketInstances.hasKey(socketId)) {
                     viewDataBinding.vars.socketInstances.set(socketId, [])

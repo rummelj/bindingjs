@@ -126,25 +126,6 @@ _api.util.array.getMinAndMax = (array) => {
 }
 
 /*
-** Executes fn for each item of the array
-*/
-_api.util.array.each = (array, fn) => {
-    if (array) {
-        if (array instanceof Array) {
-            for (var i = 0; i < array.length; i++) {
-                fn(array[i], i, array)
-            }
-        } else if (typeof array === "object") {
-            for (let key in array) {
-                if (array.hasOwnProperty(key)) {
-                    fn(array[key], key, array)
-                }
-            }
-        }
-    }
-}
-
-/*
 ** Returns the first element in array that meets the condition or
 ** undefined, if there is no such element
 */

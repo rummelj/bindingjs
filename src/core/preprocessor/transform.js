@@ -8,7 +8,7 @@
 */
 
 _api.preprocessor.transform.renameSockets = (ast) => {
-    _api.util.array.each(ast.getAll("Label"), (label) => {
+    _api.util.each(ast.getAll("Label"), (label) => {
         let id = label.get("id")
         let ref = label.getParent()
         while (ref) {
@@ -25,7 +25,7 @@ _api.preprocessor.transform.expandSelectors = (template, ast) => {
     _api.preprocessor.transform.expandSelectorsRec(template, ast, [[]])
     
     // Remove all placeholder
-    _api.util.array.each(ast.getAll("Placeholder"), (placeholder) => {
+    _api.util.each(ast.getAll("Placeholder"), (placeholder) => {
         placeholder.getParent().del(placeholder)
     })
 }
@@ -38,7 +38,7 @@ _api.preprocessor.transform.expandSelectorsRec = (template, ast) => {
         let selectorListElem = ast.childs()[0]
         _api.util.assume(selectorListElem.isA("SelectorList"))
         
-        _api.util.array.each(selectorListElem.childs(), (selectorCombination) => {
+        _api.util.each(selectorListElem.childs(), (selectorCombination) => {
             _api.util.assume(selectorCombination.isA("SelectorCombination"))
             selectorList.push(selectorCombination.get("text"))
         })
@@ -50,7 +50,7 @@ _api.preprocessor.transform.expandSelectorsRec = (template, ast) => {
         // First child must be SelectorList (was checked above)
         ast.del(ast.childs()[0])
         
-        _api.util.array.each(selectorList, (selector) => {
+        _api.util.each(selectorList, (selector) => {
             // Select all matching elements in template
             let elements = $api.$()(selector, template)
             if (elements.length === 0) {
@@ -78,14 +78,14 @@ _api.preprocessor.transform.expandSelectorsRec = (template, ast) => {
         }
         
         // Recursion over every newly generated scope
-        _api.util.array.each(newScopes, (newScope) => {
-            _api.util.array.each(newScope.childs(), (child) => {
+        _api.util.each(newScopes, (newScope) => {
+            _api.util.each(newScope.childs(), (child) => {
                 _api.preprocessor.transform.expandSelectorsRec(newScope.get("element"), child)
             })
         })
     } else {
         // Recursion
-        _api.util.array.each(ast.childs(), (child) => {
+        _api.util.each(ast.childs(), (child) => {
             _api.preprocessor.transform.expandSelectorsRec(template, child)
         })
     }
@@ -123,13 +123,13 @@ _api.preprocessor.transform.makeTempRefsUniqueRec = (ast, bindingScopePrefix, te
     }
     
     // Recursion
-    _api.util.array.each(ast.childs(), (child) => {
+    _api.util.each(ast.childs(), (child) => {
         _api.preprocessor.transform.makeTempRefsUniqueRec(child, bindingScopePrefix, tempCounter, assign)
     })
 }
 
 _api.preprocessor.transform.extractIterationCollections = (ast, bindingScopePrefix, tempCounter) => {
-    _api.util.array.each(ast.getAll("Iterator"), (iterator) => {         
+    _api.util.each(ast.getAll("Iterator"), (iterator) => {         
         // Scopes look different since Step 2 (expandSelectors)
         let iteratedScope = iterator.getParent()
         
@@ -196,7 +196,7 @@ _api.preprocessor.transform.nestIteratedBindings = (ast) => {
     // Create a map of all elements and their scopes
     let elementToScopeMap = new _api.util.Map()
     let scopes = ast.getAll("Scope")
-    _api.util.array.each(scopes, (scope) => {
+    _api.util.each(scopes, (scope) => {
         let element = scope.get("element")
         if (!elementToScopeMap.hasKey(element)) {
             elementToScopeMap.set(element, [])
@@ -205,7 +205,7 @@ _api.preprocessor.transform.nestIteratedBindings = (ast) => {
     })
     
     // For each entry in the map, check if the element has a parent with an iterated scope
-    _api.util.array.each(elementToScopeMap.getKeys(), (element) => {
+    _api.util.each(elementToScopeMap.getKeys(), (element) => {
         // Check if any parent is iterated
         let iteratedScope
         let ref = element
@@ -221,7 +221,7 @@ _api.preprocessor.transform.nestIteratedBindings = (ast) => {
         
         if (iteratedScope) {
             // Check if all scopes are a descendant of the iterated scope
-            _api.util.array.each(elementToScopeMap.get(element), (scope) => {
+            _api.util.each(elementToScopeMap.get(element), (scope) => {
                 let ref = scope
                 while (ref && ref !== iteratedScope) {
                     ref = ref.getParent()
@@ -236,7 +236,7 @@ _api.preprocessor.transform.nestIteratedBindings = (ast) => {
     })
     
     // Check for empty Scopes and remove them
-    _api.util.array.each(scopes, (scope) => {
+    _api.util.each(scopes, (scope) => {
         if (scope.getAll("Binding").length  === 0 &&
             scope.getAll("Iterator").length === 0 &&
             scope.getAll("Export").length   === 0 &&
@@ -251,7 +251,7 @@ _api.preprocessor.transform.markSockets = (iterationTree) => {
     iterationTree.set("sockets", [])
     
     let ast = iterationTree.get("binding")
-    _api.util.array.each(ast.getAll("Label"), (label) => {
+    _api.util.each(ast.getAll("Label"), (label) => {
         let scope = label.getParent()
         _api.util.assume(scope.isA("Scope"))
         iterationTree.get("sockets").push( {element: scope.get("element"), id: label.get("id")} )
@@ -263,7 +263,7 @@ _api.preprocessor.transform.markSockets = (iterationTree) => {
     }
     
     // Remove the scopes with the sockets
-    _api.util.array.each(ast.getAll("Label"), (label) => {
+    _api.util.each(ast.getAll("Label"), (label) => {
         let scope = label.getParent()
         scope.getParent().del(scope)
     })

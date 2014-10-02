@@ -31,7 +31,7 @@ _api.util.object.ifUndefined = (obj, defaultObj) => {
 ** Clones an object with the help of jQuery
 */
 _api.util.object.clone = (obj) => {
-    return $api.$().extend({}, obj)
+    return $api.$().extend(true, {}, obj)
 }
 
 /*

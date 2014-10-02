@@ -8,38 +8,37 @@
 */
 
 
-let factory = ($api, _api) => {
+BindingJS.plugin("attr", ($api, _api) => {
     return {   
-        getPaths: function(element, path) {
-            // We could list all attributes, but that does not make sense
+        getPaths: (element, path) => {
             return [path]
         },
         
-        getValue: function(element, path) {
+        getValue: (element, path) => {
             if (path.length !== 1) {
-                throw _api.util.exception("attr needs a path of length 1")
+                throw _api.util.exception("attr requires a Qualifier")
             }
             return element.attr(path[0])
         },
         
-        set: function(element, path, value) {
+        set: (element, path, value) => {
             if (path.length !== 1) {
-                throw _api.util.exception("attr needs a path of length 1")
+                throw _api.util.exception("attr requires a Qualifier")
             }
+            
             let name = path[0]
-            if (name === "checked") {
-                if (value) {
-                    element.prop(name, true)
-                } else {
-                    element.prop(name, false)
-                }
-            } else {
-                element.attr(name, value)
+            switch (name) {
+                case "checked":
+                    element.prop("checked", name ? true : false)
+                    break
+                default:
+                    element.attr(name, value)
+                    break
             }
         },
         
-        type: function() { return "view" }
+        type: () => {
+            return "view"
+        }
     }
-}
-
-BindingJS.plugin("attr", factory)
+})

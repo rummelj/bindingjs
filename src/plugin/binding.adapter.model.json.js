@@ -8,184 +8,132 @@
 */
 
 /* global WatchJS */
+/* global JSON */
 
-let factory = ($api, _api) => {
-
+BindingJS.plugin("$", ($api, _api) => {
     class JsonAdapter {
         
         constructor () {
-            // Keys for this.observer
-            this.observedModels = []
-            // Values for this.observedModels
-            // Each entry is a list of {observerId: Number, path: String[], callback: function()}
-            this.observer = []
-            // Used to generate new observerIds
-            this.observerCounter = new _api.util.Counter()
+            this.observer = new _api.util.Map()
+            this.counter = new _api.util.Counter()
         }
         
-        notify (model, path) {
-            if (this.observedModels.indexOf(model) === -1) {
-                return
-            }
-            
-            let observer = this.observer[this.observedModels.indexOf(model)]
-            for (let i = 0; i < observer.length; i++) {
-                if (_api.util.object.equals(path, observer[i].path)) {
-                    observer[i].callback()
-                }
+        /* private */ notify (model, path) {
+            if (this.observer.hasKey(model)) {
+                _api.util.each(this.observer.get(model), (observer) => {
+                    if (_api.util.object.equals(path, observer.path)) {
+                        observer.callback()
+                    }
+                })
             }
         }
         
         observe (model, path, callback) {
-            $api.debug(7, "Observing model at " + JSON.stringify(path))
             if (path.length === 0) {
-                throw _api.util.exception("$ Adapter cannot be used without path")
-            }
-            let elem = model
-            for (let i = 0; i < path.length - 1; i++) {
-                elem = elem[path[i]]
-            }
-
-            if (this.observedModels.indexOf(model) === -1) {
-                this.observedModels.push(model)
-                this.observer.push([])
-            }
-            // Check if path was observed before
-            let modelObserver = this.observer[this.observedModels.indexOf(model)]
-            let pathObserved = false
-            for (let i = 0; i < modelObserver.length; i++) {
-                if (_api.util.object.equals(modelObserver[i].path, path)) {
-                    pathObserved = true
-                    break
-                }
+                throw _api.util.exception("$ Adapter cannot be used without a Qualifier")
             }
             
-            let observerId = this.observerCounter.getNext()
-            let self = this
-            let watchJsCallback = function() { self.notify(model, path) }
-            modelObserver.push({ observerId: observerId, path: path, callback: callback, watchJsCallback: watchJsCallback })
-            
-            if (!pathObserved) {
-                $api.debug(9, "Watching " + JSON.stringify(path))
-                WatchJS.watch(elem,
-                              path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
-                              watchJsCallback)
-            }
-
-            return observerId
-        }
-        
-        unobserve (observerId) {
-            let modelIndex
-            let observerIndex
-            let found = false
-            for (let i = 0; i < this.observer.length; i++) {
-                let modelObserver = this.observer[i]
-                for (let j = 0; j < modelObserver.length; j++) {
-                    if (modelObserver[j].observerId === observerId) {
-                        modelIndex = i
-                        observerIndex = j
-                        found = true
-                        break
-                    }
-                }
-                if (found) {
-                    break
-                }
+            if (!this.observer.hasKey(model)) {
+                this.observer.set(model, [])
             }
             
-            if (!found) {
-                $api.debug(1, "Internal WARN: Tried to unobserve, but no such observer!")
-                return
-            }
+            let id = this.counter.getNext()
+            let newObserver = { id: id, path: path, callback: callback }
+            this.observer.get(model).push(newObserver)
             
-            // Check if it is the only observer observing this path
-            let otherPresent = false
-            let modelObserver = this.observer[modelIndex]
-            for (let i = 0; i < modelObserver.length; i++) {
-                if (i === observerIndex) {
-                    continue
-                }
-                if (_api.util.object.equals(modelObserver[i].path, modelObserver[observerIndex].path)) {
-                    otherPresent = true
-                    break
-                }
-            }
-            
-            // TODO: This is probably buggy
-            // 1. Check if unwatch works as expected
-            if (!otherPresent) {
-                let elem = this.observedModels[modelIndex]
-                let path = this.observer[modelIndex][observerIndex].path
-                let watchJsObserver = this.observer[modelIndex][observerIndex].watchJsCallback
+            let observerWithSamePath = _api.util.array.findFirst(this.observer.get(model), (observer) => {
+                return observer !== newObserver && _api.util.object.equals(path, observer.path)
+            })
+            if (!_api.util.object.isDefined(observerWithSamePath)) {
+                // Navigate to parent of element, that should be observed
+                let elem = model
                 for (let i = 0; i < path.length - 1; i++) {
                     elem = elem[path[i]]
                 }
-                $api.debug(9, "Unwatching " + JSON.stringify(path))
-                WatchJS.unwatch(elem,
-                                path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
-                                watchJsObserver)
-                // Workaround for WatchJS which pushes the watcher to all descendants, manually remove these watchers
-                // delete elem.watchers[path[path.length - 1]]
+                let self = this
+                WatchJS.watch(elem,
+                              path[path.length - 1] + "" /* WatchJS has trouble if the attribute name is not a string */,
+                              () => { self.notify(model, path) })
             }
-            
-            this.observer[modelIndex].splice(observerIndex, 1)
+
+            return id
         }
         
-        getValue (model, path) {
-            let elem = model
-            for (let i = 0; i < path.length; i++) {
-                elem = elem[path[i]]
-            }
-            if (elem instanceof Function) {
-                return elem()
-            } else if (elem instanceof Array) {
-                return elem.slice(0)
-            } else if (typeof elem === "object") {
-                return $api.$().extend(true, {}, elem)
+        unobserve (id) {
+            _api.util.each(this.observer.getKeys(), (model, _, __, breakOuter) => {
+                let found = false
+                _api.util.each(this.observer.get(model), (observer, ___, ____, breaK) => {
+                    if (observer.id === id) {
+                        _api.util.array.remove(this.observer.get(model), observer)
+                        if (this.observer.get(model).length === 0) {
+                            this.observer.remove(model)
+                        }
+                        found = true
+                        return breaK
+                    }
+                })
+                if (found) {
+                    return breakOuter
+                }
+            })
+        }
+        
+        getValue (model, path, params) {
+            let ref = model
+            _api.util.each(path, (id) => {
+                if (!ref.hasOwnProperty(id)) {
+                    throw _api.util.exception("Could not find path " +
+                        JSON.stringify(path) + " in Presentation Model")
+                }
+                ref = ref[id]
+            })
+            
+            if (ref instanceof Function) {
+                return ref(params)
+            } else if (ref instanceof Array) {
+                return _api.util.array.clone(ref)
+            } else if (typeof ref === "object") {
+                return _api.util.object.clone(ref)
             } else {
-                return elem
+                return ref
             }
         }
         
         getPaths (model, path) {
-            let result = [path]
+            let paths = [path]
             let value = this.getValue(model, path)
-            if (value instanceof Array) {
-                for (let i = 0; i < value.length; i++) {
-                    let newPath = path.slice()
-                    newPath.push(i)
-                    let subPaths = this.getPaths(model, newPath)
-                    for (let i = 0; i < subPaths.length; i++) {
-                        result.push(subPaths[i])
-                    }
-                }
-            } else if (typeof value === "object") {
-                for (let key in value) {
-                    let newPath = path.slice()
-                    newPath.push(key)
-                    let subPaths = this.getPaths(model, newPath)
-                    for (let i = 0; i < subPaths.length; i++) {
-                        result.push(subPaths[i])
-                    }
-                }
+            if (value instanceof Array || typeof value === "object") {
+                _api.util.each(value, (_, indexOrKey) => {
+                    let newPath = _api.util.array.clone(path)
+                    newPath.push(indexOrKey)
+                    // Recursion
+                    _api.util.array.addAll(paths, this.getPaths(model, newPath))
+                })
             }
-            return result
+            return paths
         }
         
-        set (model, path, value) {
+        set (model, path, value, params) {
             if (path.length === 0) {
-                throw _api.util.exception("$ Adapter cannot be used without path")
+                throw _api.util.exception("$ Adapter cannot be used without a Qualifier")
             }
-            let elem = model
-            for (let i = 0; i < path.length - 1; i++) {
-                elem = elem[path[i]]
-            }
-            let target = elem[path[path.length - 1]]
+            
+            let ref = model
+            _api.util.each(path, (id, index) => {
+                if (index < path.length - 1) {
+                    if (!ref.hasOwnProperty(id)) {
+                        throw _api.util.exception("Could not find path " +
+                            JSON.stringify(path) + " in Presentation Model")
+                    }
+                    ref = ref[id]
+                }
+            })
+            
+            let target = ref[path[path.length - 1]]
             if (target instanceof Function) {
-                target(value)
+                target(value, params)
             } else {
-                elem[path[path.length - 1]] = value
+                ref[path[path.length - 1]] = value
             }
         }
         
@@ -194,9 +142,5 @@ let factory = ($api, _api) => {
         }
     }
     
-    return new JsonAdapter()
-    
-}
-
-BindingJS.plugin("$", factory)
-
+    return new JsonAdapter()   
+})

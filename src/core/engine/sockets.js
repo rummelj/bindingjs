@@ -8,19 +8,19 @@
  */
 
  _api.engine.sockets.callRemoval = (viewDataBinding, expItNode) => {
-    _api.util.array.each(expItNode.get("instances"), (instance) => {
+    _api.util.each(expItNode.get("instances"), (instance) => {
         _api.engine.sockets.callRemovalInstance(viewDataBinding, expItNode, instance)
     })
-    _api.util.array.each(expItNode.childs(), (child) => {
+    _api.util.each(expItNode.childs(), (child) => {
         _api.engine.sockets.callRemoval(viewDataBinding, child)
     })
  }
  
  _api.engine.sockets.callInsertion = (viewDataBinding, expItNode) => {
-    _api.util.array.each(expItNode.get("instances"), (instance) => {
+    _api.util.each(expItNode.get("instances"), (instance) => {
         _api.engine.sockets.callInsertionInstance(viewDataBinding, expItNode, instance)
     })
-    _api.util.array.each(expItNode.childs(), (child) => {
+    _api.util.each(expItNode.childs(), (child) => {
         _api.engine.sockets.callInsertion(viewDataBinding, child)
     })
  }
@@ -28,8 +28,8 @@
  _api.engine.sockets.callRemovalInstance = (viewDataBinding, expItNode, instance) => {
     if (instance.sockets.length > 0) {
         let keys = _api.engine.sockets.getKeys(expItNode, instance)
-        _api.util.array.each(instance.sockets, (socket) => {
-            _api.util.array.each(viewDataBinding.vars.socketRemovalObserver[socket.id], (callback) => {
+        _api.util.each(instance.sockets, (socket) => {
+            _api.util.each(viewDataBinding.vars.socketRemovalObserver[socket.id], (callback) => {
                 callback(keys, socket.element)
             })
         })
@@ -39,8 +39,8 @@
  _api.engine.sockets.callInsertionInstance = (viewDataBinding, expItNode, instance) => {
     if (instance.sockets.length > 0) {
         let keys = _api.engine.sockets.getKeys(expItNode, instance)
-        _api.util.array.each(instance.sockets, (socket) => {
-            _api.util.array.each(viewDataBinding.vars.socketInsertionObserver[socket.id], (callback) => {
+        _api.util.each(instance.sockets, (socket) => {
+            _api.util.each(viewDataBinding.vars.socketInsertionObserver[socket.id], (callback) => {
                 callback(keys, socket.element)
             })
         })

@@ -7,23 +7,19 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-let factory = ($api, _api) => {
+/* global JSON */
+
+BindingJS.plugin("text", () => {
     return {     
-        getPaths: function(element, path) {
+        getPaths: (element, path) => {
             return [path]
         },
         
-        getValue: function(element, path) {
-            if (path.length > 0) {
-                throw _api.util.exception("text can not process paths")
-            }
+        getValue: (element) => {
             return element.text()
         },
         
-        set: function(element, path, value) {
-            if (path.length > 0) {
-                throw _api.util.exception("value can not process paths")
-            }
+        set: (element, path, value) => {
             if (typeof value === "object") {
                 try {
                     value = JSON.stringify(value)
@@ -34,8 +30,8 @@ let factory = ($api, _api) => {
             element.text(value)
         },
         
-        type: function() { return "view" }
+        type: () => {
+            return "view"
+        }
     }
-}
-
-BindingJS.plugin("text", factory)
+})
