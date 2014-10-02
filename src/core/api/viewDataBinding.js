@@ -134,7 +134,8 @@ class ViewDataBinding {
             pauseQueue: [],
             initialized: false,
             bindingScopePrefix: "@",
-            destroyed: false
+            destroyed: false,
+            mounted : false
         }
         return this
     }
@@ -198,10 +199,24 @@ class ViewDataBinding {
                 throw _api.util.exception("Selector " + selectorOrHtml + " did not match exactly one element, but " +
                                           mountPoint.length)
             }
+            if (this.vars.mounted) {
+                this.unmount()
+            }
             _api.engine.iterator.mount(this, mountPoint)
+            this.vars.mounted = true
         } else {
             throw _api.util.exception("Not implemented yet")
             // TOOD
+        }
+        return this
+    }
+    
+    unmount () {
+        methods.checkDestroyed(this)
+        if (!this.vars.mounted) {
+            $api.debug(1, "Warning: Tried to unmount binding, which was not mounted")
+        } else {
+            _api.engine.iterator.unmount(this)
         }
         return this
     }

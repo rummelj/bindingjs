@@ -45,8 +45,29 @@
                         keysString + "</span></div>")
                 })
                 
-                binding.mount("#template")
+                binding.socket("view.plainSocket").onRemove(function (keys, element) {
+                    element.empty()
+                    console.log("plainSocket removed")
+                })
+                
+                binding.socket("view.iteratedSocket").onRemove(function (keys, element) {
+                    element.empty()
+                    var keysString = ""
+                    for (var i = 0; i < keys.length; i++) {
+                        var key = keys[i]
+                        keysString += key
+                        if (i != keys.length - 1) {
+                            keysString += " - "
+                        }
+                    }
+                    console.log("iterated Socket removed " + keysString)
+                })
+                
+                // Selenium does not recognize alerts from on page load
+                binding.mount("#mount1")
                        .activate()
+                       .mount("#mount2")
+                       .mount("#mount3")
             })
         </script>
     </head>
@@ -61,5 +82,8 @@
                 </div>
             </div>
         </div>
+        <div id="mount1"></div>
+        <div id="mount2"></div>
+        <div id="mount3"></div>
     </body>
 </html>

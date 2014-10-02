@@ -13,10 +13,18 @@
     let template = iterationInstanceRoot.template
     // Check if template was mounted before and call destroy observer for sockets
     if (template.parentElement) {
-        _api.engine.socket.callRemoval(viewDataBinding, expandedIterationTreeRoot)
+        _api.engine.sockets.callRemoval(viewDataBinding, expandedIterationTreeRoot)
     }
     mountPoint.replaceWith(template)
     _api.engine.sockets.callInsertion(viewDataBinding, expandedIterationTreeRoot)
+ }
+ 
+ _api.engine.iterator.unmount = (viewDataBinding) => {
+    let expandedIterationTreeRoot = viewDataBinding.vars.iterationTree.get("links")[0]
+    let iterationInstanceRoot = expandedIterationTreeRoot.get("instances")[0]
+    let template = iterationInstanceRoot.template
+    _api.engine.sockets.callRemoval(viewDataBinding, expandedIterationTreeRoot)
+    $api.$()(template).detach()
  }
  
  _api.engine.iterator.init = (viewDataBinding) => {

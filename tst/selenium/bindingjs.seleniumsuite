@@ -24,6 +24,7 @@
 <tr><td><a href="11-sequence.testcase">11-sequence</a></td></tr>
 <tr><td><a href="12-parameter.testcase">12-parameter</a></td></tr>
 <tr><td><a href="13-expression.testcase">13-expression</a></td></tr>
+<tr><td><a href="14-unmount.testcase">14-unmount</a></td></tr>
 <tr><td><a href="smp-Textbox.testcase">smp-Textbox</a></td></tr>
 <tr><td><a href="smp-TodoMVC.testcase">smp-TodoMVC</a></td></tr>
 </tbody></table>
