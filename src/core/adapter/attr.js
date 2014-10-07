@@ -8,7 +8,7 @@
 */
 
 
-BindingJS.plugin("attr", ($api, _api) => {
+$api.plugin("attr", ($api, _api) => {
     return {   
         getPaths: (element, path) => {
             return [path]

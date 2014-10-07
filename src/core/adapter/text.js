@@ -9,7 +9,7 @@
 
 /* global JSON */
 
-BindingJS.plugin("text", () => {
+$api.plugin("text", () => {
     return {     
         getPaths: (element, path) => {
             return [path]

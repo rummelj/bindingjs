@@ -7,10 +7,7 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-
-
-
-BindingJS.plugin("value", ($api, _api) => {
+$api.plugin("value", ($api, _api) => {
     class ValueAdapter {
 
         constructor () {
