@@ -30,7 +30,11 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     // Step 4: Transform two-way bindings into two one way bindings
     _api.preprocessor.convenience.twoWayBindings(bind)
     
-    // Step 5: Replace selectors with their elements in the template
+    // Step 5: Check if Adapter were used inside parameters of source adapter and give a
+    // warning if so
+    _api.preprocessor.validate.checkSourceParameters(bind)
+    
+    // Step 6: Replace selectors with their elements in the template
     // Scopes might be duplicated because of
     // - Multiple matches for one selector
     // - CombinationLists (e.g. '.foo, #bar')
@@ -45,11 +49,11 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     //  is then replaced by four new scopes with these elements
     _api.preprocessor.transform.expandSelectors(template, bind)
     
-    // Step 6: Check that one socket always exactly matches only one element
+    // Step 7: Check that one socket always exactly matches only one element
     // from the template
     _api.preprocessor.validate.checkSockets(bind)
     
-    // Step 7: Make all references to the binding scope unique
+    // Step 8: Make all references to the binding scope unique
     // This way we do not have to deal with scoping later (except if new items
     // in iterations are added
     // Example (Brackets are scopes and elements inside the brackets are ids):
@@ -69,7 +73,7 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     _api.preprocessor.transform.makeTempRefsUnique(bind, bindingScopePrefix, tempCounter)
     
     
-    // Step 8: Make every iteration read out of the temp scope.
+    // Step 9: Make every iteration read out of the temp scope.
     // This makes it easier to implement the iteration since it has
     // to only observe the temp scope
     // Example
@@ -88,30 +92,30 @@ _api.preprocessor.preprocess = (viewDataBinding) => {
     // always happens through references and never through the binding
     _api.preprocessor.transform.extractIterationCollections(bind, bindingScopePrefix, tempCounter)
     
-    // Step 9: Change parameters, so that each parameter is a single adapter without parameter
+    // Step 10: Change parameters, so that each parameter is a single adapter without parameter
     // Example: @foo(@bar(@baz)) nests parameter, which is changed to the following set of bindings
     // @temp <- @bar(@baz)
     // .. @foo(@temp) ...
     _api.preprocessor.convenience.parameter(bind, bindingScopePrefix, tempCounter)
     
-    // Step 10: Transform expressions
+    // Step 11: Transform expressions
     _api.preprocessor.convenience.expression(bind, bindingScopePrefix, tempCounter)
     
-    // Step 11: Prevent iterating over the same element more than once
+    // Step 12: Prevent iterating over the same element more than once
     // This would lead to confusion and the order in which the binding is written would affect the template
     // It is however always possible to define the same element multiple times in the template
     _api.preprocessor.validate.preventMultiIteration(bind)
     
-    // Step 12: Move Bindings that affect iterated elements into the iteration
+    // Step 13: Move Bindings that affect iterated elements into the iteration
     _api.preprocessor.transform.nestIteratedBindings(bind)
     
-    // Step 13: Setup iteration tree
+    // Step 14: Setup iteration tree
     let iterationTree = _api.preprocessor.iterator.setupIterationTree(bind, template)
     
-    // Step 14: Mark the sockets in the iteration tree
+    // Step 15: Mark the sockets in the iteration tree
     _api.preprocessor.transform.markSockets(iterationTree)
     
-    // Step 15: Setup expanded iteration tree
+    // Step 16: Setup expanded iteration tree
     _api.preprocessor.iterator.setupExpandedIterationTree(viewDataBinding, iterationTree)
     
     viewDataBinding.vars.iterationTree = iterationTree

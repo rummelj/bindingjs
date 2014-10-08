@@ -113,3 +113,36 @@ _api.preprocessor.validate.checkDirections = (ast) => {
         }
     })
 }
+
+_api.preprocessor.validate.checkSourceParameters = (ast) => {
+    // In Bindings
+    _api.util.each(ast.getAll("Binding"), (binding) => {
+        let boValue = binding.getAll("BindingOperator")[0].get("value")
+        let direction = boValue === "<-" || boValue === "<~" ? "left" : "right"
+        let sourceAdapter = direction === "right" ? binding.childs()[0] : binding.childs()[binding.childs().length - 1]
+        _api.util.assume(sourceAdapter.isA("Adapter"))
+        // Works for Initiators too
+        _api.util.each(sourceAdapter.getAll("Parameters"), (parameters) => {
+            if (parameters.getAll("Variable").length > 0) {
+                $api.debug(1, "Warning: You used a dynamic parameter for the source adapter or an Initiator of a Binding. " +
+                    "Although this is possible, the observe method of that adapter will receive the current value of this parameter " +
+                    "only once when the Binding is set up. It is therefore recommended to use a static expression " +
+                    "instead. The affected Binding is: " + binding.asBindingSpec())
+            }
+        })
+    })
+    // In Source Adapter of Iterations
+    _api.util.each(ast.getAll("Iterator"), (iterator) => {
+        _api.util.assume(iterator.childs().length > 1)
+        let iterationExpr = iterator.childs()[1]
+        _api.util.each(iterationExpr.getAll("Parameters"), (parameters) => {
+            if (parameters.getAll("Variable").length > 0) {
+                $api.debug(1, "Warning: You used a dynamic parameter for the source adapter or an Iteration. " +
+                    "Although this is possible, the observe method of that adapter will receive the current value of this parameter " +
+                    "only once when the Iteration is set up. It is therefore recommended to use a static expression " +
+                    "instead. The affected Iteration is: " + iterator.asBindingSpec())
+            }
+        })
+    })
+    console.log(ast.dump())
+}
