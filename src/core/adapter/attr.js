@@ -29,7 +29,7 @@ $api.plugin("attr", ($api, _api) => {
             let name = path[0]
             switch (name) {
                 case "checked":
-                    element.prop("checked", name ? true : false)
+                    element.prop("checked", value ? true : false)
                     break
                 default:
                     element.attr(name, value)
