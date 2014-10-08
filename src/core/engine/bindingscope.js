@@ -10,9 +10,9 @@
 class BindingScope {
 
     constructor () {
-        this.data = []
-        this.observerIds = []
-        this.observer = []
+        this.data = {}
+        this.observerIds = {}
+        this.observer = {}
         this.observerId = 0
         this.paused = false
         this.pauseQueue = []
@@ -44,40 +44,32 @@ class BindingScope {
     
     set(id, to) {
         if (this.data[id] !== to) {
-            this.unobserveReferences(id)
+            this.unobserveReference(id)
             this.data[id] = to
             this.notify(id)
-            this.observeReferences(id, to)
+            this.observeReference(id, to)
         }
     }
     
-    observeReferences(id, value) {
-        _api.util.traverseStructure(value, (element) => {
-            if (_api.util.isReference(element)) {
-                if (!this.observerIds[id]) {
-                    this.observerIds[id] = []
+    observeReference(id, value) {
+        if (_api.util.isReference(value)) {
+            let observerId = value.observe(() => {
+                if (!this.paused) {
+                    this.notify(id)
+                } else if (this.pauseQueue.indexOf(id) === -1) {
+                    this.pauseQueue.push(id)
                 }
-                this.observerIds[id].push(element)
-                this.observerIds[id].push(element.observe(() => {
-                    if (!this.paused) {
-                        this.notify(id)
-                    } else if (this.pauseQueue.indexOf(id) === -1) {
-                        this.pauseQueue.push(id)
-                    }
-                }))
-            } 
-        })
+            })
+            this.observerIds[id] = { reference: value, observerId: observerId }
+        } 
     }
     
-    unobserveReferences(id) {
-        if (this.observerIds[id]) {
-            for (let i = 0; i < this.observerIds[id].length; i += 2) {
-                let reference = this.observerIds[id][i]
-                let observerId = this.observerIds[id][i + 1]
-                reference.unobserve(observerId)
-            }
-            this.observerIds[id] = []
+    unobserveReference(id) {
+        let item = this.observerIds[id]
+        if (item) {
+            item.reference.unobserve(item.observerId)
         }
+        delete this.observerIds[id]
     }
     
     destroy(id) {
