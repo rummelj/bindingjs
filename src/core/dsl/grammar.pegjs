@@ -76,8 +76,8 @@ scopeExport
         }
 
 scopeBody
-    =   block      /* RECURSION */
-    /   binding
+    =   binding
+    /   block        /* RECURSION */
 
 
 /*

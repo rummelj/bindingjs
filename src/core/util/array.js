@@ -73,8 +73,12 @@ _api.util.array.map = (array, fn) => {
 ** Adds all elements in array to addTo
 */
 _api.util.array.addAll = (addTo, array) => {
-    for (let i = 0; i < array.length; i++) {
-        addTo.push(array[i])
+    if (array instanceof Array) {
+        for (let i = 0; i < array.length; i++) {
+            addTo.push(array[i])
+        }
+    } else {
+        addTo.push(array)
     }
 }
 
@@ -187,4 +191,19 @@ _api.util.array.count = (array, condition) => {
         }
     }
     return result
+}
+
+/*
+** Checks whether withWhat contains all elements from what in its beginning
+*/
+_api.util.array.startsWith = (what, withWhat) => {
+    if (withWhat.length > what.length) {
+        return false
+    }
+    for (var i = 0; i < withWhat.length; i++) {
+        if (what[i] !== withWhat[i]) {
+            return false
+        }
+    }
+    return true
 }

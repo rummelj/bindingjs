@@ -74,7 +74,7 @@ let methods = {
             let available = allLabels.join("\n") + "\n"
             throw _api.util.exception("Tried to use the socket api with id " + 
                 id + ". This id does not exist. Only the following ids are " +
-                "available: \n" + available)
+                "available: \n" + (allLabels.length > 0 ? available : "(None available)"))
         }
     },
     

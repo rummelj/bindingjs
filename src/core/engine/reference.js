@@ -46,9 +46,9 @@ class Reference {
     observe (callback) {
         let observerId = 0
         if (this.adapter.type() === "model") {
-            observerId = this.adapter.observe(this.model, this.path, callback)
+            observerId = this.adapter.observe(this.model, this.path, this.parameters, callback)
         } else if (this.adapter.type() === "view") {
-            observerId = this.adapter.observe(this.element, this.path, callback)
+            observerId = this.adapter.observe(this.element, this.path, this.parameters, callback)
         } else {
             throw _api.util.exception("Unknown adapter type: " + this.adapter.type())
         }
