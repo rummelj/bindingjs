@@ -20,6 +20,11 @@
             let parts = _api.engine.binding.getParts(viewDataBinding, binding, element)
             allParts.push(parts)
             
+            // Trigger all Bindings that represent an Expression once to ensure, that parameters are filled before observation
+            if (parts.connectors.length === 1 && parts.connectors[0].virtual) {
+                _api.engine.binding.propagate(viewDataBinding, parts)
+            }
+            
             if (!parts.oneTime) {
                 let toObserve = parts.initiators.length > 0 ? parts.initiators : parts.sources
                 _api.util.each(toObserve, (item) => {
@@ -58,52 +63,60 @@
             }
         })
         
-        // Trigger bindings once in order:
+        // Trigger all bindings without initiators once in order:
         // - All that have only model adapters as their sources
         // - All that have only binding adapters as their sources
         // - All that have only view adapters as their sources
         // - All that have both model and binding adapters as their sources
         // - Rest
         _api.util.each(allParts, (parts) => {
-            if (_api.util.array.ifAll(parts.sources, (source) => {
-                return source.adapter !== "binding" && source.adapter.type() === "model"
-            })) {
+            if (parts.initiators.length === 0 &&
+                    _api.util.array.ifAll(parts.sources, (source) => {
+                        return source.adapter !== "binding" && source.adapter.type() === "model"
+                    })
+            ) {
                 _api.engine.binding.propagate(viewDataBinding, parts)
                 parts.init = true
             }
         })
         _api.util.each(allParts, (parts) => {
-            if (_api.util.array.ifAll(parts.sources, (source) => {
-                return source.adapter === "binding"
-            })) {
+            if (parts.initiators.length === 0 &&
+                    _api.util.array.ifAll(parts.sources, (source) => {
+                        return source.adapter === "binding"
+                })
+            ) {
                 _api.engine.binding.propagate(viewDataBinding, parts)
                 parts.init = true
             }
         })
         _api.util.each(allParts, (parts) => {
-            if (_api.util.array.ifAll(parts.sources, (source) => {
-                return source.adapter !== "binding" && source.adapter.type() === "view"
-            })) {
+            if (parts.initiators.length === 0 &&
+                    _api.util.array.ifAll(parts.sources, (source) => {
+                        return source.adapter !== "binding" && source.adapter.type() === "view"
+                })
+            ) {
                 _api.engine.binding.propagate(viewDataBinding, parts)
                 parts.init = true
             }
         })
         _api.util.each(allParts, (parts) => {
-            let sawModelAdapter = false
-            let sawBindingAdapter = false
-            let sawViewAdapter = false
-            _api.util.each(parts.sources, (source) => {
-                sawModelAdapter = sawModelAdapter || (source.adapter !== "binding" && source.adapter.type() === "model")
-                sawBindingAdapter = sawBindingAdapter || source.adapter === "binding"
-                sawViewAdapter = sawViewAdapter || (source.adapter !== "binding" && source.adapter.type() === "view")
-            })
-            if (sawModelAdapter && sawBindingAdapter && !sawViewAdapter) {
-                _api.engine.binding.propagate(viewDataBinding, parts)
-                parts.init = true
+            if (parts.initiators.length === 0) {
+                let sawModelAdapter = false
+                let sawBindingAdapter = false
+                let sawViewAdapter = false
+                _api.util.each(parts.sources, (source) => {
+                    sawModelAdapter = sawModelAdapter || (source.adapter !== "binding" && source.adapter.type() === "model")
+                    sawBindingAdapter = sawBindingAdapter || source.adapter === "binding"
+                    sawViewAdapter = sawViewAdapter || (source.adapter !== "binding" && source.adapter.type() === "view")
+                })
+                if (sawModelAdapter && sawBindingAdapter && !sawViewAdapter) {
+                    _api.engine.binding.propagate(viewDataBinding, parts)
+                    parts.init = true
+                }
             }
         })
         _api.util.each(allParts, (parts) => {
-            if (!parts.init) {
+            if (parts.initiators.length === 0 && !parts.init) {
                 _api.engine.binding.propagate(viewDataBinding, parts)
             }
             delete parts.init
@@ -121,12 +134,14 @@
         })
         bindingObserver.push({ adapter: "binding", observerId: observerId })
     } else if (item.adapter.type() === "view") {
-        let observerId = item.adapter.observe(parts.element, item.path, () => {
+        let parameterValues = _api.engine.binding.getParameterValues(viewDataBinding, parts, item.parameters)
+        let observerId = item.adapter.observe(parts.element, item.path, parameterValues, () => {
             _api.engine.binding.observerCallback(viewDataBinding, parts)
         })
         bindingObserver.push({ adapter: item.adapter, observerId: observerId })
     } else if (item.adapter.type() === "model") {
-        let observerId = item.adapter.observe(viewDataBinding.vars.model, item.path, () => {
+        let parameterValues = _api.engine.binding.getParameterValues(viewDataBinding, parts, item.parameters)
+        let observerId = item.adapter.observe(viewDataBinding.vars.model, item.path, parameterValues, () => {
             _api.engine.binding.observerCallback(viewDataBinding, parts)
         })
         bindingObserver.push({ adapter: item.adapter, observerId: observerId })
@@ -300,9 +315,17 @@
             }
         }
     } else if (sink.adapter.type() === "view") {
+        if (!sink.adapter.set) {
+            throw _api.util.exception("Used adapter " + sink.name + " as the sink of a Binding, but " +
+                "it does not implement a set method")
+        }
         let parameters = _api.engine.binding.getParameterValues(viewDataBinding, parts, sink.parameters)
         sink.adapter.set(parts.element, sink.path, value, parameters)
     } else if (sink.adapter.type() === "model") {
+        if (!sink.adapter.set) {
+            throw _api.util.exception("Used adapter " + sink.name + " as the sink of a Binding, but " +
+                "it does not implement a set method")
+        }
         let parameters = _api.engine.binding.getParameterValues(viewDataBinding, parts, sink.parameters)
         sink.adapter.set(viewDataBinding.vars.model, sink.path, value, parameters)
     }
