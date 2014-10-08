@@ -144,5 +144,4 @@ _api.preprocessor.validate.checkSourceParameters = (ast) => {
             }
         })
     })
-    console.log(ast.dump())
 }
