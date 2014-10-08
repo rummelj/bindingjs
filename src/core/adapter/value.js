@@ -21,7 +21,7 @@ $api.plugin("value", ($api, _api) => {
             })
         }
         
-        observe (element, path, callback) {
+        observe (element, path, params, callback) {
             _api.util.assume(path.length === 0)
             if (!this.observer.hasKey(element)) {
                 this.observer.set(element, [])
