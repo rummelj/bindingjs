@@ -8,5 +8,7 @@
  */
 
 include("attr.js")
+include("class.js")
+include("on.js")
 include("text.js")
 include("value.js")
