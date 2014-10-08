@@ -18,7 +18,14 @@ $api.plugin("attr", ($api, _api) => {
             if (path.length !== 1) {
                 throw _api.util.exception("attr requires a Qualifier")
             }
-            return element.attr(path[0])
+            
+            let name = path[0]
+            switch (name) {
+                case "checked":
+                    return element.prop("checked")
+                default:
+                    return element.attr(name)
+            }
         },
         
         set: (element, path, value) => {

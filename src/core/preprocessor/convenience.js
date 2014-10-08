@@ -7,6 +7,8 @@
 **  with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+/* global JSON */
+                
 _api.preprocessor.convenience.twoWayBindings = (ast) => {
     _api.util.each(ast.getAll("Binding"), (binding) => {
         let operators = binding.getAll("BindingOperator")
@@ -121,7 +123,8 @@ _api.preprocessor.convenience.convertExpression = (ast, bindingScopePrefix, coun
             return variable.get("id") === "bar"
         })
         _api.util.assume(bar)
-        bar.replace(variablesExprSeq)
+        _api.util.assume(bar.getParent().isA("ExprSeq"))
+        bar.getParent().replace(variablesExprSeq)
         // Set virtual to be virtual and evaluation function
         let virtual = newBinding.getAll("Connector")[0]
         _api.util.assume(virtual)
@@ -138,8 +141,38 @@ _api.preprocessor.convenience.convertExpression = (ast, bindingScopePrefix, coun
             binding = binding.getParent()
         }
         _api.util.assume(binding)
+        
+        // Take Initiators over to the expression binding if the expression itself was not used as an initiator
+        let ref = ast
+        let usedInInitiator = false
+        while (ref && ref.getParent() && !ref.isA("Binding")) {
+            if (ref.isA("Initiator")) {
+                usedInInitiator = true
+                break
+            }
+            ref = ref.getParent()
+        }
+        if (!usedInInitiator) {
+            // Check if binding has Initiators
+            let bos = binding.getAll("BindingOperator")
+            _api.util.assume(bos.length > 0)
+            let direction = bos[0].get("value") === "<-" ? "left" : "right"
+            _api.util.assume(binding.childs().length >= 2)
+            _api.util.assume(binding.childs()[0].isA("Adapter"))
+            _api.util.assume(binding.childs()[binding.childs().length - 1].isA("Adapter"))
+            let sourceAdapter = direction === "right" ? binding.childs()[0] : binding.childs()[binding.childs().length - 1]
+            let initiator = sourceAdapter.getAll("Initiator")
+            _api.util.assume(initiator.length <= 1)
+            if (initiator.length === 1) {
+                // add initiator
+                _api.util.assume(variablesExprSeq.getParent().isA("Adapter"))
+                variablesExprSeq.getParent().add(initiator[0].clone())
+            }
+        }
+        
         // Replace the original ast by the exprReplacer
         ast.replace(exprReplacer)
+        // Add newBinding
         binding.getParent().addAt(binding.getParent().childs().indexOf(binding), newBinding)
     }
 }
@@ -149,6 +182,7 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
     let fn
     if (ast.isA("Variable")) {
         let index
+        // TODO: Does not work
         if (!_api.util.array.contains(variables, ast)) {
             index = variables.push(ast) - 1
         } else {
@@ -183,15 +217,33 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
             return (input) => {
                 let result = _api.util.convertIfReference(summands[0](input))
                 for (var i = 1; i < summands.length; i++) {
+                    let summand = _api.engine.binding.convertToValues(summands[i](input))
                     if (operands[i - 1] === "+") {
                         if (result instanceof Array) {
-                            let summand = _api.engine.binding.convertToValues(summands[i](input))
                             _api.util.array.addAll(result, summand)
                         } else {
-                            result += _api.util.convertIfReference(summands[i](input))
+                            result = _api.util.object.isDefined(result) ? result : 0
+                            summand = _api.util.object.isDefined(summand) ? summand : 0
+                            result += summand
                         }
                     } else if (operands[i - 1] === "-") {
-                        result -= _api.util.convertIfReference(summands[i](input))
+                        if (result instanceof Array) {
+                            let toRemove = _api.util.array.findFirst(result, (item) => {
+                                return _api.util.object.equals(
+                                            _api.engine.binding.convertToValues(item),
+                                            summand
+                                        )
+                            })
+                            if (!toRemove) {
+                                throw _api.util.exception("Tried to remove " + JSON.stringify(_api.engine.binding.convertToValues(summand)) +
+                                    " from " + JSON.stringify(_api.engine.binding.convertToValues(result)) + ", but it was not there")
+                            }
+                            _api.util.array.remove(result, toRemove)
+                        } else {
+                            result = _api.util.object.isDefined(result) ? result : 0
+                            summand = _api.util.object.isDefined(summand) ? summand : 0
+                            result -= summand
+                        }
                     } else {
                         _api.util.assume(false)
                     }
@@ -214,13 +266,16 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
             })
             return (input) => {
                 let result = _api.util.convertIfReference(factors[0](input))
+                result = _api.util.object.isDefined(result) ? result : 1
                 for (var i = 1; i < factors.length; i++) {
+                    let factor = _api.util.convertIfReference(factors[i](input))
+                    factor = _api.util.object.isDefined(factor) ? factor : 1
                     if (operands[i - 1] === "*") {
-                        result *= _api.util.convertIfReference(factors[i](input))
+                        result *= factor
                     } else if (operands[i - 1] === "/") {
-                        result /= _api.util.convertIfReference(factors[i](input))
+                        result /= factor
                     } else if (operands[i - 1] === "%") {
-                        result %= _api.util.convertIfReference(factors[i](input))
+                        result %= factor
                     } else {
                         _api.util.assume(false)
                     }
@@ -347,24 +402,26 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
                 }
             }
             return (input) => {
-                /* global JSON */
                 let baseValue = base(input)
                 _api.util.each(derefs, (deref) => {
                     let derefValue = _api.util.convertIfReference(deref(input))
                     if (baseValue instanceof Array) {
                         if (derefValue < 0 || derefValue >= baseValue.length) {
-                            throw _api.util.exception("Can not resolve deref " + derefValue + " in " + JSON.stringify(baseValue))
+                            throw _api.util.exception("Can not resolve deref " + derefValue + " in " + 
+                                JSON.stringify(_api.engine.binding.convertToValues(baseValue)))
                         }
                         baseValue = baseValue[derefValue]
                     } else if (_api.util.isReference(baseValue)) {
                         baseValue = baseValue.cloneAndAddToPath(derefValue)
                     } else if (typeof baseValue === "object") {
                         if (!baseValue.hasOwnProperty(derefValue)) {
-                            throw _api.util.exception("Can not resolve deref " + derefValue + " in " + JSON.stringify(baseValue))
+                            throw _api.util.exception("Can not resolve deref " + derefValue + " in " + 
+                                JSON.stringify(_api.engine.binding.convertToValues(baseValue)))
                         }
                         baseValue = baseValue[derefValue]
                     } else {
-                        throw _api.util.exception("Can not resolve deref " + derefValue + " in " + JSON.stringify(baseValue))
+                        throw _api.util.exception("Can not resolve deref " + derefValue + " in " + 
+                            JSON.stringify(_api.engine.binding.convertToValues(baseValue)))
                     }
                 })
                 return baseValue

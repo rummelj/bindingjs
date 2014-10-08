@@ -42,10 +42,14 @@ $api.plugin("value", ($api, _api) => {
             let observer = _api.util.array.findFirst(this.observer.get(element), (observer) => {
                 return observer.observerId === observerId
             })
-            _api.util.array.remove(this.observer.get(element), observer)
-            if (this.observer.get(element).length === 0) {
-                element.off("change input propertychange paste")
-                this.observer.remove(element)
+            if (_api.util.object.isDefined(element) && _api.util.object.isDefined(observer)) {
+                _api.util.array.remove(this.observer.get(element), observer)
+                if (this.observer.get(element).length === 0) {
+                    element.off("change input propertychange paste")
+                    this.observer.remove(element)
+                }
+            } else {
+                $api.debug(5, "Warning: Tried to unobserve observer, which was not there")
             }
         }
         

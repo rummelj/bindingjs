@@ -378,7 +378,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     }
     // Kill all own variables
     let ownVariables = instance.ownVariables
-    for (let i = 0; i < ownVariables; i++) {
+    for (let i = 0; i < ownVariables.length; i++) {
         viewDataBinding.vars.bindingScope.destroy(ownVariables[i])
     }
  }
@@ -395,7 +395,18 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
                 // Update references in entry
                 let entry = viewDataBinding.vars.bindingScope.get(instance.entryId)
                 let newEntry = _api.engine.iterator.refreshKeysRemovedEntry(entry, [], keyRemoved)
-                viewDataBinding.vars.bindingScope.set(instance.entryId, newEntry)
+                // TODO: This might throw if multiple elements are removed, for instance [a,b,c,d,e] -> [a,c,e]
+                // Levensthein returns for this in this order: <Remove at 1> -> <Remove at 4>
+                // Actually in the PM both values are already gone, but here it is tried to observe 4
+                // Short term solution: Catch the error that might occur, because when refresh is called
+                // the second time for 4 it is working anyway
+                // Long term better solution: Change Levensthein, so that it returns the remove operations
+                // in an order that is executable by this algorithm
+                try {
+                    viewDataBinding.vars.bindingScope.set(instance.entryId, newEntry)
+                } catch (e) {
+                    $api.debug(5, "Warning, could not set instances new Entry")
+                }
             }
         })
     }

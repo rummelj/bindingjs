@@ -187,25 +187,28 @@
             values.push(value)
         }
     })
-    
     _api.util.assume(values.length > 0)
-    // Only use list if more than one
-    values = values.length === 1 ? values[0] : values
     
     // Propagate through connectors
     let connectorChain = parts.connectors
+    // If there is not connector, resolve the array of values if it has only one value
+    if (connectorChain.length === 0 && values.length === 1) {
+        values = values[0]
+    }
     for (let i = 0; i < connectorChain.length; i++) {
         let connector = connectorChain[i]
         if (!connector.virtual) {
             let parameters = _api.engine.binding.getParameterValues(viewDataBinding, parts, connector.parameters)
+            // Only use list if more than one
+            values = values.length === 1 ? values[0] : values
             values = connector.connector.process(values, parameters)
             // Abort if necessary
             if (values === $api.abortSymbol) {
                 return
             }
         } else {
-            // Expression, always propagate as list
-            values = connector.connector.process(!_api.util.object.isDefined(values) || !(values instanceof Array) ? [values]: values)
+            // Expression, always propagate as list, have no parameters and can never abort
+            values = connector.connector.process(values)
         }
     }
     
@@ -270,7 +273,7 @@
     // Write to sink
     if (sink.adapter === "binding") {
         let currentValue = viewDataBinding.vars.bindingScope.get(sink.path[0])
-        if (!currentValue ||
+        if (!_api.util.object.isDefined(currentValue) ||
             (!(currentValue instanceof _api.engine.binding.Reference) &&
              !(value instanceof _api.engine.binding.Reference))) {
             // No value there or not references involved, write it
@@ -305,14 +308,7 @@
             // primitive nor a (plain) reference
             // There is one special case allowed where the reference is replaced
             // By structured json containing only references of the same type
-            if (_api.engine.binding.containsOnlyReferencesOfSameType(currentValue, value)) {
-                // Overwrite
-                viewDataBinding.vars.bindingScope.set(sink.path[0], value)
-            } else {
-                // TODO: See if this ever appears, if it appears in senseful case
-                // Adapt to thesis, where no error is thrown and value always overwritten
-                throw _api.util.exception("Erroneous Propagation")
-            }
+            viewDataBinding.vars.bindingScope.set(sink.path[0], value)
         }
     } else if (sink.adapter.type() === "view") {
         if (!sink.adapter.set) {
@@ -328,24 +324,6 @@
         }
         let parameters = _api.engine.binding.getParameterValues(viewDataBinding, parts, sink.parameters)
         sink.adapter.set(viewDataBinding.vars.model, sink.path, value, parameters)
-    }
- }
- 
- // Checks if value comprises only references and if
- // all references in value have the same type as reference
- _api.engine.binding.containsOnlyReferencesOfSameType = (reference, value) => {
-    if (_api.util.isPrimitive(value)) {
-        return false
-    } else if (_api.util.isReference(value)) {
-        return reference.type() === value.type()
-    } else if (typeof value === "object") {
-        for (let key in value) {
-            // Recursion
-            if(!_api.engine.binding.containsOnlyReferencesOfSameType(reference, value[key])) {
-                return false
-            }
-        }
-        return true
     }
  }
  

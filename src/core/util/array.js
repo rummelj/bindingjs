@@ -179,6 +179,18 @@ _api.util.array.remove = (array, element) => {
 }
 
 /*
+** Removes all elements from the array, that meet the condition
+*/
+_api.util.array.removeIf = (array, condition) => {
+    for (var i = 0; i < array.length; i++) {
+        if (condition(array[i], i, array)) {
+            _api.util.array.remove(array, array[i])
+            i--
+        }
+    }
+}
+
+/*
 ** Returns the number of elements in array, that meet the condition
 */
 _api.util.array.count = (array, condition) => {

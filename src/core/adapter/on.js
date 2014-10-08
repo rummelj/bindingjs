@@ -16,17 +16,10 @@ $api.plugin("on", ($api, _api) => {
             this.observerCounter = new _api.util.Counter()
         }
         
-        notify (element, eventType) {
-            _api.util.each(this.observer.get(element), (events) => {
-                if (events.hasKey(eventType)) {
-                    _api.util.each(this.observer.get(element).get(eventType), (observer) => {
-                        observer.callback()
-                    })
-                }
-            })
-        }
-        
         observe (element, path, params, callback) {
+            if (path.length === 0) {
+                throw _api.util.exception("The on adapter expects a qualifier")
+            }
             let qualifier = path[0]
             let observerId = this.observerCounter.getNext()
             let keys = []
@@ -54,12 +47,30 @@ $api.plugin("on", ($api, _api) => {
                 observer.element.off(observer.qualifier, observer.handler)
             }
         }
+
+        // Fires events if value is true
+        set (element, path, value) {
+            if (path.length === 0) {
+                throw _api.util.exception("The on adapter expects a qualifier")
+            }
+            if (value) {
+                switch (path[0]) {
+                    case "focus": element.focus()
+                        break
+                    default: throw _api.util.exception("Could not interpret qualifier " +
+                        path[0] + " when setting on adapter")
+                }
+            }
+        }
         
         getPaths (element, path) {
             return [path]
         }
         
         getValue (element, path) {
+            if (path.length === 0) {
+                throw _api.util.exception("The on adapter expects a qualifier")
+            }
             return this.lastEvents.get(element).get(path[0])
         }
         

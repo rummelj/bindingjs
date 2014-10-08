@@ -46,7 +46,7 @@ _api.util.isPrimitive = (value) => {
     return type  === "boolean" ||
            type  === "number"  ||
            type  === "string"  ||
-           value === "undefined" ||
+           type  === "undefined" ||
            value === null
 }
 
@@ -59,6 +59,13 @@ _api.util.convertIfReference = (value) => {
     } else {
         return value
     }
+}
+
+/*
+** Returns the same object with all References replaced by their values
+*/
+_api.util.convertToValues = (value) => {
+    return _api.engine.binding.convertToValues(value)
 }
 
 /*

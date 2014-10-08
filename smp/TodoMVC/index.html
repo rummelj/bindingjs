@@ -1,4 +1,11 @@
 <!doctype html>
+<!-- Todo
+    - The edit should be saved on both blur and enter, and the editing class should be removed. Make sure to .trim() the input and then check that it's not empty. !!!If it's empty the todo should instead be destroyed. If escape is pressed during the edit, the edit state should be left and any changes be discarded.!!!
+    
+    - Clear completed and toggle all does not show on reload because todo is not changed so the initiator does not fire
+    
+    - Routing
+-->
 <html lang="en" data-framework="bindingjs">
   <head>
     <meta charset="utf-8">
@@ -7,66 +14,104 @@
     <script src="../../tst/res/jquery-2.1.1.min.js"></script>
     <script src="../../bld/stage3/src/core/binding.js"></script>
     <script src="../../bld/stage3/src/plugin/binding.adapter.model.json.js"></script>
-    <script src="../../bld/stage3/src/plugin/watch.js"></script>
-    <script src="../../bld/stage3/src/plugin/binding.adapter.view.text.js"></script>
-    <script src="../../bld/stage3/src/plugin/binding.adapter.view.value.js"></script>
-    <script src="../../bld/stage3/src/plugin/binding.adapter.view.attr.js"></script>
     <script type="text/binding">
       @binding TodoMVC {
+        
+        // Add new item on enter and reset input field
         #new-todo {
-            value <- $newTodoText
-            value -> $newTodoText
-            // Use @newTodoText instead of $newTodoText
-            // on:keydown("enter") +> $todos -> push({ completed: false, title: $newTodoText }) -> $todos
+            // Trim value
+            @newTitle <- trim <- value
+            // Only add if non-empty
+            on:keydown("enter") +> 
+                @newTitle === "" ? 
+                    $todos :
+                    $todos + { completed: false, title: @newTitle }
+                        -> $todos
+            // Whenever todos changes, store them
+            $todos -> $storeTodos
+            // Reset to empty string
+            on:keyup("enter") +> "" -> value
         }
-        #todo-list li (@todo, @index: $todos) {
-          #socket::todoSocket
-          .view>input {
-            @todoCompleted <- addCompletedToPath <- @todo
-            attr:checked <- @todoCompleted
-            // on:click +> attr:checked <-> @todo.completed
-          }
-          .view button {
-            // Destroy
-            // on:click +> $todos -> destroy(@index) -> $todos
-          }
-          @todoTitle <- addTitleToPath <- @todo
-          .view label {
-            text <- @todoTitle
-          }
-          // @tempTitle <~ ""
-          .edit {
-            value <- @todoTitle
-            value -> @todoTitle
-            // Instead:
-            // value <-> @tempTitle
-          }
-          // @editing <~ false
-          // attr:editing <- @editing
-          label {
-            // on:dblclick +> true -> @editing
-          }
-          .edit {
-            // on:blur, on:keydown("esc") +> false -> @editing
-            // on:blur +> @tempTitle -> @todoTitle
-          }
+            
+        // When there are no todos, #main and #footer should be hidden.
+        #main, #footer ($todos.length > 0) {
+            // Iterate list of todos
+            #todo-list li (@todo, @index: $todos) {
+                @completed <- @todo.completed
+                @title <- @todo.title
+                class:completed <- @completed
+                // Indicator if in editing mode
+                @editing <~ false
+                class:editing <- @editing
+                
+                // Display title
+                .view label {
+                    text <- @title
+                    // Switch into editing mode if doubleclicked
+                    on:dblclick +> true -> @editing
+                }
+                // Mark todo as completed
+                .view input {
+                    on:click +> attr:checked <-> @completed
+                    // If toggleAll changes it also updates the single todo
+                    @toggleAllByUser +> @toggleAll === undefined ? @completed : @toggleAll -> @completed
+                }
+                // Delete todo
+                .view button {
+                    on:click +> $todos - $todos[@index] -> $todos
+                }
+                
+                // Allow temporary editing
+                // Adding the empty string is necessary to prevent storing
+                // A Reference
+                @tempTitle <~ @title + ""
+                .edit {
+                    // Focus if @editing becomes true
+                    @editing -> on:focus
+                    // Write value to temporary title
+                    value <-> @tempTitle
+                    // Just leave editing mode if blur, esc or enter occurs
+                    on:blur, on:keydown("esc", "enter") +> false -> @editing
+                    // Reset tempTitle on leaving edit mode
+                    //on:blur, on:keydown("esc", "enter") +> @title -> @tempTitle
+                    // Write actual title back if blur or enter occurs
+                    on:blur, on:keydown("enter") +> @tempTitle -> trim -> @title
+                }
+            }
+            
+            // Toggle all if the completeds count equals the number of todos
+            // Do this evaluation only if the list of todos changes
+            @toggleAll <- $countCompleted === $todos.length <+ $todos
+            @toggleAllByUser <~ undefined
+            #toggle-all {
+                // toggleAll represents the computed value of the toggle
+                // which is not necessarily set by the user
+                @toggleAll <-> attr:checked <+ on:click
+                // if the user actively clicks toggleAllByUser is used
+                // to notify the todo items
+                on:click -> @toggleAllByUser
+            }
         }
         
         #footer {
-          @completed <- countCompleted <- $todos
+          @completed <- $countCompleted <+ $todos
+          @incompleted <- $todos.length - @completed
           #todo-count {
             strong {
-              text <- $getRemaining
+              // Display number of incomplete
+              text <- @incompleted
             }
             span {
-              text <- $getTodoString
+              // Show correct string
+              text <- @incompleted === 0 || @incompleted > 1 ? "items" : "item"
             }
           }
-          @completedsPresent <- gtZero <- @completed
-          #clear-completed (@completedsPresent) {
+          // Show only if number of completeds is not zero
+          #clear-completed (@completed > 0) {
             span {
               text <- @completed
             }
+            on:click +> $todos -> clearCompleted -> $todos
           }
         }
         
@@ -92,117 +137,56 @@
     <script type="text/javascript">
     var model = {
         // completed: boolean, title: string
-        todos: [],
-        newTodoText : "",
-        getTodoString : function() {
-            return model.todos.length == 1 ? "item" : "items"
-        },
-        getRemaining : function() {
+        todos: (function() {
+            if (typeof(Storage) !== "undefined" && localStorage.getItem("todos-bindingjs")) {
+                return JSON.parse(localStorage.getItem("todos-bindingjs"))
+            } else {
+                return []
+            }
+        })(),
+        countCompleted: function() {
             var count = 0
             for (var i = 0; i < model.todos.length; i++) {
-                var todo = model.todos[i]
-                if (todo.completed) {
-                    count++
-                }
+                count += model.todos[i].completed ? 1 : 0
             }
             return count
+        },
+        storeTodos: function() {
+            if (typeof(Storage) !== "undefined") {
+                localStorage.setItem("todos-bindingjs", JSON.stringify(model.todos))
+            }
         }
     }
-      
+    
+    var binding
     $(function() {
         // Connectors, most of them can be removed as soon as expressions are available
-        BindingJS.plugin("addCompletedToPath", function($api, _api) {
+        BindingJS.plugin("trim", function($api, _api) {
             return {
-                process: function(input) {
-                    if (!_api.util.isReference(input)) {
-                        return input.completed
-                    } else {
-                        return input.cloneAndAddToPath("completed")
-                    }
+                process: function(string) {
+                    string = _api.util.convertIfReference(string)
+                    return string.trim()
                 }
             }
         })
-        BindingJS.plugin("addTitleToPath", function($api, _api) {
+        BindingJS.plugin("clearCompleted", function($api, _api) {
             return {
-                process: function(input) {
-                    if (!_api.util.isReference(input)) {
-                        return input.title
-                    } else {
-                        return input.cloneAndAddToPath("title")
-                    }
-                }
-            }
-        })
-        BindingJS.plugin("countCompleted", function($api, _api) {
-            return {
-                process: function(input) {
-                    var count = 0
-                    for (var i = 0; i < input.length; i++) {
-                        var item = input[i]
-                        item = _api.util.convertIfReference(item)
-                        if (item.completed) {
-                          count++
-                        }
-                    }
-                    return parseInt(input) + 1
-                }
-            }
-        })
-        BindingJS.plugin("gtZero", function($api, _api) {
-            return {
-                process: function(input) {
-                    input = _api.util.convertIfReference(input)
-                    return input > 0
+                process: function(todos) {
+                    _api.util.array.removeIf(todos, function (todo) {
+                        return _api.util.convertToValues(todo).completed
+                    })
+                    return todos
                 }
             }
         })
 
-        var binding = BindingJS
+        binding = BindingJS
             .create()
             .template("#todoapp")
             .binding($("script[type='text/binding']"))
             .model(model)
-          
-        binding.socket("TodoMVC.todoSocket").onInsert(function (keys, element) {
-            var li = element.parent()
-            var index = keys[0]
-            var value = model.todos[index]
-            li.find(".destroy").on("click", function() {
-                for (var i = 0; i < model.todos.length; i++) {
-                  if (model.todos[i] === value) {
-                      model.todos.splice(i, 1)
-                      break
-                  }
-                }
-            })
-            var label = li.find("label")
-            var edit = li.find(".edit")
-            label.on("dblclick", function() {
-                li.addClass('editing')
-                edit.focus()
-            })
-            edit.on("blur", function() {
-                li.removeClass('editing')
-            })
-            var toggle = li.find(".toggle")
-            toggle.change(function() {
-                value.completed = toggle.prop("checked")
-                model.todos.notify
-            })
-          
-            element.detach()
-        })
-
-        binding
             .mount("#todoapp")
             .activate()
-              
-        $("#new-todo").keyup(function(e) {
-            if (e.keyCode == 13) {
-                model.todos.push({ completed: false, title: model.newTodoText })
-                model.newTodoText = ""
-            }
-        })
     })
 
     // Required for Selenium Test only
@@ -233,7 +217,7 @@
         </ul>
       </section>
       <footer id="footer">
-        <!-- span id="todo-count"><strong></strong> <span></span> left</span>
+        <span id="todo-count"><strong></strong> <span></span> left</span>
           <ul id="filters">
             <li>
               <a class="selected" href="#/">All</a>
@@ -245,7 +229,7 @@
               <a href="#/completed">Completed</a>
             </li>
           </ul>
-          <button id="clear-completed">Clear completed (<span></span>)</button -->
+          <button id="clear-completed">Clear completed (<span></span>)</button>
       </footer>
     </section>
     <footer id="info">

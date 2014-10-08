@@ -52,7 +52,7 @@ class BindingScope {
     }
     
     observeReference(id, value) {
-        if (_api.util.isReference(value)) {
+        if (_api.util.isReference(value) && value.isObservable()) {
             let observerId = value.observe(() => {
                 if (!this.paused) {
                     this.notify(id)
@@ -66,7 +66,7 @@ class BindingScope {
     
     unobserveReference(id) {
         let item = this.observerIds[id]
-        if (item) {
+        if (item && _api.util.isReference(item.reference) && item.reference.isObservable()) {
             item.reference.unobserve(item.observerId)
         }
         delete this.observerIds[id]
@@ -74,9 +74,7 @@ class BindingScope {
     
     destroy(id) {
         // If a reference was previously in bindingScope, unobserve it
-        if (_api.util.isReference(this.data[id])) {
-            this.data[id].unobserve(this.observerIds[id])
-        }
+        this.unobserveReference(id)
         
         // Purge the id from data
         delete this.data[id]

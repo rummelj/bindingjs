@@ -43,6 +43,10 @@ class Reference {
         this.path = path
     }
     
+    isObservable () {
+        return _api.util.object.isDefined(this.adapter.observe) && typeof this.adapter.observe === "function"
+    }
+    
     observe (callback) {
         let observerId = 0
         if (this.adapter.type() === "model") {
