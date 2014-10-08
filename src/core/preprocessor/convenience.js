@@ -98,7 +98,6 @@ _api.preprocessor.convenience.expression = (ast, bindingScopePrefix, counter) =>
 // TODO: Comment and explain idea
 _api.preprocessor.convenience.convertExpression = (ast, bindingScopePrefix, counter) => {
     if (!ast.isA("Variable")) {
-        console.log(ast.dump())
         let variables = []
         let fn = _api.preprocessor.convenience.getExpressionFn(ast, bindingScopePrefix, counter, variables)
         // If the expression does not need any variables, use a fake one
@@ -185,7 +184,12 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
                 let result = _api.util.convertIfReference(summands[0](input))
                 for (var i = 1; i < summands.length; i++) {
                     if (operands[i - 1] === "+") {
-                        result += _api.util.convertIfReference(summands[i](input))
+                        if (result instanceof Array) {
+                            let summand = _api.engine.binding.convertToValues(summands[i](input))
+                            _api.util.array.addAll(result, summand)
+                        } else {
+                            result += _api.util.convertIfReference(summands[i](input))
+                        }
                     } else if (operands[i - 1] === "-") {
                         result -= _api.util.convertIfReference(summands[i](input))
                     } else {
