@@ -162,11 +162,13 @@ selectorPseudo
     =   ":" t:selectorPseudoTagNameSimple {
             return AST("PseudoSimple").set({ name: t })
         }
-    /   ":" t:selectorPseudoTagNameArg args:("(" _ string _ ")")? {
-            return AST("PseudoArg").set({ name: t }).add(args[1])
+    /   ":" t:selectorPseudoTagNameArg args:("(" _ [^\)]* _ ")")? {
+            // TODO: Add parameters to AST if necessary
+            return AST("PseudoArg").set({ name: t })
         }
     /   ":" t:selectorPseudoTagNameComplex args:("(" _ selector _ ")")? {
-            return AST("PseudoComplex").set({ name: t }).add(args[1])
+            // TODO: Add parameters to AST if necessary
+            return AST("PseudoComplex").set({ name: t })
         }
 
 selectorPseudoTagNameSimple "name of pseudo-selector (simple)"

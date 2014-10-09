@@ -1,201 +1,359 @@
 <!doctype html>
-<!-- Todo
-    - The edit should be saved on both blur and enter, and the editing class should be removed. Make sure to .trim() the input and then check that it's not empty. !!!If it's empty the todo should instead be destroyed. If escape is pressed during the edit, the edit state should be left and any changes be discarded.!!!
-    
-    - Clear completed and toggle all does not show on reload because todo is not changed so the initiator does not fire
-    
-    - Routing
--->
 <html lang="en" data-framework="bindingjs">
   <head>
     <meta charset="utf-8">
     <title>BindingJS - TodoMVC</title>
     <link rel="stylesheet" href="common/base.css">
     <script src="../../tst/res/jquery-2.1.1.min.js"></script>
+    <!-- Include Library and JSON Model Adapter -->
     <script src="../../bld/stage3/src/core/binding.js"></script>
     <script src="../../bld/stage3/src/plugin/binding.adapter.model.json.js"></script>
     <script type="text/binding">
-      @binding TodoMVC {
-        
-        // Add new item on enter and reset input field
-        #new-todo {
-            // Trim value
-            @newTitle <- trim <- value
-            // Only add if non-empty
-            on:keydown("enter") +> 
-                @newTitle === "" ? 
-                    $todos :
-                    $todos + { completed: false, title: @newTitle }
-                        -> $todos
-            // Whenever todos changes, store them
-            $todos -> $storeTodos
-            // Reset to empty string
-            on:keyup("enter") +> "" -> value
-        }
-            
-        // When there are no todos, #main and #footer should be hidden.
-        #main, #footer ($todos.length > 0) {
-            // Iterate list of todos
-            #todo-list li (@todo, @index: $todos) {
-                @completed <- @todo.completed
-                @title <- @todo.title
-                class:completed <- @completed
-                // Indicator if in editing mode
-                @editing <~ false
-                class:editing <- @editing
+        // Define Binding Specification with name "TodoMVC"
+        @binding TodoMVC {
+            // Select the input that allows to enter a new todo item
+            #new-todo {
+                // Store the trimmed value in a temporary variable
+                @newTitle <- trim <- value
                 
-                // Display title
-                .view label {
-                    text <- @title
-                    // Switch into editing mode if doubleclicked
-                    on:dblclick +> true -> @editing
-                }
-                // Mark todo as completed
-                .view input {
-                    on:click +> attr:checked <-> @completed
-                    // If toggleAll changes it also updates the single todo
-                    @toggleAllByUser +> @toggleAll === undefined ? @completed : @toggleAll -> @completed
-                }
-                // Delete todo
-                .view button {
-                    on:click +> $todos - $todos[@index] -> $todos
-                }
+                // If enter is pressed, add a new todo which is not completed
+                // and has the trimmed title as its title. If this title is empty
+                // the propagation of the binding is aborted, so that no todos
+                // with empty titles can be added.
+                on:keydown("enter") +>
+                    $todos + { completed: false, title: @newTitle } -> abortIf(@newTitle === "") -> $todos
+                    
+                // Whenever todos changes, store it
+                $todos -> $storeTodos
                 
-                // Allow temporary editing
-                // Adding the empty string is necessary to prevent storing
-                // A Reference
-                @tempTitle <~ @title + ""
-                .edit {
-                    // Focus if @editing becomes true
-                    @editing -> on:focus
-                    // Write value to temporary title
-                    value <-> @tempTitle
-                    // Just leave editing mode if blur, esc or enter occurs
-                    on:blur, on:keydown("esc", "enter") +> false -> @editing
-                    // Reset tempTitle on leaving edit mode
-                    //on:blur, on:keydown("esc", "enter") +> @title -> @tempTitle
-                    // Write actual title back if blur or enter occurs
-                    on:blur, on:keydown("enter") +> @tempTitle -> trim -> @title
-                }
+                // After the todo was stored, reset the text box value to the empty string
+                on:keyup("enter") +> "" -> value
             }
             
-            // Toggle all if the completeds count equals the number of todos
-            // Do this evaluation only if the list of todos changes
-            @toggleAll <- $countCompleted === $todos.length <+ $todos
-            @toggleAllByUser <~ undefined
-            #toggle-all {
-                // toggleAll represents the computed value of the toggle
-                // which is not necessarily set by the user
-                @toggleAll <-> attr:checked <+ on:click
-                // if the user actively clicks toggleAllByUser is used
-                // to notify the todo items
-                on:click -> @toggleAllByUser
+            // When there are no todos or the app is not initialized yet
+            // #main and #footer should be hidden.
+            #main, #footer ($initialized && $todos.length > 0) {
+                // Iterate list of todos
+                #todo-list li (@todo: $todos) {
+                    // Use aliases for better readability
+                    @completed <- @todo.completed
+                    @title <- @todo.title
+                    
+                    // Hide or show those todo items, that are valid regarding
+                    // the current filter. These bindings also trigger if
+                    // the completion state of the item changes
+                    $filter === "all"                           -> on:show
+                    $filter === "completed" && @completed       -> on:show
+                    $filter === "completed" && (!@completed)    -> on:hide
+                    $filter === "active"    && @completed       -> on:hide
+                    $filter === "active"    && (!@completed)    -> on:show
+                    
+                    // Add or remove the class attribute completed
+                    // according to the completion state of the todo
+                    class:completed <- @completed
+                    
+                    // Initialize temporary variable as an indicator 
+                    // if in editing mode
+                    @editing <~ false
+                    
+                    // Add or remove the class attribute editing
+                    // according to the current editing state
+                    class:editing <- @editing
+                    
+                    // Select the label
+                    .view label {
+                        // Display the title of the todo
+                        text <- @title
+                        
+                        // Switch into editing mode if doubleclicked
+                        on:dblclick +> true -> @editing
+                    }
+                    
+                    // Select toggle
+                    .view input {
+                        // Keep the completion state in sync with the
+                        // checked state of the toggle
+                        on:click +> attr:checked <-> @completed
+                        
+                        // toggleAll represents the current state of the all toggle
+                        // since the order in which bindings are executed is not
+                        // guaranteed, it could be undefined by the first execution
+                        // of this binding in which case this binding is aborted.
+                        // The individual binding should only change, if the toggle
+                        // was actually changed by the user and not by another binding.
+                        // This could occur, when all todos are checked and one is
+                        // unchecked, so that the all toggle is unchecked by the binding
+                        // but not by the user. toggleAllByUser realizes this behaviour
+                        @toggleAllByUser +>
+                            @toggleAll -> abortIf(@toggleAll === undefined) -> @completed
+                    }
+                    
+                    // Select deletion button
+                    .view button {
+                        // If the button is clicked, remove the todo
+                        on:click +> $todos - @todo -> $todos
+                    }
+                    
+                    // Select the edit input
+                    .edit {
+                        // Store the title as a string temporarily in
+                        // tempTitle. Since @title is only an alias
+                        // the same alias would be written into @tempTitle.
+                        // To prevent this and to get the actual value,
+                        // the empty string is added to @title
+                        @tempTitle <~ @title + ""
+                        
+                        // If the editing mode is activated, focus the text box
+                        @editing -> on:focus
+                        
+                        // Store the value entered in the temporary variable
+                        value <-> @tempTitle
+                        
+                        // The following part is a bit hacky, the reason is
+                        // that BindingJS is not made for this amount of logic.
+                        // However, since this is an example, we show that BindingJS
+                        // is powerful enough to do it, but usually you'd rather
+                        // write JavaScript for this functionality.
+                        // This part realizes the requirement, that the old value
+                        // is written back if blur occurs or enter is pressed
+                        // but discarded if escape is pressed. The challenge obviously
+                        // is, that blur also occurs, if escape is pressed as soon
+                        // as the editing mode is left.
+                        
+                        // Use indicator variables, that are all initalized with false once
+                        @blur <~ false
+                        @enterPressed <~ false
+                        @escPressed <~ false
+                        @save <~ false
+                        @discard <~ false
+                        
+                        // If blur occurs, write blur variable, and so on
+                        on:blur +> true -> @blur
+                        on:keydown("enter") +> true -> @enterPressed
+                        on:keydown("esc") +> true -> @escPressed
+                        
+                        // The new title should be saved if either enter is pressed
+                        // or blur occurs, but not if escape is pressed
+                        (@enterPressed || @blur) && (!@escPressed) -> @save
+                        // The new title should be discarded if escape is pressed
+                        @escPressed -> @discard
+
+                        // Whenever save changes, this binding is propagated,
+                        // but it should actually be only propagated if @save
+                        // becomes true, hence the aborter
+                        // On save the new title is just written back
+                        @save +> @tempTitle -> abortIf(!@save) -> trim -> @title
+                        
+                        // If, however also the title is empty, the todo item is removed.
+                        // Internally inputs are passed to Connectors as an array, so that
+                        // the Connector can discern the inputs if they come from a Sequence.
+                        // If there is no sequence, BindingJS internally unwraps the array
+                        // consisting of one element so that the Connector receives only one input.
+                        // In this case however, if there is only one todo left and it is deleted
+                        // the connector would receive the todo as is instead of an array of one
+                        // todo item. This is a problem, we are aware of and it will be fixed soon.
+                        // The first line therefore is only there to adress this problem
+                        // The second line works similar to the binding by aborting if either
+                        // save was not true or the title is not empty
+                        @save +> $todos.length === 2 ? [$todos - @todo] : $todos - @todo 
+                                 -> abortIf((!@save) || (@title !== "")) -> $todos
+                        
+                        // If discard changes its value (and is now actually true), @tempTitle
+                        // is resetted to the original @title, so that upon the next entry into
+                        // the editing mode, the old changes are no longer visible
+                        @discard +> @title + "" -> abortIf(!@discard) -> @tempTitle
+                        
+                        // After either a save or discard action was done, all temporary variables
+                        // are resetted to false. Also the editing mode is left by setting @editing
+                        // to false
+                        @save, @discard +> false, false,         false,       false, false,    false 
+                                            -> abortIf((!@save) && (!@discard)) -> 
+                                           @blur, @enterPressed, @escPressed, @save, @discard, @editing
+                    }
+                }
+                
+                // The state of the toggle all should change, when all todos are completed.
+                // This binding realizes this and is an example how to use a function
+                // inside the model. Since the function is not observed by the model adapter
+                // and therefore BindingJS can not know on which inputs the function depends,
+                // these have to be made explicit through initiators. First, whenever the
+                // array of todos changes, the function has to be reevaluated and also
+                // after the app has initially loaded
+                @toggleAll <- $countCompleted === $todos.length <+ $todos, $initialized
+                
+                // To pass the information, that the all toggle was clicked by the user
+                // to the individual todos, a simple counter is used. Above, this counter
+                // is then used as an initiator, so that whenever the counter changes its
+                // value or is increased, the individual todo changes its state
+                @toggleAllByUser <~ 0
+                
+                // Select the all toggle
+                #toggle-all {
+                    // toggleAll represents the computed value of the toggle
+                    // which is not necessarily set by the user
+                    @toggleAll <-> attr:checked <+ on:click
+                    
+                    // If the user actively clicks toggleAllByUser is increased
+                    // by one to notify the indivdual todo items (see above)
+                    on:click +> @toggleAllByUser + 1 -> @toggleAllByUser
+                }
+            }
+            
+            // Select the footer
+            #footer {
+                // countCompleted is a function in the model and the binding
+                // needs to know its dependencies
+                @completed <- $countCompleted <+ $todos, $initialized
+                
+                // The number of incompleted todos is their total number
+                // minus those that are complete
+                @incompleted <- $todos.length - @completed
+                
+                // Select the remaining items label
+                #todo-count {
+                    // Select the number tag
+                    strong {
+                        // Display number of incomplete
+                        text <- @incompleted
+                    }
+                    // Select the item / items span
+                    span {
+                        // Show correct string
+                        text <- @incompleted === 0 || @incompleted > 1 ? "items" : "item"
+                    }
+                }
+                // Select the clear completed button and show it 
+                // only if number of completeds is greater than 0
+                #clear-completed (@completed > 0) {
+                    // Set the number inside the button
+                    span {
+                        text <- @completed
+                    }
+                    // If the button is clicked, a connector (see below)
+                    // clears all completed todos
+                    on:click +> $todos -> clearCompleted -> $todos
+                }
+                // Select filters
+                #filters {
+                    // Make first link bold, whenever filter is set to "all"
+                    li:nth-child(1) a {
+                        class:selected <- $filter === "all"
+                    }
+                    // Make second link bold, whenever filter is set to "active"
+                    li:nth-child(2) a {
+                        class:selected <- $filter === "active"
+                    }
+                    // Make third link bold, whenever filter is set to "completed"
+                    li:nth-child(3) a {
+                        class:selected <- $filter === "completed"
+                    }
+                }
             }
         }
-        
-        #footer {
-          @completed <- $countCompleted <+ $todos
-          @incompleted <- $todos.length - @completed
-          #todo-count {
-            strong {
-              // Display number of incomplete
-              text <- @incompleted
-            }
-            span {
-              // Show correct string
-              text <- @incompleted === 0 || @incompleted > 1 ? "items" : "item"
-            }
-          }
-          // Show only if number of completeds is not zero
-          #clear-completed (@completed > 0) {
-            span {
-              text <- @completed
-            }
-            on:click +> $todos -> clearCompleted -> $todos
-          }
-        }
-        
-        /*
-            Filters:
-            @filterText <~ "all"
-            @todosShown <- filter(@filterText == "all" ? {} : {completed: @filterText == "completed"}) <- $todos
-            a.all {
-                on:click +> "all" -> @filterText
-                class:bold <- @filterText == "all"
-            }
-            a.active {
-                on:click +> "active" -> @filterText
-                class:bold <- @filterText == "active"
-            }
-            a.completed {
-                on:click +> "completed" -> @filterText
-                class:bold <- @filterText == "completed"
-            }
-        */
-      }
     </script>
+    <!-- Presentation Model and BindingJS Setup -->
     <script type="text/javascript">
+    // Presentation Model
     var model = {
-        // completed: boolean, title: string
+        // Array of {completed: boolean, title: string}
         todos: (function() {
             if (typeof(Storage) !== "undefined" && localStorage.getItem("todos-bindingjs")) {
+                // Try to get array from localStorage
                 return JSON.parse(localStorage.getItem("todos-bindingjs"))
             } else {
+                // Return empty array by default
                 return []
             }
         })(),
+        // State of the filter, can be "all", "active" or "completed"
+        filter: "all",
+        // Function used in binding to count the number of completed todos
         countCompleted: function() {
             var count = 0
-            for (var i = 0; i < model.todos.length; i++) {
+            for (var i = 0; i < model.todos.length; i++)
                 count += model.todos[i].completed ? 1 : 0
-            }
             return count
         },
+        // Function used in binding to save the todos array in the localStorage
+        // whenever a change to todos is made
         storeTodos: function() {
-            if (typeof(Storage) !== "undefined") {
+            if (typeof(Storage) !== "undefined")
                 localStorage.setItem("todos-bindingjs", JSON.stringify(model.todos))
-            }
-        }
+        },
+        // Indicator, whether the setup code below is finished
+        initialized: false
     }
     
-    var binding
+    // On page ready, BindingJS Configuration & Setup
     $(function() {
-        // Connectors, most of them can be removed as soon as expressions are available
+        // Register Connectors
         BindingJS.plugin("trim", function($api, _api) {
+            // Trims a string
             return {
                 process: function(string) {
                     string = _api.util.convertIfReference(string)
                     return string.trim()
-                }
-            }
-        })
+        }}})
         BindingJS.plugin("clearCompleted", function($api, _api) {
+            // Takes a list of todos and returns a list of todos,
+            // where all completed are removed
             return {
                 process: function(todos) {
                     _api.util.array.removeIf(todos, function (todo) {
                         return _api.util.convertToValues(todo).completed
                     })
                     return todos
-                }
+        }}})
+        BindingJS.plugin("abortIf", function($api, _api) {
+            // Returns the input if the first parameter is false and
+            // otherwise the abortSymbol of BindingJS, which stops the
+            // propagation of a Binding
+            return {
+                process: function(input, params) {
+                    if (params.length === 1 && _api.util.convertToValues(params[0]) === true) {
+                        return $api.abortSymbol
+                    } else {
+                        return input
+        }}}})
+
+        // Set up BindingJS
+        var binding = BindingJS
+                        .create()                                   // Creates an instance
+                        .template("#todoapp")                       // Sets the template
+                        .binding($("script[type='text/binding']"))  // Sets the binding specification
+                        .model(model)                               // Sets the model
+                        .mount("#todoapp")                          // Mounts the DOM Fragment, where the template was
+                        .activate()                                 // Activates the view data binding
+            
+            
+        // Set up Routing
+        var setRoute = function() {
+            // Sets the filter attribute of model according to the
+            // current location
+            var route = location.hash
+            switch (route) {
+                case "#/active":
+                    model.filter = "active"
+                    break
+                case "#/completed":
+                case "#!/":
+                    model.filter = "completed"
+                    break
+                default:
+                    model.filter = "all"
             }
-        })
-
-        binding = BindingJS
-            .create()
-            .template("#todoapp")
-            .binding($("script[type='text/binding']"))
-            .model(model)
-            .mount("#todoapp")
-            .activate()
+        }
+        // Execute once
+        setRoute()
+        // Execute whenever the hash changes
+        window.addEventListener("hashchange", setRoute)
+        // Initialization done
+        model.initialized = true
     })
-
-    // Required for Selenium Test only
-    function pushQux() {
-        model.todos.push({ completed: false, title: "qux" })
-    }
     </script>
   </head>
   <body>
+    <!-- Template DOM Fragment and later DOM Fragment -->
     <section id="todoapp">
       <header id="header">
         <h1>todos</h1>
@@ -235,7 +393,7 @@
     <footer id="info">
       <p>Double-click to edit a todo</p>
       <p>Written by <a href="https://github.com/rummelj">Johannes Rummel</a></p>
-      <!-- p>Part of <a href="http://todomvc.com">TodoMVC</a></p -->
+      <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
     </footer>
   </body>
 </html>

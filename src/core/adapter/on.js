@@ -55,8 +55,9 @@ $api.plugin("on", ($api, _api) => {
             }
             if (value) {
                 switch (path[0]) {
-                    case "focus": element.focus()
-                        break
+                    case "focus": element.focus(); break
+                    case "show": element.show(); break
+                    case "hide": element.hide(); break
                     default: throw _api.util.exception("Could not interpret qualifier " +
                         path[0] + " when setting on adapter")
                 }

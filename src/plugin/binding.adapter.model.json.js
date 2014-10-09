@@ -9,6 +9,7 @@
 
 /* global JSON */
 /* global setInterval */
+/* global Object */
 
 BindingJS.plugin("$", ($api, _api) => {
     class JsonAdapter {
@@ -80,7 +81,12 @@ BindingJS.plugin("$", ($api, _api) => {
                 this.observer.set(model, [])
                 this.oldModels.set(model, _api.util.object.clone(model))
                 let self = this
-                setInterval(() => { self.notify(model) }, 50)
+                if (!_api.util.object.isDefined(Object.observe)) {
+                    setInterval(() => { self.notify(model) }, 50)
+                } else {
+                    // TODO: Refactor
+                    this.observeModel(model, model)
+                }
             }
             
             let id = this.counter.getNext()
@@ -90,6 +96,20 @@ BindingJS.plugin("$", ($api, _api) => {
             return id
         }
         
+        // TODO: Refactor, this is inefficient, Object.observe already
+        // Provides the paths that are produced by compare in notify
+        // Also new objects or arrays need to be observed
+        observeModel (model, ref) {
+            let self = this
+            if (ref instanceof Array || typeof ref === "object") {
+                Object.observe(ref, () => {
+                    self.notify(model)
+                })
+                _api.util.each(ref, (item) => { this.observeModel(model, item) })
+            }
+        }
+        
+        // TODO: Refactor to actually unobserve model if no more ids are present
         unobserve (id) {
             _api.util.each(this.observer.getKeys(), (model, _, __, breakOuter) => {
                 let found = false
