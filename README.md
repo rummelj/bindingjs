@@ -1,5 +1,4 @@
-BindingJS
-=========
+![BindingJS -- Separable, Reactive, Model-Agnostic View Data Binding](https://raw.githubusercontent.com/rummelj/bindingjs/master/resources/logo.png)
 
 BindingJS is a view data binding library for single page web applications. Another one? Yes! One that combines all the cool stuff, you may already know from other libraries like Knockout or AngularJS. BindingJS is not completely different, but has unique characteristics, that will convince you.
 
