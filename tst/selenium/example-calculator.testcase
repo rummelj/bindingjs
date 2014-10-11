@@ -13,30 +13,64 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>${baseUrl}/smp/Textbox/index.html</td>
+	<td>${baseUrl}/smp/Calculator/index.html</td>
 	<td></td>
+</tr>
+<tr>
+	<td>assertValue</td>
+	<td>css=#factor1</td>
+	<td>4</td>
+</tr>
+<tr>
+	<td>assertValue</td>
+	<td>css=#factor2</td>
+	<td>7</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=#result</td>
+	<td>28</td>
 </tr>
 <tr>
 	<td>type</td>
-	<td>css=#username</td>
-	<td>foo</td>
+	<td>css=#factor1</td>
+	<td>12</td>
 </tr>
 <tr>
-	<td>verifyEval</td>
-	<td>window.model.text</td>
-	<td>foo</td>
+	<td>assertText</td>
+	<td>css=#result</td>
+	<td>84</td>
+</tr>
+<tr>
+	<td>type</td>
+	<td>css=#factor1</td>
+	<td>9</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=#result</td>
+	<td>63</td>
 </tr>
 <tr>
 	<td>getEval</td>
-	<td>window.model.text = &quot;bar&quot;</td>
+	<td>window.model.factor1 = 2</td>
 	<td></td>
 </tr>
 <tr>
-	<td>verifyValue</td>
-	<td>css=#username</td>
-	<td>bar</td>
+	<td>assertText</td>
+	<td>css=#result</td>
+	<td>14</td>
 </tr>
-
+<tr>
+	<td>getEval</td>
+	<td>window.model.factor2 = 3</td>
+	<td></td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>css=#result</td>
+	<td>6</td>
+</tr>
 </tbody></table>
 </body>
 </html>

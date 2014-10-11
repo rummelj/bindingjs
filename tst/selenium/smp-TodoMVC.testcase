@@ -11,6 +11,7 @@
 <thead>
 <tr><td rowspan="1" colspan="3">smp-TodoMVC</td></tr>
 </thead><tbody>
+<!--TODO: Refactor-->
 <tr>
 	<td>open</td>
 	<td>${baseUrl}/smp/TodoMVC/index.html</td>
@@ -164,7 +165,7 @@
 <!--Push new ToDo to model-->
 <tr>
 	<td>getEval</td>
-	<td>window.pushQux()</td>
+	<td>window.model.todos.push({title: &quot;qux&quot;, completed: false})</td>
 	<td></td>
 </tr>
 <tr>
@@ -238,7 +239,6 @@
 	<td>window.model.todos.length</td>
 	<td>3</td>
 </tr>
-
 </tbody></table>
 </body>
 </html>
