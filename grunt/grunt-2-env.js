@@ -12,22 +12,22 @@ module.exports = function (grunt) {
     /*  build environment  */
     grunt.config.merge({
         jshint: {
-            "env": [ "Gruntfile.js", "env/*.js" ]
+            "grunt": [ "Gruntfile.js", "grunt/*.js" ]
         },
         eslint: {
-            "env": [ "Gruntfile.js", "env/*.js" ]
+            "grunt": [ "Gruntfile.js", "grunt/*.js" ]
         },
         jsonlint: {
-            "env": {
+            "grunt": {
                 src: [
                     "package.json",
-                    "env/lint-1-jshint.json",
-                    "env/lint-2-eslint.json"
+                    "grunt/lint-1-jshint.json",
+                    "grunt/lint-2-eslint.json"
                 ]
             }
         },
         mkdir: {
-            "env": {
+            "grunt": {
                 options: {
                     create: [
                         "bld/stage1",
@@ -39,19 +39,19 @@ module.exports = function (grunt) {
             }
         },
         clean: {
-            "env": [ "bld", "cov" ]
+            "grunt": [ "bld", "cov" ]
         }
     })
 
     /*  common task aliasing  */
-    grunt.registerTask("env-build", [
-        "jshint:env",
-        "eslint:env",
-        "jsonlint:env",
-        "mkdir:env"
+    grunt.registerTask("grunt-build", [
+        "jshint:grunt",
+        "eslint:grunt",
+        "jsonlint:grunt",
+        "mkdir:grunt"
     ])
-    grunt.registerTask("env-clean", [
-        "clean:env"
+    grunt.registerTask("grunt-clean", [
+        "clean:grunt"
     ])
 }
 

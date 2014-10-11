@@ -13,12 +13,12 @@ module.exports = function (grunt) {
     grunt.config.merge({
         jshint: {
             options: {
-                jshintrc: "env/lint-1-jshint.json"
+                jshintrc: "grunt/lint-1-jshint.json"
             }
         },
         eslint: {
             options: {
-                config: "env/lint-2-eslint.json"
+                config: "grunt/lint-2-eslint.json"
             }
         },
         shell: {

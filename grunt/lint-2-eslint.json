@@ -1,5 +1,5 @@
 {
-    "env": {
+    "grunt": {
         "browser": false,
         "node": false,
         "amd": false

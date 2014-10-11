@@ -19,13 +19,13 @@ module.exports = function (grunt) {
 
     /*  common task aliasing  */
     grunt.registerTask("default", [ "build" ]);
-    grunt.registerTask("build",   [ "env-build", "src-build" ]);
-    grunt.registerTask("cleanup", [ "src-clean", "env-clean" ]);
+    grunt.registerTask("build",   [ "grunt-build", "src-build" ]);
+    grunt.registerTask("cleanup", [ "src-clean", "grunt-clean" ]);
 
     /*  load foreign tasks  */
     require("load-grunt-tasks")(grunt, { pattern: "grunt-*" });
 
     /*  load own tasks  */
-    grunt.loadTasks("env");
+    grunt.loadTasks("grunt");
 };
 

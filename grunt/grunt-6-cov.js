@@ -11,7 +11,7 @@
 module.exports = function (grunt) {
     /*  coverage testing  */
     grunt.config.merge({
-        env: {
+        grunt: {
             "instrumented": {
                 "COVERAGE_INSTRUMENTED": "true"
             }
@@ -51,7 +51,7 @@ module.exports = function (grunt) {
     grunt.registerTask("cover", [
         "clean:cover",
         "instrument",
-        "env:instrumented",
+        "grunt:instrumented",
         "test",
         "storeCoverage",
         "makeReport"
