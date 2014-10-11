@@ -30,16 +30,16 @@ module.exports = function (grunt) {
             "grunt": {
                 options: {
                     create: [
-                        "bld/stage1",
-                        "bld/stage2",
-                        "bld/stage3",
-                        "bld/stage4"
+                        "build/stage1",
+                        "build/stage2",
+                        "build/stage3",
+                        "build/stage4"
                     ]
                 }
             }
         },
         clean: {
-            "grunt": [ "bld", "cov" ]
+            "grunt": [ "build", "cov" ]
         }
     })
 

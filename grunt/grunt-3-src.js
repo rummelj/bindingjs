@@ -14,12 +14,12 @@ module.exports = function (grunt) {
         newer: {
             "stage1-src": {
                 src: [ "src/core/**/*.js", "src/plugin/**/*.js" ],
-                dest: "bld/stage1/done-jshint-src",
+                dest: "build/stage1/done-jshint-src",
                 options: { tasks: [ "jshint:stage1-src", "touch:stage1-src" ] }
             },
             "stage1-test": {
                 src: [ "test/**/*.js" ],
-                dest: "bld/stage1/done-jshint-test",
+                dest: "build/stage1/done-jshint-test",
                 options: { tasks: [ "jshint:stage1-test", "touch:stage1-test" ] }
             }
         },
@@ -35,18 +35,18 @@ module.exports = function (grunt) {
         },
         touch: {
             "stage1-src": {
-                src: [ "bld/stage1/done-jshint-src" ]
+                src: [ "build/stage1/done-jshint-src" ]
             },
             "stage1-test": {
-                src: [ "bld/stage1/done-jshint-test" ]
+                src: [ "build/stage1/done-jshint-test" ]
             }
         },
         clean: {
             "stage1-src": [
-                "bld/stage1/done-jshint-src"
+                "build/stage1/done-jshint-src"
             ],
             "stage1-test": [
-                "bld/stage1/done-jshint-test"
+                "build/stage1/done-jshint-test"
             ]
         }
     })
@@ -64,22 +64,22 @@ module.exports = function (grunt) {
         newer: {
             "stage2-src": {
                 src: [ "src/**/*.js", "!src/umd/*.js" ],
-                dest: "bld/stage2/src/core/wrapper.js",
+                dest: "build/stage2/src/core/wrapper.js",
                 options: { tasks: [ "es6transpiler:stage2-src" ] }
             },
             "stage2-src-peg": {
                 src: [ "src/core/dsl/grammar.pegjs" ],
-                dest: "bld/stage2/src/core/dsl/grammar.js",
+                dest: "build/stage2/src/core/dsl/grammar.js",
                 options: { tasks: [ "shell:stage2-src-peg" ] }
             },
             "stage2-src-umd": {
                 src: [ "src/umd/*.js" ],
-                dest: "bld/stage2/src/umd/umd-library-prolog.js",
+                dest: "build/stage2/src/umd/umd-library-prolog.js",
                 options: { tasks: [ "copy:stage2-src-umd" ] }
             },
             "stage2-test": {
                 src: [ "test/**/*.js" ],
-                dest: "bld/stage2/test/common.js",
+                dest: "build/stage2/test/common.js",
                 options: { tasks: [ "es6transpiler:stage2-test", "copy:stage2-test" ] }
             }
         },
@@ -97,7 +97,7 @@ module.exports = function (grunt) {
                     flatten: false,
                     cwd: "src",
                     src: [ "**/*.js", "!umd/*.js" ],
-                    dest: "bld/stage2/src/"
+                    dest: "build/stage2/src/"
                 }]
             },
             "stage2-test": {
@@ -106,14 +106,14 @@ module.exports = function (grunt) {
                     flatten: false,
                     cwd: "test",
                     src: "**/*.js",
-                    dest: "bld/stage2/test/"
+                    dest: "build/stage2/test/"
                 }]
             }
         },
         peg: {
             "stage2-src-peg": {
                 src:  "src/core/dsl/grammar.pegjs",
-                dest: "bld/stage2/src/core/dsl/grammar.js",
+                dest: "build/stage2/src/core/dsl/grammar.js",
                 options: {
                     exportVar: "module.exports",
                     allowedStartRules: [ "spec", "binding" ],
@@ -130,7 +130,7 @@ module.exports = function (grunt) {
                     "--optimize speed " +
                     "--cache " +
                     "src/core/dsl/grammar.pegjs " +
-                    "bld/stage2/src/core/dsl/grammar.js",
+                    "build/stage2/src/core/dsl/grammar.js",
                 options: {
                     stdout: true,
                     stderr: true
@@ -142,7 +142,7 @@ module.exports = function (grunt) {
                 files: [{
                     expand: true,
                     src: [ "src/umd/*.js" ],
-                    dest: "bld/stage2/",
+                    dest: "build/stage2/",
                     flatten: false
                 }]
             },
@@ -150,17 +150,17 @@ module.exports = function (grunt) {
                 files: [{
                     expand: true,
                     src: [ "test/**/*.bind" ],
-                    dest: "bld/stage2/",
+                    dest: "build/stage2/",
                     flatten: false
                 }]
             }
         },
         clean: {
             "stage2-src": [
-                "bld/stage2/src"
+                "build/stage2/src"
             ],
             "stage2-test": [
-                "bld/stage2/test"
+                "build/stage2/test"
             ]
         }
     })
@@ -179,20 +179,20 @@ module.exports = function (grunt) {
     grunt.config.merge({
         newer: {
             "stage3-src-core": {
-                src: [ "bld/stage2/src/core/*.js", "bld/stage2/src/umd/*.js" ],
-                dest: "bld/stage3/src/core/binding.js",
+                src: [ "build/stage2/src/core/*.js", "build/stage2/src/umd/*.js" ],
+                dest: "build/stage3/src/core/binding.js",
                 options: { tasks: [ "expand-include:stage3-src-core" ] }
             },
             "stage3-src-plugin": {
-                src: [ "bld/stage2/src/plugin/**/*.js" ],
-                dest: "bld/stage3/src/plugin/",
+                src: [ "build/stage2/src/plugin/**/*.js" ],
+                dest: "build/stage3/src/plugin/",
                 options: { tasks: [ "expand-include:stage3-src-plugin" ] }
             }
         },
         "expand-include": {
             "stage3-src-core": {
-                src: "bld/stage2/src/core/wrapper.js",
-                dest: "bld/stage3/src/core/binding.js",
+                src: "build/stage2/src/core/wrapper.js",
+                dest: "build/stage3/src/core/binding.js",
                 options: {
                     directiveSyntax: "js",
                     globalDefines: {
@@ -206,8 +206,8 @@ module.exports = function (grunt) {
             "stage3-src-plugin": {
                 files: [{
                     expand: true,
-                    src: [ "bld/stage2/src/plugin/**/*.js" ],
-                    dest: "bld/stage3/src/plugin/",
+                    src: [ "build/stage2/src/plugin/**/*.js" ],
+                    dest: "build/stage3/src/plugin/",
                     flatten: true
                 }],
                 options: {
@@ -217,7 +217,7 @@ module.exports = function (grunt) {
         },
         clean: {
             "stage3-src": [
-                "bld/stage3/src"
+                "build/stage3/src"
             ]
         }
     })
@@ -233,8 +233,8 @@ module.exports = function (grunt) {
     grunt.config.merge({
         newer: {
             "stage4": {
-                src: [ "bld/stage3/src/core/*.js", "bld/stage3/src/plugin/**/*.js" ],
-                dest: "bld/stage4/binding.min.js",
+                src: [ "build/stage3/src/core/*.js", "build/stage3/src/plugin/**/*.js" ],
+                dest: "build/stage4/binding.min.js",
                 options: { tasks: [ "uglify:stage4" ] }
             }
         },
@@ -242,8 +242,8 @@ module.exports = function (grunt) {
             "stage4": {
                 files: [{
                     expand: true,
-                    src: [ "bld/stage3/**/*.js" ],
-                    dest: "bld/stage4/",
+                    src: [ "build/stage3/**/*.js" ],
+                    dest: "build/stage4/",
                     rename: function (dest, src) { return dest + src.replace(/\.js$/, ".min.js") },
                     flatten: true
                 }]
@@ -255,7 +255,7 @@ module.exports = function (grunt) {
         },
         clean: {
             "stage4": [
-                "bld/stage4/src/**/*.min.js"
+                "build/stage4/src/**/*.min.js"
             ]
         }
     })

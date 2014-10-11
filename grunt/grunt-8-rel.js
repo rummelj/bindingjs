@@ -23,14 +23,14 @@ module.exports = function (grunt) {
             "release": {
                 command: "shtool tarball " +
                     "-c 'gzip -9' " +
-                    "-e 'BindingJS-*,.git,.gitignore,node_modules,bld/.done-*' " +
+                    "-e 'BindingJS-*,.git,.gitignore,node_modules,build/.done-*' " +
                     "-o BindingJS-<%= version_string %>.tar.gz " +
                     "."
             },
             "snapshot": {
                 command: "shtool tarball " +
                     "-c 'gzip -9' " +
-                    "-e 'BindingJS-*,.git,.gitignore,node_modules,bld/.done-*' " +
+                    "-e 'BindingJS-*,.git,.gitignore,node_modules,build/.done-*' " +
                     "-o BindingJS-SNAPSHOT.tar.gz " +
                     "."
             }

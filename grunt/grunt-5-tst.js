@@ -13,11 +13,11 @@ module.exports = function (grunt) {
     grunt.config.merge({
         mochaTest: {
             "core": {
-                src: [ "bld/stage2/test/core/**/*.js" ]
+                src: [ "build/stage2/test/core/**/*.js" ]
             },
             options: {
                 reporter: "spec",
-                require: "bld/stage2/test/common.js",
+                require: "build/stage2/test/common.js",
                 clearRequireCache: true,
                 timeout: 86400000
             }
