@@ -147,7 +147,7 @@ value <- uppercase <- $username
 value -> $username
 ```
 
-There is one specialty about the binding scope adapter. If it is used within a scope, it becomes visible to all descendants of that scope. This means, that the same qualifier for the binding scope might not necessarily refer to the same value.
+There is one specialty about the binding scope adapter. If it is used within a scope, it becomes visible to all descendants of that scope. This means, that the same qualifier for the binding scope might not necessarily refer to the same value, if its used within sibling scopes.
 
 ```
 span {
@@ -362,6 +362,7 @@ binding.socket("foo.mySocket").onInsert(function(keys, element) { ... })
 ```
 
 It is also possible to get the current number of instances and iterate them. Please refer to the [API documentation](https://github.com/rummelj/bindingjs/wiki/Application-User-Interface-(API)) for more information.
+
 
 We provided only examples for the syntax. If you are brave enough, look at the [grammar specification](https://github.com/rummelj/bindingjs/blob/master/src/core/dsl/grammar.pegjs) to get the best and most accurate documentation available. If that's not your thing, just go on and try, the parser recognizes errors and tells you exactly where it didn't find what it expected.
 
