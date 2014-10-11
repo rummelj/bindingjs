@@ -16,8 +16,8 @@ module.exports = function (grunt) {
                 files: [ "src/**/*.js", "src/**/*.pegjs" ],
                 tasks: [ "stage1", "stage2", "stage3", "test" ]
             },
-            "tst-core": {
-                files: [ "tst/**/*.js" ],
+            "test-core": {
+                files: [ "test/**/*.js" ],
                 tasks: [ "test" ]
             },
             options: {

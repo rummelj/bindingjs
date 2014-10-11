@@ -28,7 +28,7 @@ Here is a simple example, that two way binds the value of a text box to an attri
   <head>
     <title>BindingJS - API Example</title>
     <!-- jQuery is the only dependency of BindingJS -->
-    <script src="../../tst/res/jquery-2.1.1.min.js"></script>
+    <script src="jQuery.js"></script>
     <!-- Include BindingJS -->
     <script src="binding.js"></script>
     <!-- Include a JSON Model Adapter -->

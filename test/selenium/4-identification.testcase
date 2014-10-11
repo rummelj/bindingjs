@@ -4,31 +4,31 @@
 <head profile="http://selenium-ide.openqa.org/profiles/test-case">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <link rel="selenium.base" href="http://stackoverflow.com/" />
-<title>8-when</title>
+<title>4-identification</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">8-when</td></tr>
+<tr><td rowspan="1" colspan="3">4-identification</td></tr>
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>${baseUrl}/tst/selenium/8-when.html</td>
+	<td>${baseUrl}/test/selenium/4-identification.html</td>
 	<td></td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>css=span.2bOrNot2b</td>
-	<td>a</td>
+	<td>css=div.iterate</td>
+	<td>0</td>
 </tr>
 <tr>
 	<td>assertText</td>
-	<td>//div[@id='template']/div[3]/span</td>
-	<td>c</td>
+	<td>//div[@id='template']/div/div[2]</td>
+	<td>1</td>
 </tr>
 <tr>
-	<td>assertCssCount</td>
-	<td>span</td>
+	<td>assertText</td>
+	<td>//div[@id='template']/div/div[3]</td>
 	<td>2</td>
 </tr>
 </tbody></table>

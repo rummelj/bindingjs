@@ -17,10 +17,10 @@ module.exports = function (grunt) {
                 dest: "bld/stage1/done-jshint-src",
                 options: { tasks: [ "jshint:stage1-src", "touch:stage1-src" ] }
             },
-            "stage1-tst": {
-                src: [ "tst/**/*.js" ],
-                dest: "bld/stage1/done-jshint-tst",
-                options: { tasks: [ "jshint:stage1-tst", "touch:stage1-tst" ] }
+            "stage1-test": {
+                src: [ "test/**/*.js" ],
+                dest: "bld/stage1/done-jshint-test",
+                options: { tasks: [ "jshint:stage1-test", "touch:stage1-test" ] }
             }
         },
         jshint: {
@@ -28,35 +28,35 @@ module.exports = function (grunt) {
                 "src/core/**/*.js",
                 "src/plugin/*.js"
             ],
-            "stage1-tst": [
-                "tst/**/*.js",
-                "!tst/res/*.js"
+            "stage1-test": [
+                "test/**/*.js",
+                "!test/res/*.js"
             ]
         },
         touch: {
             "stage1-src": {
                 src: [ "bld/stage1/done-jshint-src" ]
             },
-            "stage1-tst": {
-                src: [ "bld/stage1/done-jshint-tst" ]
+            "stage1-test": {
+                src: [ "bld/stage1/done-jshint-test" ]
             }
         },
         clean: {
             "stage1-src": [
                 "bld/stage1/done-jshint-src"
             ],
-            "stage1-tst": [
-                "bld/stage1/done-jshint-tst"
+            "stage1-test": [
+                "bld/stage1/done-jshint-test"
             ]
         }
     })
     grunt.registerTask("stage1", [
         "newer:stage1-src",
-        "newer:stage1-tst"
+        "newer:stage1-test"
     ])
     grunt.registerTask("stage1-clean", [
         "clean:stage1-src",
-        "clean:stage1-tst"
+        "clean:stage1-test"
     ])
 
     /*  stage 2: compiling & transpiling  */
@@ -77,10 +77,10 @@ module.exports = function (grunt) {
                 dest: "bld/stage2/src/umd/umd-library-prolog.js",
                 options: { tasks: [ "copy:stage2-src-umd" ] }
             },
-            "stage2-tst": {
-                src: [ "tst/**/*.js" ],
-                dest: "bld/stage2/tst/common.js",
-                options: { tasks: [ "es6transpiler:stage2-tst", "copy:stage2-tst" ] }
+            "stage2-test": {
+                src: [ "test/**/*.js" ],
+                dest: "bld/stage2/test/common.js",
+                options: { tasks: [ "es6transpiler:stage2-test", "copy:stage2-test" ] }
             }
         },
         es6transpiler: {
@@ -100,13 +100,13 @@ module.exports = function (grunt) {
                     dest: "bld/stage2/src/"
                 }]
             },
-            "stage2-tst": {
+            "stage2-test": {
                 files: [{
                     expand: true,
                     flatten: false,
-                    cwd: "tst",
+                    cwd: "test",
                     src: "**/*.js",
-                    dest: "bld/stage2/tst/"
+                    dest: "bld/stage2/test/"
                 }]
             }
         },
@@ -146,10 +146,10 @@ module.exports = function (grunt) {
                     flatten: false
                 }]
             },
-            "stage2-tst": {
+            "stage2-test": {
                 files: [{
                     expand: true,
-                    src: [ "tst/**/*.bind" ],
+                    src: [ "test/**/*.bind" ],
                     dest: "bld/stage2/",
                     flatten: false
                 }]
@@ -159,8 +159,8 @@ module.exports = function (grunt) {
             "stage2-src": [
                 "bld/stage2/src"
             ],
-            "stage2-tst": [
-                "bld/stage2/tst"
+            "stage2-test": [
+                "bld/stage2/test"
             ]
         }
     })
@@ -168,11 +168,11 @@ module.exports = function (grunt) {
         "newer:stage2-src",
         "newer:stage2-src-peg",
         "newer:stage2-src-umd",
-        "newer:stage2-tst"
+        "newer:stage2-test"
     ])
     grunt.registerTask("stage2-clean", [
         "clean:stage3-src",
-        "clean:stage2-tst"
+        "clean:stage2-test"
     ])
 
     /*  stage 3: merge  */

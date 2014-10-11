@@ -13,7 +13,7 @@
 </thead><tbody>
 <tr>
 	<td>open</td>
-	<td>${baseUrl}/tst/selenium/11-sequence.html</td>
+	<td>${baseUrl}/test/selenium/11-sequence.html</td>
 	<td></td>
 </tr>
 <tr>
