@@ -16,7 +16,7 @@ Have you ever noticed a web page flickering especially on a mobile device? This 
 Getting Started
 ---------------
 
-To start using BindingJS just **[download](TODO)** its latest version, which includes the library itself and a set of Model Adapters. If there is no Adapter for your Model yet, you can easily [implement your own](https://github.com/rummelj/bindingjs/wiki/How-to-Write-an-Adapter). After that, use the [examples](https://github.com/rummelj/bindingjs/tree/master/examples) to get a first impression and to have a starting point for your experiments. To get the most out of BindingJS you need to learn how to interact with it through its API and what the syntax of its domain specific language is.
+To start using BindingJS just **[download](https://github.com/rummelj/bindingjs/releases)** its latest version, which includes the library itself and a set of Model Adapters. If there is no Adapter for your Model yet, you can easily [implement your own](https://github.com/rummelj/bindingjs/wiki/How-to-Write-an-Adapter). After that, use the [examples](https://github.com/rummelj/bindingjs/tree/master/examples) to get a first impression and to have a starting point for your experiments. To get the most out of BindingJS you need to learn how to interact with it through its API and what the syntax of its domain specific language is.
 
 API
 ---
