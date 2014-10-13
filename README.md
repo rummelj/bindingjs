@@ -377,10 +377,6 @@ If your binding behaves different than you expect, you can use the debug connect
 
 If this does not help you, please [create an issue](https://github.com/rummelj/bindingjs/issues/new) and we'll be in touch as soon as we can.
 
-- Debug connector
-- What if something goes wrong
-- Reporting Bugs
-
 How to Contribute
 -----------------
 
