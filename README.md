@@ -398,4 +398,4 @@ npm install
 grunt
 ```
 
-The tasks `clean`, `test` and `watch` are also available for grunt. There are additional Selenium IDE test cases. You can find [instructions on how to run them](https://github.com/rummelj/bindingjs/tree/master/test) in the test sub directory.
+The tasks `clean`, `test` and `watch` are also available for grunt. There are additional Selenium IDE test cases. You can find [instructions on how to run them](https://github.com/rummelj/bindingjs/tree/master/test/selenium) in the test sub directory.
