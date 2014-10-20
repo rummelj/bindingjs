@@ -231,13 +231,10 @@ exprMultiplicativeOp "multiplicative arithmetic operator"
         }
 
 exprDereference
-    =   e1:exprOther e2:("." id)+ {
+    =   e1:exprOther e2:(("." id) / ("[" expr "]"))+ {
             return AST("Deref").add(unroll(e1, e2, 1))
         }
-    /   e1:exprOther e2:("[" _ expr _ "]")+ {  /* RECURSION */
-            return AST("Deref").add(unroll(e1, e2, 2))
-        }
-    /   exprOther
+    / exprOther
 
 exprOther
     =   exprArray
