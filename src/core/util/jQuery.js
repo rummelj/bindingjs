@@ -27,9 +27,9 @@ _api.util.jQuery.getPath = (context, element) => {
         $current = $current.parent();
         
         iterations++
-        if (iterations > 10000) {
-            throw _api.util.exception("Internal error: GetPath called with element, that is NOT a descendant of context")
-        }
+        // Happens if element is not a descendant of
+        // context
+        _api.util.assume(iterations < 1000)
     }
     while (path.length !== 0) {
         realpath += path.pop();
