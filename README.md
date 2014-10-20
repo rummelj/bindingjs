@@ -369,7 +369,7 @@ We provided only examples for the syntax. If you are brave enough, look at the [
 Debugging
 ---------
 
-If your binding behaves different than you expect, you can use the debug connector that comes with BindingJS to see when a binding is propagated. It logs to the console any inputs it receives and is otherwise a no-op.
+If your binding behaves different than you expect, you can use the debug connector that comes with BindingJS to see when a binding is propagated. It logs to the console any inputs it receives and is otherwise a no operation.
 
 ```
 @what, @is, @going -> debug -> @on, @here
