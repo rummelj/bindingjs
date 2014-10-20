@@ -93,102 +93,39 @@ selectors
         }
 
 selector
-    =   f:selectorSingle l:(selectorCombinator _ selectorSingle)* {
-            return AST("SelectorCombination").add(unroll(f, l, [ 0, 2 ]))
-                                             .set("text", text())
+    =   "!"? selectorComponents (selectorCombinator _ "!"? selectorComponents)* {
+            return AST("SelectorCombination").set("text", text())
         }
-
-selectorSingle
-    =   s:"!"? c:selectorComponents {
-            return AST("Selector").set({ subject: !!s }).add(c)
-        }
-
+    
 selectorCombinator "selector combinator"
-    =   ws   { return AST("Combinator").set({ type: "descendant" })        }
-    /   _ ">"  { return AST("Combinator").set({ type: "child" })             }
-    /   _ "+"  { return AST("Combinator").set({ type: "next-sibling" })      }
-    /   _ "~"  { return AST("Combinator").set({ type: "following-sibling" }) }
+    =   ws
+    /   _ ">"
+    /   _ "+"
+    /   _ "~"
 
 selectorComponents
-    =   f:selectorComponentElement l:selectorComponentRepeatable* {
-            return unroll(f, l)
-        }
-    /   l:selectorComponentRepeatable+ {
-            return l
-        }
-
-selectorComponentElement "element-selector"
-    =   t:$("*" / [a-zA-Z0-9_-]+) {
-            return AST("Element").set({ name: t })
-        }
+    =   $("*" / [a-zA-Z0-9_-]+) selectorComponentRepeatable*
+    /   selectorComponentRepeatable+
 
 selectorComponentRepeatable
-    =   selectorId
-    /   selectorClass
+    =   ("#" / ".") $([a-zA-Z0-9-_$]+) // Id or class
     /   selectorAttr
     /   selectorPseudo
 
-selectorId "id-selector"
-    =   "#" t:$([a-zA-Z0-9-_$]+) {
-            return AST("Id").set({ name: t })
-        }
-
-selectorClass "class-selector"
-    =   "." t:$([a-zA-Z0-9-_$]+) {
-            return AST("Class").set({ name: t })
-        }
-
 selectorAttr
-    =   "[" _ name:$([a-zA-Z_][a-zA-Z0-9_-]*) _ op:selectorAttrOp _ value:selectorAttrValue _ "]"{
-            return AST("Attr").set({ op: op }).add(AST("Name").set({ name  :name }), value)
-        }
-    /   "[" _ name:$([a-zA-Z_][a-zA-Z0-9_-]*) _ "]" {
-            return AST("Attr").set({ op: "has" }).add(AST("Name").set({ name: name }), name)
-        }
+    =   "[" _ $([a-zA-Z_][a-zA-Z0-9_-]*) (_ selectorAttrOp _ (string / bareword))? _ "]"
 
 selectorAttrOp "attribute operator"
-    =   "="  { return "equal"    }
-    /   "!=" { return "notequal" }
-    /   "^=" { return "begins"   }
-    /   "|=" { return "prefix"   }
-    /   "*=" { return "contains" }
-    /   "$=" { return "ends"     }
-
-selectorAttrValue
-    =   v:string    { return v }
-    /   v:bareword  { return v }
+    =   "="
+    /   "!="
+    /   "^="
+    /   "|="
+    /   "*="
+    /   "$="
 
 selectorPseudo
-    =   ":" t:selectorPseudoTagNameSimple {
-            return AST("PseudoSimple").set({ name: t })
-        }
-    /   ":" t:selectorPseudoTagNameArg args:("(" _ [^\)]* _ ")")? {
-            // TODO: Add parameters to AST if necessary
-            return AST("PseudoArg").set({ name: t })
-        }
-    /   ":" t:selectorPseudoTagNameComplex args:("(" _ selector _ ")")? {
-            // TODO: Add parameters to AST if necessary
-            return AST("PseudoComplex").set({ name: t })
-        }
-
-selectorPseudoTagNameSimple "name of pseudo-selector (simple)"
-    =   "animated"      / "button"       / "checkbox"   / "checked"      / "disabled"
-    /   "empty"         / "enabled"      / "even"       / "file"         / "first-child"
-    /   "first-of-type" / "first"        / "focus"      / "header"       / "hidden"
-    /   "image"         / "input"        / "last-child" / "last-of-type" / "odd"
-    /   "only-child"    / "only-of-type" / "parent"     / "password"     / "radio"
-    /   "reset"         / "root"         / "selected"   / "submit"       / "target"
-    /   "text"          / "visible"
-
-selectorPseudoTagNameArg "name of pseudo-selector (with simple argument)"
-    =   "contains"
-    /   "eq" / "gt" / "lt"
-    /   "lang"
-    /   "nth-child" / "nth-last-child" / "nth-last-of-type" / "nth-of-type" / "nth-of-type"
-
-selectorPseudoTagNameComplex "name of pseudo-selector (with complex argument)"
-    =   "has" / "not" / "matches"
-
+    =   ":" bareword ("(" _ [^\)]* _ ")")?
+    /   ":" bareword ("(" _ selector _ ")")?
 
 /*
 **  ==== BINDING ====

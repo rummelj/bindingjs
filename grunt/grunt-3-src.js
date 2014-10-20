@@ -249,7 +249,6 @@ module.exports = function (grunt) {
                 }]
             },
             options: {
-                preserveComments: "some",
                 report: "none"
             }
         },
