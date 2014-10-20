@@ -249,7 +249,10 @@ module.exports = function (grunt) {
                 }]
             },
             options: {
-                report: "none"
+                report: "none",
+                mangle: {
+                  sort: true
+                }
             }
         },
         clean: {
