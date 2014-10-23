@@ -260,13 +260,19 @@ exprParenthesis
         }
 
 exprArray
-    =   "[" _ (f:expr l:(_ "," _ expr)* _)? "]" {  /* RECURSION */
+    =   "[" _ f:expr l:(_ "," _ expr)* _ "]" {  /* RECURSION */
             return AST("Array").add(unroll(f, l, 3))
+        }
+    /   "[" _ "]" {
+            return AST("Array")
         }
 
 exprHash
-    =   "{" _ (f:exprHashKV l:(_ "," _ exprHashKV)* _)? "}" {
+    =   "{" _ f:exprHashKV l:(_ "," _ exprHashKV)* _ "}" {
             return AST("Hash").add(unroll(f, l, 3))
+        }
+    /   "{" _ "}" {
+            return AST("Hash")
         }
 
 exprHashKV

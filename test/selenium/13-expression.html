@@ -50,6 +50,12 @@
                 #s15 {
                     text <- { foo : { bar: $a.b, baz: "quux" } }.foo.bar
                 }
+                #s16 {
+                    text <- [].length
+                }
+                #s17 {
+                    text <- {}
+                }
             }
         </script>
         <script type="text/javascript">
@@ -131,6 +137,8 @@
             <span id="s13"></span><br />
             <span id="s14"></span><br />
             <span id="s15"></span><br />
+            <span id="s16"></span><br />
+            <span id="s17"></span><br />
         </div>
     </body>
 </html>

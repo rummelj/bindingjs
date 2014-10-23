@@ -91,7 +91,16 @@
 	<td>id=s15</td>
 	<td>found</td>
 </tr>
-
+<tr>
+	<td>assertText</td>
+	<td>id=s16</td>
+	<td>0</td>
+</tr>
+<tr>
+	<td>assertText</td>
+	<td>id=s17</td>
+	<td>{}</td>
+</tr>
 </tbody></table>
 </body>
 </html>
