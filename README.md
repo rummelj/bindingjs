@@ -190,7 +190,7 @@ li (@name: $names) {
   text <- @name
 }
 
-// Conditional hide or display elements
+// Conditionally hide or display elements
 div (@showFooter) {
   ...
 }
@@ -315,8 +315,8 @@ The available set of expressions includes literal values and compound expression
 | Additive       | `Expr + Expr`<br>`Expr - Expr`                              | `$price + $tax`<br>`$price - $discount`                            |
 | Multiplicative | `Expr * Expr`<br>`Expr / Expr`<br>`Expr % Expr`             | `$quantitiy * $price`<br>`$sea / 2`<br>`$people % $groupSize`      |
 | Dereference    | `Expr(.Id)+`<br>`Expr([Expr])+`                             | `@person.name`<br>`@person["na" + "me"]`                           |
-| Array          | `[Expr (, Expr)*]`                                          | `[$name , "Tom", 5]`                                               |
-| Hash           | `{(Id:Expr)? (, Id:Expr)*}`                                 | `{name: $name, age: 25}`                                           |
+| Array          | `[(Expr (, Expr)*)?]`                                          | `[$name , "Tom", 5]`                                               |
+| Hash           | `{((Id:Expr) (, Id:Expr)*)?}`                                 | `{name: $name, age: 25}`                                           |
 | Parenthesis    | `(Expr)`                                                    | `!(@foo && (@bar || @baz))`                                        |
 
 The two core structure concepts offered by BindingJS are *Identification* and *Insertion*
