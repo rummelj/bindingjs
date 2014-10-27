@@ -239,6 +239,7 @@ exprDereference
 exprOther
     =   exprArray
     /   exprHash
+    /   exprLambda
     /   exprLiteral
     /   exprVariable
     /   exprParenthesis
@@ -279,7 +280,18 @@ exprHashKV
     =   k:id _ ":" _ v:expr {  /* RECURSION */
             return AST("KeyVal").add(k, v)
         }
-
+    
+exprLambda
+    =   f:id l:(_ "," _ id)* _ "=>" _ e:expr {
+            return AST("Lambda").add(
+                    AST("Identifiers").add(
+                        unroll(f, l, 3)
+                    )
+                   ).add(
+                    AST("Expression").add(e)
+                   )
+        }
+      
 parameters
     =   "(" _ p:params? _ ")" {
             return AST("Parameters").add(p)
