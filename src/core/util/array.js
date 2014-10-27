@@ -83,6 +83,13 @@ _api.util.array.addAll = (addTo, array) => {
 }
 
 /*
+** Adds an element at the given index
+*/
+_api.util.array.addAt = (addTo, what, at) => {
+    addTo.splice(at, 0, what)
+}
+
+/*
 ** Checks, if all elements in array meet the given condition
 */
 _api.util.array.ifAll = (array, condition) => {

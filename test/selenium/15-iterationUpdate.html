@@ -1,0 +1,55 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../build/stage3/src/core/binding.js"></script>
+        <script src="../../build/stage3/src/plugin/binding.adapter.model.json.js"></script>
+        <script type="text/binding">
+            @binding view {
+                .wrapper {
+                    @numbers <- filter($how) <- $numbers
+                    .number (@number: @numbers) {
+                        text <- @number
+                    }
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                numbers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                how: 2
+            }
+            
+            $(function() {
+                BindingJS
+                    .plugin("filter", function($api, _api) {
+                        return {
+                            process: function (input) {
+                                var result = []
+                                for (var i = 0; i < input.length; i++) {
+                                    if (_api.util.convertIfReference(input[i]) % model.how === 0) {
+                                        result.push(input[i])
+                                    }
+                                }
+                                return result
+                            }
+                        }
+                    })
+                    .create()
+                    .template("#template")
+                    .binding($("script[type='text/binding']"))
+                    .model(model)
+                    .mount("#template")
+                    .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <div class="wrapper" >
+                <ul>
+                    <li class="number" />
+                </ul>
+            </div>
+        </div>
+    </body>
+</html>

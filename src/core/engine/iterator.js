@@ -114,6 +114,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
                     _api.util.assume(false)
             }
         }
+        _api.engine.iterator.updateInstances(viewDataBinding, expItNode, newCollection)
     }
  }
  
@@ -295,7 +296,12 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     }
    
     // Add to instances
-    instances.push(newInstance)
+    if (_api.util.object.isDefined(property.afterKey) &&
+        property.afterKey + 1 < instances.length) {
+        _api.util.array.addAt(instances, newInstance, property.afterKey + 1)
+    } else if (expItNode.get("instance")){
+        instances.push(newInstance)
+    }
     
     // Call sockets
     _api.engine.sockets.callInsertionInstance(viewDataBinding, expItNode, newInstance)
@@ -312,53 +318,8 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
                 // Update key
                 instance.key = parseInt(instance.key) + 1
                 viewDataBinding.vars.bindingScope.set(instance.keyId, instance.key)
-                // Update references in entry
-                let entry = viewDataBinding.vars.bindingScope.get(instance.entryId)
-                let newEntry = _api.engine.iterator.refreshKeysAddedEntry(entry, [], keyAdded)
-                viewDataBinding.vars.bindingScope.set(instance.entryId, newEntry)
             }
         })
-    }
- }
- 
- _api.engine.iterator.refreshKeysAddedEntry = (entry, path, keyAdded) => {
-    if (entry instanceof _api.engine.binding.Reference) {
-        let newRef = entry.clone()
-        let refPath = newRef.getPath()
-        // Check if paths fit together
-        for (let i = 0; i < path.length; i++) {
-            if (refPath[refPath.length - path.length + i] !== path[i]) {
-                _api.util.assume(false)
-            }
-        }
-        if (!_api.util.number.isWholeNumber(refPath[refPath.length - path.length - 1])) {
-            _api.util.assume(false)
-        }
-        // Increase if necessary
-        if (parseInt(refPath[refPath.length - path.length - 1]) >= keyAdded) {
-            refPath[refPath.length - path.length - 1] = parseInt(refPath[refPath.length - path.length - 1]) + 1
-        }
-        newRef.setPath(refPath)
-        return newRef
-    } else {
-        // Recursion
-        if (entry instanceof Array) {
-            let newArr = []
-            for (let i = 0; i < entry.length; i++) {
-                let subResult = _api.engine.iterator.refreshKeysAddedEntry(entry[i], [].concat.apply([], [path, i]), keyAdded)
-                newArr.push(subResult)
-            }
-            return newArr
-        } else if (typeof entry === "object") {
-            let newObj = {}
-            for (let key in entry) {
-                let subResult = _api.engine.iterator.refreshKeysAddedEntry(entry[key], [].concat.apply([], [path, key]), keyAdded)
-                newObj[key] = subResult
-            }
-            return newObj
-        } else {
-            return entry
-        }
     }
  }
  
@@ -392,64 +353,23 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
                 // Update key
                 instance.key = parseInt(instance.key) - 1
                 viewDataBinding.vars.bindingScope.set(instance.keyId, instance.key)
-                // Update references in entry
-                let entry = viewDataBinding.vars.bindingScope.get(instance.entryId)
-                let newEntry = _api.engine.iterator.refreshKeysRemovedEntry(entry, [], keyRemoved)
-                // TODO: This might throw if multiple elements are removed, for instance [a,b,c,d,e] -> [a,c,e]
-                // Levensthein returns for this in this order: <Remove at 1> -> <Remove at 4>
-                // Actually in the PM both values are already gone, but here it is tried to observe 4
-                // Short term solution: Catch the error that might occur, because when refresh is called
-                // the second time for 4 it is working anyway
-                // Long term better solution: Change Levensthein, so that it returns the remove operations
-                // in an order that is executable by this algorithm
-                try {
-                    viewDataBinding.vars.bindingScope.set(instance.entryId, newEntry)
-                } catch (e) {
-                    $api.debug(5, "Warning, could not set instances new Entry")
-                }
             }
         })
     }
  }
  
- _api.engine.iterator.refreshKeysRemovedEntry = (entry, path, keyRemoved) => {
-    if (entry instanceof _api.engine.binding.Reference) {
-        let newRef = entry.clone()
-        let refPath = newRef.getPath()
-        // Check if paths fit together
-        for (let i = 0; i < path.length; i++) {
-            if (refPath[refPath.length - path.length + i] !== path[i]) {
-                _api.util.assume(false)
-            }
-        }
-        if (!_api.util.number.isWholeNumber(refPath[refPath.length - path.length - 1])) {
-            _api.util.assume(false)
-        }
-        // Decrease if necessary
-        if (parseInt(refPath[refPath.length - path.length - 1]) > keyRemoved) {
-            refPath[refPath.length - path.length - 1] = parseInt(refPath[refPath.length - path.length - 1]) - 1
-        }
-        newRef.setPath(refPath)
-        return newRef
-    } else {
-        // Recursion
-        if (entry instanceof Array) {
-            let newArr = []
-            for (let i = 0; i < entry.length; i++) {
-                let subResult = _api.engine.iterator.refreshKeysRemovedEntry(entry[i], [].concat.apply([], [path, i]), keyRemoved)
-                newArr.push(subResult)
-            }
-            return newArr
-        } else if (typeof entry === "object") {
-            let newObj = {}
-            for (let key in entry) {
-                let subResult = _api.engine.iterator.refreshKeysRemovedEntry(entry[key], [].concat.apply([], [path, key]), keyRemoved)
-                newObj[key] = subResult
-            }
-            return newObj
-        } else {
-            return entry
-        }
+ _api.engine.iterator.updateInstances = (viewDataBinding, expItNode, newCollection) => {
+    if (newCollection instanceof Array) {
+        _api.util.assume(expItNode.get("instances").length === newCollection.length)
+        _api.util.each(expItNode.get("instances"), (instance, index) => {
+            let oldElement = viewDataBinding.vars.bindingScope.get(instance.entryId)
+            let newElement = newCollection[index]
+            let oldIsRef = _api.util.isReference(oldElement)
+            let newIsRef = _api.util.isReference(newElement)
+            if (oldIsRef && newIsRef && !_api.util.object.equals(oldElement.getPath(), newElement.getPath())) {
+                viewDataBinding.vars.bindingScope.set(instance.entryId, newElement)
+            }   
+        })
     }
  }
  
