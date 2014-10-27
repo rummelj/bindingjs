@@ -1,0 +1,92 @@
+<html>
+    <head>
+        <script src="../res/jquery-2.1.1.min.js"></script>
+        <script src="../../build/stage3/src/core/binding.js"></script>
+        <script src="../../build/stage3/src/plugin/binding.adapter.model.json.js"></script>
+        <script type="text/binding">
+            @binding view {
+                #s1 {
+                    text <- join(" ") <- filter(number, index => number % $mod === 0 && index < 7) <- $numbers
+                }
+                #s2 {
+                    text <- join(" ") <- map(number, index => number * $mod * index) <- $numbers
+                }
+                #s3 {
+                    text <- join(" ") <- map(person => person.name) <- sort("-name") <- $people
+                }
+                #s4 {
+                    text <- join(" ") <- map(person => person.name) <- sort("-age", "name") <- $people
+                }
+                #s5{
+                    text <- join(" ") <- map(person => person.name) <- sort("age", "-name") <- $people
+                }
+                #s6{
+                    text <- join(" ") <- map(person => person.name) <- sort("-age", "-name") <- $people
+                }
+                #s7 {
+                    text <- join(" ") <- map(person => person.name) <- sort(p1, p2 => p1.name < p2.name) <- $people
+                }
+                #s8 {
+                    text <- count(number, index => number % $mod === 0 && index < 7) <- $numbers
+                }
+                #s9 {
+                    text <- ifAny(number => number > 8) <- $numbers
+                }
+                #s10 {
+                    text <- ifAny(number => number > 9) <- $numbers
+                }
+                #s11 {
+                    text <- ifAll(number => number >= 0) <- $numbers
+                }
+                #s12 {
+                    text <- ifAll(number => number > 0) <- $numbers
+                }
+                #s13 {
+                    text <- ifNone(number => number < 0) <- $numbers
+                }
+                #s14 {
+                    text <- ifNone(number => number <= 0) <- $numbers
+                }
+            }
+        </script>
+        <script type="text/javascript">
+            var model = {
+                numbers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                mod: 2,
+                people: [
+                    { name: "Alice", age: 25 },
+                    { name: "Bob", age: 25 },
+                    { name: "Charlie", age: 27 }
+                ]
+            }
+            
+            $(function() {
+                BindingJS
+                    .create()
+                    .template("#template")
+                    .binding($("script[type='text/binding']"))
+                    .model(model)
+                    .mount("#template")
+                    .activate()
+            })
+        </script>
+    </head>
+    <body>
+        <div id="template">
+            <span id="s1"></span><br />
+            <span id="s2"></span><br />
+            <span id="s3"></span><br />
+            <span id="s4"></span><br />
+            <span id="s5"></span><br />
+            <span id="s6"></span><br />
+            <span id="s7"></span><br />
+            <span id="s8"></span><br />
+            <span id="s9"></span><br />
+            <span id="s10"></span><br />
+            <span id="s11"></span><br />
+            <span id="s12"></span><br />
+            <span id="s13"></span><br />
+            <span id="s14"></span>
+        </div>
+    </body>
+</html>
