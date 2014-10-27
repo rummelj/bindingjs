@@ -127,6 +127,7 @@ $api.plugin = (name, factory) => {
             $api.debug(3, "Registering " + name + " as an Adapter")
             _api.repository.adapter.register(name, component)
         }
+        return $api
     } else /* if (arguments.length === 1) */ {
         // Retrieve component
         if (_api.repository.adapter.has(name)) {
