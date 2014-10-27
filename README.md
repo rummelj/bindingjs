@@ -317,6 +317,7 @@ The available set of expressions includes literal values and compound expression
 | Dereference    | `Expr(.Id)+`<br>`Expr([Expr])+`                             | `@person.name`<br>`@person["na" + "me"]`                           |
 | Array          | `[(Expr (, Expr)*)?]`                                          | `[$name , "Tom", 5]`                                               |
 | Hash           | `{((Id:Expr) (, Id:Expr)*)?}`                                 | `{name: $name, age: 25}`                                           |
+| Lambda         | `Id (, Id)* => Expr` | `@foo <- filter(person => person.age > 18) <- @bar`<br>`@foo <- count(todo => todo.completed) <- $todos`<br>`@foo <- map(item => item + 1) <- @bar`<br>`@foo <- sort(a, b => a.age < b.age) <- @bar` |
 | Parenthesis    | `(Expr)`                                                    | `!(@foo && (@bar || @baz))`                                        |
 
 The two core structure concepts offered by BindingJS are *Identification* and *Insertion*
