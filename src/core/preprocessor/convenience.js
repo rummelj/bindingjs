@@ -181,12 +181,14 @@ _api.preprocessor.convenience.convertExpression = (ast, bindingScopePrefix, coun
 _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counter, /* out */ variables) => {
     let fn
     if (ast.isA("Variable")) {
+        let oldVariable = _api.util.array.findFirst(variables, (variable) => {
+            return variable.get("id") === ast.get("id") && variable.get("ns") === ast.get("ns")
+        })
         let index
-        // TODO: Does not work
-        if (!_api.util.array.contains(variables, ast)) {
+        if (!_api.util.object.isDefined(oldVariable)) {
             index = variables.push(ast) - 1
         } else {
-            index = variables.indexOf(ast)
+            index = variables.indexOf(oldVariable)
         }
         fn = (() => {
             let myIndex = index
@@ -461,6 +463,38 @@ _api.preprocessor.convenience.getExpressionFn = (ast, bindingScopePrefix, counte
                     result[key] = valueFn(input)
                 })
                 return result
+            }
+        })()
+    } else if (ast.isA("Lambda")) {
+        fn = (() => {
+            let identifiers = []
+            _api.util.assume(ast.childs().length === 2)
+            let identifiersAst = ast.childs()[0]
+            _api.util.each(identifiersAst.childs(), (identifierAst) => {
+                let id = identifierAst.get("id")
+                if (_api.repository.adapter.has(id)) {
+                    throw _api.util.exception("You can not use " + id + " as the parameter for " +
+                        "a lambda expression because an adapter with this name is already registered")
+                }
+                identifiers.push(id)
+                variables.push(_api.util.Tree("Variable").set({ id: id, ns: "" }))
+            })
+            let insertVariablesAt =  variables.length - identifiers.length
+            
+            let expressionAst = ast.childs()[1]
+            _api.util.assume(expressionAst.childs().length === 1)
+            let exprFn = _api.preprocessor.convenience.getExpressionFn(expressionAst.childs()[0], bindingScopePrefix, counter, variables)
+            _api.util.each(identifiers, () => {
+                _api.util.array.removeAt(variables, insertVariablesAt)
+            })
+            return (input) => {
+                return () => {
+                    let inputClone = _api.util.array.clone(input)
+                    for (var i = identifiers.length - 1; i >= 0; i--) {
+                        _api.util.array.addAt(inputClone, arguments[i], insertVariablesAt)
+                    }
+                    return exprFn(inputClone)
+                }
             }
         })()
     }
