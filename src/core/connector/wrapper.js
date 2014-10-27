@@ -8,3 +8,12 @@
  */
 
 include("debug.js")
+include("join.js")
+include("split.js")
+include("filter.js")
+include("map.js")
+include("sort.js")
+include("count.js")
+include("ifAny.js")
+include("ifAll.js")
+include("ifNone.js")
