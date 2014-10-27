@@ -405,5 +405,5 @@ The tasks `clean`, `test`, `watch` and `cover` are also available for grunt. The
 Contact
 -------
 
-- [Create an issue](https://github.com/rummelj/bindingjs/issues/new)
+- [Create an Issue](https://github.com/rummelj/bindingjs/issues/new)
 - [Write an Email](mailto:support@bindingjs.org)
