@@ -124,8 +124,8 @@ selectorAttrOp "attribute operator"
     /   "$="
 
 selectorPseudo
-    =   ":" bareword ("(" _ [^\)]* _ ")")?
-    /   ":" bareword ("(" _ selector _ ")")?
+    =   ":" [a-zA-Z0-9_-]+ ("(" _ [^\)]* _ ")")?
+    /   ":" [a-zA-Z0-9_-]+ ("(" _ selector _ ")")?
 
 /*
 **  ==== BINDING ====
