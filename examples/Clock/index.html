@@ -1,0 +1,133 @@
+<!doctype html>
+<!--
+    Example adapted from Ractive.js (http://examples.ractivejs.org/clock)
+-->
+<html lang="en" data-framework="bindingjs">
+  <head>
+    <meta charset="utf-8">
+    <title>BindingJS - Clock</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="../../test/res/jquery-2.1.1.min.js"></script>
+    <script src="../../build/stage3/src/core/binding.js"></script>
+    <script src="../../build/stage3/src/plugin/binding.adapter.model.json.js"></script>
+    <script type="text/binding">
+        @binding Clock {
+            .minor (@value: $minor) {
+                attr:transform <- "rotate(" + (360 * @value / $minor.length) + ")"
+            }
+            .major (@value: $major) {
+                attr:transform <- "rotate(" + (360 *  @value / $major.length ) + ")"
+            }
+            .hour {
+                attr:transform <- "rotate(" + ((30 * $date.hours) + ($date.minutes / 2)) + ")"
+            }
+            .minute {
+                attr:transform <- "rotate (" + ((6 * $date.minutes) + ($date.seconds / 10)) + ")"
+            }
+            .secondHand {
+                attr:transform <- "rotate (" + (6 * $date.seconds) + ")"
+            }
+            .left {
+                p {
+                    @number <- $date.date
+                    @suffix <- getSuffix <- @number 
+                    text <- "Today is " + $days[$date.day] + " the " + 
+                            @number + @suffix + " of " + $months[$date.month] + ". " +
+                            "The time is:"
+                }
+                .time {
+                    .hours { text <- pad <- $date.hours }
+                    .minutes { text <- pad <- $date.minutes }
+                    .seconds { text <- pad <- $date.seconds }
+                }
+            }
+        }
+    </script>
+    <script type="text/javascript">
+    $(function() { 
+        var model = {
+            date: {},
+            days: [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ],
+            months: [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 
+                      'September', 'October', 'November', 'December' ],
+            major: [],
+            minor : [],
+        }
+            
+        var updateTime = function () {
+            var now = new Date()
+            model.date = {
+                hours: now.getHours(),
+                minutes: now.getMinutes(),
+                seconds: now.getSeconds(),
+                day: now.getDay(),
+                month: now.getMonth(),
+                date: now.getDate()
+            }
+        }
+        setInterval(updateTime, 1000)
+        updateTime()
+        
+        for (var i = 0; i < 12; i++) {
+            model.major.push(i)
+        }
+        for (var i = 0; i < 60; i++) {
+            model.minor.push(i)
+        }
+        
+        BindingJS.plugin("getSuffix", function ($api, _api) {
+            return { process: function (input) {
+                    input = _api.util.convertIfReference(input)
+                    if (input % 100 >= 10 && input % 100 <= 19) {
+                        return "th"
+                    }                  
+                    switch (input % 10) {
+                        case 1: return "st"
+                        case 2: return "nd"
+                        case 3: return "rd"
+                    }                   
+                    return "th"
+            }}
+        })
+        BindingJS.plugin("pad", function ($api, _api) {
+            return { process: function (input) {
+                    input = _api.util.convertIfReference(input)
+                    return input < 10 ? "0" + input : input
+            }}
+        })
+        
+        BindingJS.create()
+            .template("body")
+            .binding($("script[type='text/binding']"))
+            .model(model)
+            .mount("body")
+            .activate()
+    })
+    </script>
+  </head>
+  <body>
+    <div class='clock'>
+      <div class='square'>
+        <svg viewBox='0 0 100 100'>
+          <g transform='translate(50,50)'>
+            <circle class='clock-face' r='48'/>
+            <line class='minor' y1='42' y2='45' />
+            <line class='major' y1='35' y2='45' />
+            <line class='hour' y1='2' y2='-20' />
+            <line class='minute' y1='4' y2='-30' />
+            <g class="secondHand">
+              <line class='second' y1='10' y2='-38'/>
+              <line class='second-counterweight' y1='10' y2='2'/>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class='left'>
+      <p></p>
+      <span class='time'>
+        <span class='hours'></span>:<span class='minutes'></span>:<span class='seconds'></span>
+      </span>
+    </div>
+  </body>
+</html>

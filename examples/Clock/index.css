@@ -1,0 +1,67 @@
+body {
+    font-family: 'Source Sans Pro';
+    color: #555;
+    line-height: 1.5;
+}
+
+.clock {
+	width: 30%;
+	float: left;
+	margin: 0 1em 0 0;
+}
+
+.left p {
+    font-size: 2em;
+	margin: 1em 0 0 0;
+}
+
+.time {
+	font-family: 'Voltaire';
+	font-size: 4em;
+	margin: 0;
+}
+
+
+.square {
+	position: relative;
+	width: 100%;
+	height: 0;
+	padding-bottom: 100%;
+}
+
+svg {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+.clock-face {
+	stroke: #333;
+	fill: white;
+}
+
+.minor {
+	stroke: #999;
+	stroke-width: 0.5;
+}
+
+.major {
+	stroke: #333;
+	stroke-width: 1;
+}
+
+.hour {
+	stroke: #333;
+}
+
+.minute {
+	stroke: #666;
+}
+
+.second, .second-counterweight {
+	stroke: rgb(180,0,0);
+}
+
+.second-counterweight {
+	stroke-width: 3;
+}
