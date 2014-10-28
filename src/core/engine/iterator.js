@@ -263,7 +263,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
     // If afterKey is numeric
     let newKey = (!_api.util.object.isDefined(property.afterKey) ||
                   !_api.util.number.isWholePositiveNumber(property.afterKey)) ?
-                  property.key : parseInt(property.afterKey) + 1
+                  property.key : parseInt(property.afterKey, 10) + 1
                   
     let newInstance = {
         key: newKey,
@@ -316,7 +316,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
         _api.util.each(expItNode.get("instances"), (instance) => {
             if (instance !== newInstance && instance.key >= keyAdded) {
                 // Update key
-                instance.key = parseInt(instance.key) + 1
+                instance.key = parseInt(instance.key, 10) + 1
                 viewDataBinding.vars.bindingScope.set(instance.keyId, instance.key)
             }
         })
@@ -351,7 +351,7 @@ _api.engine.iterator.shutdownInternal = (viewDataBinding, node) => {
         _api.util.each(expItNode.get("instances"), (instance) => {
             if (instance.key > keyRemoved) {
                 // Update key
-                instance.key = parseInt(instance.key) - 1
+                instance.key = parseInt(instance.key, 10) - 1
                 viewDataBinding.vars.bindingScope.set(instance.keyId, instance.key)
             }
         })
