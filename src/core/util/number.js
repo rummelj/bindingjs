@@ -16,7 +16,7 @@ _api.util.number.minValue = () => {
 }
 
 _api.util.number.isWholePositiveNumber = (obj) => {
-    return _api.util.number.isWholeNumber(obj) && parseInt(obj) >= 0
+    return _api.util.number.isWholeNumber(obj) && parseInt(obj, 10) >= 0
 }
 
 _api.util.number.isWholeNumber = (obj) => {

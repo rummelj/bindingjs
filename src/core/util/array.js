@@ -35,17 +35,15 @@ _api.util.array.contains = (array, element) => {
 }
 
 /*
-** Returns a clone of array by leaving out all indices after to inclusively
-*/
-_api.util.array.subArray = (array, to) => {
-    return _api.util.array.subArray(array, 0, to)
-}
-
-/*
 ** Returns a clone of array, that contains all elements with indices in [from, to)
 ** (from: inclusively, to: exclusively)
 */
 _api.util.array.subArray = (array, from, to) => {
+    // Other usage as subArray(array, to)
+    if (!_api.util.object.isDefined(to)) {
+        to = from
+        from = 0
+    }
     if (from < 0 || from >= array.length ||
         to < 0 || to >= array.length ||
         from > to) {
@@ -124,7 +122,7 @@ _api.util.array.getMinAndMax = (array) => {
     let max = _api.util.number.minValue()
     if (array) {
         for (var i  = 0; i < array.length; i++) {
-            let current = parseInt(array[i])
+            let current = parseInt(array[i], 10)
             if (min > current) {
                 min = current
             }
