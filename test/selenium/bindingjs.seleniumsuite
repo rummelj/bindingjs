@@ -28,6 +28,7 @@
 <tr><td><a href="15-iterationUpdate.testcase">15-iterationUpdate</a></td></tr>
 <tr><td><a href="16-lambda.testcase">16-lambda</a></td></tr>
 <tr><td><a href="example-calculator.testcase">example-calculator</a></td></tr>
+<tr><td><a href="example-clock.testcase">example-clock</a></td></tr>
 <tr><td><a href="example-TodoMVC.testcase">example-TodoMVC</a></td></tr>
 </tbody></table>
 </body>
