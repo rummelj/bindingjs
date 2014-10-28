@@ -140,7 +140,7 @@ BindingJS.plugin("$", ($api, _api) => {
             })
             
             if (ref instanceof Function) {
-                return ref(params)
+                return ref.apply(ref, params)
             } else if (ref instanceof Array) {
                 return _api.util.array.clone(ref)
             } else if (typeof ref === "object") {
@@ -150,9 +150,9 @@ BindingJS.plugin("$", ($api, _api) => {
             }
         }
         
-        getPaths (model, path) {
+        getPaths (model, path, params) {
             let paths = [path]
-            let value = this.getValue(model, path)
+            let value = this.getValue(model, path, params)
             if (value instanceof Array || typeof value === "object") {
                 _api.util.each(value, (_, indexOrKey) => {
                     let newPath = _api.util.array.clone(path)
