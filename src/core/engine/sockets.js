@@ -1,5 +1,5 @@
 /*
- **  viewDataBindingJS -- View Data viewDataBinding for JavaScript <http://viewDataBindingjs.com>
+ **  viewDataBindingJS -- View Data viewDataBinding for JavaScript <http://viewDatabindingjs.org>
  **  Copyright (c) 2014 Johannes Rummel
  **
  **  This Source Code Form is subject to the terms of the Mozilla Public

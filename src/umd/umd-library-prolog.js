@@ -1,16 +1,17 @@
 /*
-**  BindingJS -- View Data Binding for JavaScript <http://bindingjs.com>
+**  BindingJS -- View Data Binding for JavaScript <http://bindingjs.org>
 **  Copyright (c) 2014 Ralf S. Engelschall <http://engelschall.com>
 **
 **  This Source Code Form is subject to the terms of the Mozilla Public
 **  License, v. 2.0. If a copy of the MPL was not distributed with this
 **  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
-//TODO: Evaluate, In what ways the library can be used outside a browser
+
 /*  Universal Module Definition (UMD) for Library  */
 (function (root, name, factory) {
     /* global define: false */
     /* global module: false */
+    //TODO: Evaluate, In what ways the library can be used outside a browser
     var export_type = root[name.replace(/[^a-zA-Z0-9_]/g, "_") + "_export"];
     if (   (   typeof define === "function"
             && typeof define.amd !== "undefined"

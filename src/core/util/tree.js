@@ -1,5 +1,5 @@
 /*
-**  BindingJS -- View Data Binding for JavaScript <http://bindingjs.com>
+**  BindingJS -- View Data Binding for JavaScript <http://bindingjs.org>
 **  Copyright (c) 2014 Ralf S. Engelschall <http://engelschall.com>
 **  Copyright (c) 2014 Johannes Rummel
 **
