@@ -77,7 +77,7 @@ Syntax
 
 BindingJS differentiates between *Core* and *Convenience Concepts* as well as between *Binding* and *Structure Concepts*. All Convenience Concepts could also be expressed with Core Concepts and Structure Concepts do not deal with data binding, but the structure of applications. Surprisingly there are only three real Core Binding Concepts, which are *Selection*, *Binding* and *Iteration*, so we explain them first.
 
-###Selection
+### Selection
 
 BindingJS' selection syntax is inspired by [Less](http://lesscss.org/), which among other features allows to nest CSS selectors. In contrast to CSS, however, BindingJS expects Bindings instead of Style instructions.
 
@@ -120,7 +120,7 @@ A *Scope* consists of one or more CSS selectors separated by commas and a *Scope
 #wrapper div .empty {}
 ```
 
-###Binding
+### Binding
 
 BindingJS synchronizes values from three data targets, namely the *Model*, *View* and the *Binding Scope*. The binding scope is an artificial temporary variable pool that is useful to store intermediate values and give them aliases. Also, BindingJS uses it to realize *Iteration*. Each of these data targets is accessed through an Adapter, that has a *Prefix* and a *Qualifier*. By default the prefix of the model adapter is $ and that of the binding scope adapter is @. There are multiple [view adapter](https://github.com/rummelj/bindingjs/wiki/List-of-View--Adapter) such as *value*, *text*, *attr* or *on* that are already included in BindingJS. The qualifier of an adapter is a static instruction for the Adapter and is written directly behind the prefix, if that is only one character long. Otherwise it is separated by a colon from the prefix.
 
@@ -173,7 +173,7 @@ div {
 }
 ```
 
-###Iteration
+### Iteration
 
 It is common to iterate certain parts of a user interface for instance to show a list of names or options. In BindingJS this can be done by providing additional information after the selector of a scope.
 
@@ -208,7 +208,7 @@ Another thing to note is that you get those surgical updates mentioned earlier f
 
 With selection, binding and iteration everything that is conceptually necessary for view data binding is already present. The convenience binding concepts that we present now are only syntactic sugar to make your life (a lot) easier. If you're interested in the theory behind the reduction of these convenience concepts to selection, binding and iteration, please have a look at the [master's thesis](TODO), which is the theoretical foundation of this library.
 
-###Two-Way Binding
+### Two-Way Binding
 
 In addition to just `<-` and `->` you may also use `<->` to realize two bindings with one.
 
@@ -224,7 +224,7 @@ value <-> trim <-> $username
 // @temp -> $someAttribute
 ```
 
-###One-Time Binding
+### One-Time Binding
 
 Apart from the arrows so far, you can also use `<~` and `~>`, which expresses a binding that is exactly executed once. This can be used to initialize binding scope variables or to set view attributes more efficiently, if they do not change.
 
@@ -233,7 +233,7 @@ Apart from the arrows so far, you can also use `<~` and `~>`, which expresses a 
 text <~ $welcomeMessage
 ```
 
-###Sequence
+### Sequence
 
 Instead of just one adapter on the left or right of a binding, you may also use a list of adapter separated by commas.
 
@@ -250,7 +250,7 @@ Instead of just one adapter on the left or right of a binding, you may also use 
 @min, @max, @average <- stats <- $numbers[0], $numbers[1], $numbers[2]
 ```
 
-###Initiator
+### Initiator
 
 By default, a binding is propagated, if (one of) its source adapter notifies BindingJS about a change through its observation mechanism. If this is however not wished, two adapter may be combined into a new adapter by borrowing the observation functionality from one and the retrieving functionality from another.
 
@@ -270,7 +270,7 @@ on:keyup +> value -> $username
 - You can initiate a sequence of adapter
 - If an initiator is used with the sink of a binding it has no effect, since the sink of a binding is never observed anyway.
 
-###Parameter
+### Parameter
 
 Both adapter and connectors may have name based or positional parameters.
 
@@ -279,7 +279,7 @@ on:keydown("enter") +> value -> split(token: " ") -> $firstname, $lastname
 on:keydown("f1", "f2", "f3", "f4") +> true -> @fButtonPressed
 ```
 
-###Expression
+### Expression
 
 Here the fun part starts. BindingJS supports a variety of expressions that make your life easier. You can use expression, wherever adapter were allowed until now. This includes the sources of bindings, parameters, expressions for iterations and so on.
 
@@ -322,7 +322,7 @@ The available set of expressions includes literal values and compound expression
 
 The two core structure concepts offered by BindingJS are *Identification* and *Insertion*
 
-###Identification
+### Identification
 
 ```
 @binding whole {
@@ -342,7 +342,7 @@ The two core structure concepts offered by BindingJS are *Identification* and *I
 
 Identification allows naming and later identifying certain parts of a binding specification. Syntactically it can be placed, wherever a scope could be placed. One of its purposes is to only use a certain part of the binding specification. Please refer to the [API documentation](https://github.com/rummelj/bindingjs/wiki/Application-User-Interface-(API)) for more information.
 
-###Insertion
+### Insertion
 
 Insertion allows marking certain parts of the template as hooks for external content. A possible use case would be that you want to initialize a third-party library for each item that is created when iterating a collection.
 
